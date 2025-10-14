@@ -18,6 +18,8 @@ import { AlignEntityResponse, WeChatWorkerStatus } from '@/app/studio/editor/ent
 import { getThresholds, meetsThresholds } from '@/app/lib/approval/approval-actions'
 import { pkgUp } from 'pkg-up'
 import { prisma } from '@/app/lib/prisma'
+import { resolveAllData } from '@measured/puck'
+import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 
 const PAGE_SIZE = 24
 
@@ -94,6 +96,30 @@ export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[
         },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT
     })
+}
+
+const lastRefresh = 0
+
+export async function refreshPageData(): Promise<void> {
+    if (Date.now() - lastRefresh < 3600 * 1000) {
+        return
+    }
+    const pages = await prisma.contentEntity.findMany({
+        where: {
+            type: EntityType.page
+        }
+    })
+    for (const page of pages) {
+        await prisma.contentEntity.update({
+            where: { id: page.id },
+            data: {
+                contentDraftEN: JSON.stringify(await resolveAllData(JSON.parse(page.contentDraftEN), PUCK_CONFIG)),
+                contentDraftZH: JSON.stringify(await resolveAllData(JSON.parse(page.contentDraftZH), PUCK_CONFIG)),
+                contentPublishedEN: page.contentPublishedEN == null ? null : JSON.stringify(await resolveAllData(JSON.parse(page.contentPublishedEN), PUCK_CONFIG)),
+                contentPublishedZH: page.contentPublishedZH == null ? null : JSON.stringify(await resolveAllData(JSON.parse(page.contentPublishedZH), PUCK_CONFIG))
+            }
+        })
+    }
 }
 
 export async function getContentEntityBySlug(slug: string): Promise<HydratedContentEntity | null> {

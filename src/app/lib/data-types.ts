@@ -17,7 +17,7 @@ export interface SimplifiedUser {
     updatedAt: Date | string
 }
 
-export function isAligned(item: ContentEntity) {
+export function isAligned(item: HydratedContentEntity) {
     return (
         item.titlePublishedEN === item.titleDraftEN &&
         item.titlePublishedZH === item.titleDraftZH &&
