@@ -42,7 +42,10 @@ const ActivitiesConfig: ComponentConfig = {
             type: 'array',
             visible: false,
             arrayFields: {
-                activity: RESOLVED_CONTENT_ENTITY_TYPE
+                activity: {
+                    type: 'object',
+                    objectFields: {}
+                }
             }
         },
         resolvedUploadPrefix: {

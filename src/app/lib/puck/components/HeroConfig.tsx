@@ -21,7 +21,10 @@ const HeroConfig: ComponentConfig = {
                 { label: '关闭', value: false }
             ]
         },
-        resolvedImage: RESOLVED_IMAGE_TYPE,
+        resolvedImage: {
+            type: 'object',
+            objectFields: {}
+        },
         resolvedUploadPrefix: {
             type: 'text',
             visible: false

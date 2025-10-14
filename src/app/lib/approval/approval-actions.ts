@@ -1,9 +1,8 @@
 'use server'
 
-import { PrismaClient, EntityType, Role } from '@prisma/client'
+import { EntityType, Role } from '@prisma/client'
 import { requireUserWithRole } from '@/app/login/login-actions'
-
-const prisma = new PrismaClient()
+import { prisma } from '@/app/lib/prisma'
 
 export type ApprovalThresholds = {
     [Role.editor]?: number

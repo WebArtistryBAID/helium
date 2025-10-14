@@ -31,15 +31,7 @@ const AlumniConfig: ComponentConfig = {
         resolvedAlumni: {
             visible: false,
             type: 'array',
-            arrayFields: {
-                name: {
-                    type: 'text'
-                },
-                quote: {
-                    type: 'text'
-                },
-                image: RESOLVED_IMAGE_TYPE
-            }
+            arrayFields: {}
         },
         resolvedUploadPrefix: {
             type: 'text',

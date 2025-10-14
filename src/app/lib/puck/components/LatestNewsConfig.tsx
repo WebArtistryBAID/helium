@@ -1,4 +1,3 @@
-import { RESOLVED_CONTENT_ENTITY_TYPE } from '@/app/lib/puck/custom-fields'
 import { ComponentConfig } from '@measured/puck'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@prisma/client'
@@ -22,7 +21,7 @@ const LatestNewsConfig: ComponentConfig = {
         },
         resolvedPosts: {
             type: 'array',
-            arrayFields: RESOLVED_CONTENT_ENTITY_TYPE.objectFields,
+            arrayFields: {},
             visible: false
         },
         uploadPrefix: {
@@ -35,13 +34,14 @@ const LatestNewsConfig: ComponentConfig = {
         otherNewsText: '其他新闻',
         readMoreText: '了解更多'
     },
-    resolveData: async ({ props }) => {
+    resolveData: async () => {
         const posts = await getPublishedContentEntities(0, EntityType.post)
+        // BUDGE I don't exactly know why, but the createdAt field is not serialized properly
+        const items = posts.items.map(p => ({ ...p, createdAt: new Date(p.createdAt).toISOString() }))
         return {
             props: {
-                ...props,
                 uploadPrefix: await getUploadServePath(),
-                resolvedPosts: posts.pages > 0 ? posts.items : []
+                resolvedPosts: posts.pages > 0 ? items : []
             }
         }
     },

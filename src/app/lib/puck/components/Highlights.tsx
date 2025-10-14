@@ -87,7 +87,7 @@ const HighlightsConfig: ComponentConfig = {
             arrayFields: {
                 title: { type: 'text' },
                 text: { type: 'textarea' },
-                image: RESOLVED_IMAGE_TYPE,
+                image: { type: 'object', objectFields: {} },
                 link: { type: 'text' },
                 linkText: { type: 'text' }
             },

@@ -1,6 +1,6 @@
 'use server'
 
-import { ContentEntity, EntityType, PrismaClient, Role, User, UserAuditLogType } from '@prisma/client'
+import { ContentEntity, EntityType, Role, User, UserAuditLogType } from '@prisma/client'
 import {
     HYDRATED_CONTENT_ENTITY_SELECT,
     HydratedContentEntity,
@@ -17,10 +17,9 @@ import crypto from 'crypto'
 import { AlignEntityResponse, WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
 import { getThresholds, meetsThresholds } from '@/app/lib/approval/approval-actions'
 import { pkgUp } from 'pkg-up'
+import { prisma } from '@/app/lib/prisma'
 
 const PAGE_SIZE = 24
-
-const prisma = new PrismaClient()
 
 export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({

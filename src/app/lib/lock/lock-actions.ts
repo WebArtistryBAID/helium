@@ -1,9 +1,8 @@
 'use server'
 
 import crypto from 'crypto'
-import { EntityType, PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient()
+import { EntityType } from '@prisma/client'
+import { prisma } from '@/app/lib/prisma'
 
 const FRESH_MS = 90_000
 const SKEW_MS = 15_000

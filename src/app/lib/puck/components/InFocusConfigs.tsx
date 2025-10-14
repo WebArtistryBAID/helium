@@ -68,25 +68,17 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
             },
             max: 6
         },
-        resolvedHeroBg: RESOLVED_IMAGE_TYPE,
+        resolvedHeroBg: { type: 'object', objectFields: {} },
         resolvedIntroCards: {
             type: 'array',
             visible: false,
-            arrayFields: {
-                href: { type: 'text' },
-                image: RESOLVED_IMAGE_TYPE,
-                title: { type: 'text' },
-                shortContent: { type: 'text' }
-            }
+            arrayFields: {}
         },
-        resolvedResourcesImage: RESOLVED_IMAGE_TYPE,
+        resolvedResourcesImage: { type: 'object', objectFields: {} },
         resolvedProjects: {
             type: 'array',
             visible: false,
-            arrayFields: {
-                project: RESOLVED_CONTENT_ENTITY_TYPE,
-                discipline: { type: 'text' }
-            }
+            arrayFields: {}
         },
         resolvedUploadPrefix: { type: 'text', visible: false }
     },

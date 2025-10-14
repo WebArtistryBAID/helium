@@ -1,14 +1,14 @@
 'use server'
 
-import { Image, PrismaClient, Role, UserAuditLogType } from '@prisma/client'
+import { Image, Role, UserAuditLogType } from '@prisma/client'
 import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import sharp from 'sharp'
 import { Paginated } from '@/app/lib/data-types'
+import { prisma } from '@/app/lib/prisma'
 
 const PAGE_SIZE = 24
-const prisma = new PrismaClient()
 
 export async function getUploadServePath(): Promise<string> {
     return process.env.UPLOAD_SERVE_PATH!
