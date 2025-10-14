@@ -10,12 +10,12 @@ import {
     ModalFooter,
     ModalHeader,
     TabItem,
-    Tabs,
+    Tabs, TabsRef,
     TextInput
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
 import Markdown from 'react-markdown'
@@ -54,12 +54,23 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
     const [ inEnglish, setInEnglish ] = useState(false)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const [ _, setActiveTab ] = useState(0)
+    const tabsRef = useRef<TabsRef>(null)
     const router = useRouter()
 
     const { previewContent } = useImagePlaceholders({
         markdown: markdownContent,
         uploadPrefix
     })
+
+    useEffect(() => {
+        if (location.hash === '#approval') {
+            setActiveTab(2)
+        } else if (location.hash === '#preview') {
+            setActiveTab(1)
+        }
+    }, [])
 
     // = Switch language
     function switchLanguage() {
@@ -280,7 +291,9 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                 <div className="space-y-6">
                     <h3 className="text-xl font-bold">更改显示日期</h3>
                     <div>
-                        <Datepicker inline weekStart={1} value={post.createdAt} lang="zh-CN"
+                        <Datepicker inline weekStart={1}
+                                    value={typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt}
+                                    lang="zh-CN"
                                     onChange={d => {
                                         const date = d ?? new Date()
                                         setPost(prev => ({
@@ -307,7 +320,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             setShowMediaLibrary(false)
         }}/>
 
-        <Tabs aria-label="文章编辑器选项卡" variant="default">
+        <Tabs aria-label="文章编辑器选项卡" variant="default" ref={tabsRef}
+              onActiveTabChange={(tab) => setActiveTab(tab)}>
             <TabItem active title="内容" icon={HiNewspaper}>
                 <div className="w-full flex gap-8">
                     <div className="w-2/3 2xl:w-3/4">
@@ -398,7 +412,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
 
                         <p className="font-bold secondary text-sm">显示日期</p>
                         <p className="mb-3 flex items-center gap-3">
-                            {post.createdAt.toDateString()}
+                            {(typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt).toDateString()}
                             <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
                              duration-100 rounded-full flex justify-center items-center" aria-label="编辑显示日期"
                                     onClick={() => setShowDateForm(true)}>

@@ -400,7 +400,7 @@ export async function updateContentEntity(data: {
     slug: string | undefined
     categoryEN: string | null | undefined,
     categoryZH: string | null | undefined,
-    createdAt: Date | undefined
+    createdAt: Date | string | undefined
     titleDraftEN: string | undefined
     titleDraftZH: string | undefined
     shortContentDraftEN: string | null | undefined

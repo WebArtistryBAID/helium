@@ -22,7 +22,7 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
             <h2 className="text-2xl mb-3">待审核内容</h2>
             <div className="grid grid-cols-4 gap-4 mb-5">
                 {pendingApprovals.filter(post => post.slug !== 'temporary-slug').map(post => <Link
-                    href={post.type === EntityType.page ? `/studio/pages/${post.id}/editor` : `/studio/editor/${post.id}`}
+                    href={post.type === EntityType.page ? `/studio/pages/${post.id}/approval` : `/studio/editor/${post.id}#approval`}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
