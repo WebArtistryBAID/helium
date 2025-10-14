@@ -29,9 +29,12 @@ export function isAligned(item: ContentEntity) {
     )
 }
 
-export function getContentEntityURI(createdAt: Date | null | undefined, slug: string | null | undefined): string {
+export function getContentEntityURI(createdAt: Date | string | null | undefined, slug: string | null | undefined): string {
     if (createdAt == null || slug == null) {
         return ''
+    }
+    if (typeof createdAt === 'string') {
+        createdAt = new Date(createdAt)
     }
     const year = createdAt.getFullYear()
     const month = (createdAt.getMonth() + 1).toString().padStart(2, '0')
