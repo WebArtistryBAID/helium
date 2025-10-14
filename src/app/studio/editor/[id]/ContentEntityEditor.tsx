@@ -134,10 +134,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <Label htmlFor="title-zh">标题 (中文)</Label>
                         </div>
                         <TextInput id="title-zh" value={post.titleDraftZH} placeholder="世界因我更美好"
-                                   onChange={e => setPost(prev => ({
-                                       ...prev,
-                                       titleDraftZH: e.currentTarget.value
-                                   }))}
+                                   onChange={e => {
+                                       const value = e.currentTarget.value
+                                       setPost(prev => ({
+                                           ...prev,
+                                           titleDraftZH: value
+                                       }))
+                                   }}
                                    required/>
                     </div>
                     <div>
@@ -145,10 +148,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <Label htmlFor="title-en">标题 (英文)</Label>
                         </div>
                         <TextInput id="title-en" value={post.titleDraftEN} placeholder="Better Me, Better World"
-                                   onChange={e => setPost(prev => ({
-                                       ...prev,
-                                       titleDraftEN: e.currentTarget.value
-                                   }))}
+                                   onChange={e => {
+                                       const value = e.currentTarget.value
+                                       setPost(prev => ({
+                                           ...prev,
+                                           titleDraftEN: value
+                                       }))
+                                   }}
                                    required/>
                     </div>
                     <p className="text-sm">英文标题请使用正确大小写，如 Old Meets New: BAID Beijing Cultural
@@ -170,10 +176,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <Label htmlFor="sc-zh">短内容 (中文)</Label>
                         </div>
                         <TextInput id="sc-zh" value={post.shortContentDraftZH ?? ''}
-                                   onChange={e => setPost(prev => ({
-                                       ...prev,
-                                       shortContentDraftZH: e.currentTarget.value
-                                   }))}
+                                   onChange={e => {
+                                       const value = e.currentTarget.value
+                                       setPost(prev => ({
+                                           ...prev,
+                                           shortContentDraftZH: value
+                                       }))
+                                   }}
                                    required/>
                     </div>
                     <div>
@@ -181,10 +190,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <Label htmlFor="sc-en">短内容 (英文)</Label>
                         </div>
                         <TextInput id="sc-en" value={post.shortContentDraftEN ?? ''}
-                                   onChange={e => setPost(prev => ({
-                                       ...prev,
-                                       shortContentDraftEN: e.currentTarget.value
-                                   }))}
+                                   onChange={e => {
+                                       const value = e.currentTarget.value
+                                       setPost(prev => ({
+                                           ...prev,
+                                           shortContentDraftEN: value
+                                       }))
+                                   }}
                                    required/>
                     </div>
                 </div>
@@ -205,10 +217,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <Label htmlFor="category-zh">类别 (中文)</Label>
                         </div>
                         <TextInput id="category-zh" value={post.categoryZH ?? ''} placeholder="世界因我更美好"
-                                   onChange={e => setPost(prev => ({
-                                       ...prev,
-                                       categoryZH: e.currentTarget.value
-                                   }))}
+                                   onChange={e => {
+                                       const value = e.currentTarget.value
+                                       setPost(prev => ({
+                                           ...prev,
+                                           categoryZH: value
+                                       }))
+                                   }}
                                    required/>
                     </div>
                     <div>
@@ -216,10 +231,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <Label htmlFor="category-en">类别 (英文)</Label>
                         </div>
                         <TextInput id="category-en" value={post.categoryEN ?? ''} placeholder="Better Me, Better World"
-                                   onChange={e => setPost(prev => ({
-                                       ...prev,
-                                       categoryEN: e.currentTarget.value
-                                   }))}
+                                   onChange={e => {
+                                       const value = e.currentTarget.value
+                                       setPost(prev => ({
+                                           ...prev,
+                                           categoryEN: value
+                                       }))
+                                   }}
                                    required/>
                     </div>
                     <p className="text-sm">英文类别请使用正确大小写，如 AP Courses</p>
@@ -240,10 +258,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <Label htmlFor="slug">链接位置</Label>
                         </div>
                         <TextInput id="slug" value={post.slug} placeholder="better-me-better-world"
-                                   onChange={e => setPost(prev => ({
-                                       ...prev,
-                                       slug: e.currentTarget.value
-                                   }))}
+                                   onChange={e => {
+                                       const value = e.currentTarget.value
+                                       setPost(prev => ({
+                                           ...prev,
+                                           slug: value
+                                       }))
+                                   }}
                                    required/>
                     </div>
                 </div>
@@ -260,10 +281,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                     <h3 className="text-xl font-bold">更改显示日期</h3>
                     <div>
                         <Datepicker inline weekStart={1} value={post.createdAt} lang="zh-CN"
-                                    onChange={d => setPost(prev => ({
-                                        ...prev,
-                            createdAt: d ?? new Date()
-                                    }))}/>
+                                    onChange={d => {
+                                        const date = d ?? new Date()
+                                        setPost(prev => ({
+                                            ...prev,
+                                            createdAt: date
+                                        }))
+                                    }}/>
                     </div>
                 </div>
             </ModalBody>
