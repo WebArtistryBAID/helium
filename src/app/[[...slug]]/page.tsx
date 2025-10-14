@@ -84,6 +84,9 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         if (entity == null) {
             notFound()
         }
+        if (typeof entity.createdAt === 'string') {
+            entity.createdAt = new Date(entity.createdAt)
+        }
         const year = entity.createdAt.getFullYear().toString()
         const month = (entity.createdAt.getMonth() + 1).toString().padStart(2, '0')
         const day = entity.createdAt.getDate().toString().padStart(2, '0')

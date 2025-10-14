@@ -13,8 +13,8 @@ export interface SimplifiedUser {
     roles: Role[]
     type: UserType
     gender: Gender
-    createdAt: Date
-    updatedAt: Date
+    createdAt: Date | string
+    updatedAt: Date | string
 }
 
 export function isAligned(item: ContentEntity) {
@@ -30,11 +30,11 @@ export function isAligned(item: ContentEntity) {
 }
 
 export function getContentEntityURI(createdAt: Date | string | null | undefined, slug: string | null | undefined): string {
-    if (createdAt == null || slug == null) {
-        return ''
-    }
     if (typeof createdAt === 'string') {
         createdAt = new Date(createdAt)
+    }
+    if (createdAt == null || slug == null || !('getFullYear' in createdAt)) {
+        return ''
     }
     const year = createdAt.getFullYear()
     const month = (createdAt.getMonth() + 1).toString().padStart(2, '0')
@@ -70,8 +70,8 @@ export interface SimplifiedContentEntity {
     coverImagePublished: Image | null
     coverImageDraft: Image | null
     creator: SimplifiedUser
-    createdAt: Date
-    updatedAt: Date
+    createdAt: Date | string
+    updatedAt: Date | string
 }
 
 export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
@@ -120,9 +120,9 @@ export interface HydratedContentEntity {
     coverImageDraft: Image | null
     coverImageDraftId: number | null
     creatorId: number
-    creator: SimplifiedUser,
-    createdAt: Date,
-    updatedAt: Date
+    creator: SimplifiedUser
+    createdAt: Date | string
+    updatedAt: Date | string
 }
 
 export const HYDRATED_CONTENT_ENTITY_SELECT = {
