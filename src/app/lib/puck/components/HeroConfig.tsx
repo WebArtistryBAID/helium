@@ -2,6 +2,7 @@ import { ComponentConfig } from '@measured/puck'
 import { colorTypeField, imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Hero from '@/app/lib/puck/components/Hero'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const HeroConfig: ComponentConfig = {
     label: '基础首屏',
@@ -34,7 +35,7 @@ const HeroConfig: ComponentConfig = {
         return {
             props: {
                 ...props,
-                resolvedImage: props.image != null ? await getImage(parseInt(props.image)) : null,
+                resolvedImage: props.image != null ? convertDatesToStrings(await getImage(parseInt(props.image))) : null,
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

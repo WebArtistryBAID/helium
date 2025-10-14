@@ -3,6 +3,7 @@ import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@prisma/client'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import LatestNews from '@/app/lib/puck/components/LatestNews'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const LatestNewsConfig: ComponentConfig = {
     label: '最新文章',
@@ -35,13 +36,11 @@ const LatestNewsConfig: ComponentConfig = {
         readMoreText: '了解更多'
     },
     resolveData: async () => {
-        const posts = await getPublishedContentEntities(0, EntityType.post)
-        // BUDGE I don't exactly know why, but the createdAt field is not serialized properly
-        const items = posts.items.map(p => ({ ...p, createdAt: new Date(p.createdAt).toISOString() }))
+        const posts = convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post))
         return {
             props: {
                 uploadPrefix: await getUploadServePath(),
-                resolvedPosts: posts.pages > 0 ? items : []
+                resolvedPosts: posts.pages > 0 ? convertDatesToStrings(posts.items) : []
             }
         }
     },

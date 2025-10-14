@@ -2,6 +2,7 @@ import { ComponentConfig } from '@measured/puck'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Specialties from '@/app/lib/puck/components/Specialties'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const SpecialtiesConfig: ComponentConfig = {
     label: '学术特色卡片',
@@ -43,7 +44,7 @@ const SpecialtiesConfig: ComponentConfig = {
                 }) => ({
                     name: item.name,
                     description: item.description,
-                    image: item.image == null ? null : await getImage(parseInt(item.image))
+                    image: item.image == null ? null : convertDatesToStrings(await getImage(parseInt(item.image)))
                 }))),
                 resolvedUploadPrefix: await getUploadServePath()
             }

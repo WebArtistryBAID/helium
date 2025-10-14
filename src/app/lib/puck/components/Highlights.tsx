@@ -4,6 +4,7 @@ import ReadMore from '@/app/lib/puck/components/ReadMore'
 import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 interface Highlight {
     image: Image | null
@@ -105,7 +106,7 @@ const HighlightsConfig: ComponentConfig = {
             (props.highlights ?? []).map(async (highlight: any) => ({
                 title: highlight.title,
                 text: highlight.text,
-                image: (highlight.image == null || highlight.image === '') ? null : await getImage(parseInt(highlight.image)),
+                image: (highlight.image == null || highlight.image === '') ? null : convertDatesToStrings(await getImage(parseInt(highlight.image))),
                 link: highlight.link,
                 linkText: highlight.linkText
             }))

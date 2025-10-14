@@ -1,4 +1,4 @@
-import { ContentEntity, EntityType, Gender, Image, Role, UserType } from '@prisma/client'
+import { EntityType, Gender, Image, Role, UserType } from '@prisma/client'
 
 export interface Paginated<T> {
     items: T[]
@@ -153,4 +153,25 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     },
     createdAt: true,
     updatedAt: true
+}
+
+export function convertDatesToStrings<T>(value: T): T {
+    if (value == null) return value
+    if (Object.prototype.toString.call(value) === '[object Date]') {
+        return (value as unknown as Date).toISOString() as unknown as T
+    }
+    if (typeof value === 'bigint') {
+        return value.toString() as unknown as T
+    }
+    if (Array.isArray(value)) {
+        return value.map(v => convertDatesToStrings(v)) as unknown as T
+    }
+    if (typeof value === 'object') {
+        const out: Record<string, any> = {}
+        for (const [ key, val ] of Object.entries(value as Record<string, any>)) {
+            out[key] = convertDatesToStrings(val)
+        }
+        return out as T
+    }
+    return value
 }

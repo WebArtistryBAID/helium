@@ -4,6 +4,7 @@ import { getContentEntity, getPublishedContentEntities } from '@/app/studio/edit
 import { RESOLVED_CONTENT_ENTITY_TYPE } from '@/app/lib/puck/custom-fields'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import Activities from '@/app/lib/puck/components/Activities'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const ActivitiesConfig: ComponentConfig = {
     label: '校园活动',
@@ -63,7 +64,7 @@ const ActivitiesConfig: ComponentConfig = {
                 resolvedActivities: await Promise.all((props.activities ?? []).map(async (item: any) => {
                     if (!item?.activity?.id) return null
                     return {
-                        activity: await getContentEntity(item.activity.id)
+                        activity: convertDatesToStrings(await getContentEntity(item.activity.id))
                     }
                 })),
                 resolvedUploadPrefix: await getUploadServePath()

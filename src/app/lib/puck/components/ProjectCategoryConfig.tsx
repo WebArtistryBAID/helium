@@ -2,7 +2,7 @@ import { ComponentConfig } from '@measured/puck'
 import { getPublishedProjectsByCategoriesForInit } from '@/app/studio/editor/entity-actions'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import ProjectCategory from '@/app/lib/puck/components/ProjectCategory'
-import { Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { convertDatesToStrings, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
 
 const ProjectCategoryConfig: ComponentConfig = {
     label: '项目列表',
@@ -20,7 +20,7 @@ const ProjectCategoryConfig: ComponentConfig = {
     resolveData: async () => {
         return {
             props: {
-                resolvedProjectsInit: await getPublishedProjectsByCategoriesForInit(),
+                resolvedProjectsInit: convertDatesToStrings(await getPublishedProjectsByCategoriesForInit()),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
