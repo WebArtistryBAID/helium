@@ -15,7 +15,7 @@ import { spawn } from 'child_process'
 import sharp from 'sharp'
 import crypto from 'crypto'
 import { AlignEntityResponse, WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
-import { meetsThresholds } from '@/app/lib/approval/approval-actions'
+import { getThresholds, meetsThresholds } from '@/app/lib/approval/approval-actions'
 import { pkgUp } from 'pkg-up'
 
 const PAGE_SIZE = 24
@@ -33,61 +33,59 @@ export async function getRecentEntities(type: EntityType): Promise<SimplifiedCon
 
 export async function getMyPendingApprovals(): Promise<SimplifiedContentEntity[]> {
     const user = await requireUser()
+    const entityTypes = Object.values(EntityType) as EntityType[]
+    const thresholdsByType = new Map<EntityType, Record<string, number>>()
+    for (const t of entityTypes) {
+        const th = await getThresholds(t)
+        thresholdsByType.set(t, th as unknown as Record<string, number>)
+    }
+    const rows: Array<{ id: number; type: EntityType; editor_count: number; admin_count: number }>
+        = await prisma.$queryRaw`
+        WITH counts AS (SELECT ce.id,
+                               ce."type"                                            AS type,
+                               SUM(CASE WHEN a."role" = 'editor' THEN 1 ELSE 0 END) AS editor_count,
+                               SUM(CASE WHEN a."role" = 'admin' THEN 1 ELSE 0 END)  AS admin_count
+                        FROM "ContentEntity" ce
+                                 LEFT JOIN "Approval" a ON a."entityId" = ce.id
+                        GROUP BY ce.id, ce."type")
+        SELECT id, type, editor_count, admin_count
+        FROM counts
+        ORDER BY id DESC LIMIT 500;`
 
-    const EDITOR_REQUIRED = Number(process.env.EDITOR_APPROVALS_REQUIRED ?? 2)
-    const ADMIN_REQUIRED = Number(process.env.ADMIN_APPROVALS_REQUIRED ?? 1)
+    const getReq = (type: EntityType, role: Role) => {
+        const th = thresholdsByType.get(type) ?? {}
+        return Number(th[role] ?? 0)
+    }
+
+    let ids: number[] = []
 
     if (user.roles.includes(Role.admin)) {
-        const rows: Array<{ id: number }>
-            = await prisma.$queryRaw`
-            WITH counts AS (SELECT ce.id,
-                                   SUM(CASE WHEN a."role" = 'editor' THEN 1 ELSE 0 END) AS editor_count,
-                                   SUM(CASE WHEN a."role" = 'admin' THEN 1 ELSE 0 END)  AS admin_count
-                            FROM "ContentEntity" ce
-                                     LEFT JOIN "Approval" a ON a."entityId" = ce.id
-                            WHERE ce."type" = 'post'
-                            GROUP BY ce.id)
-            SELECT id
-            FROM counts
-            WHERE editor_count >= ${EDITOR_REQUIRED}::int
-              AND admin_count < ${ADMIN_REQUIRED}:: int
-            ORDER BY id DESC
-                LIMIT 24;`
-
-        const ids = rows.map(r => r.id)
-        if (ids.length === 0) return []
-        return prisma.contentEntity.findMany({
-            where: { id: { in: ids } },
-            select: SIMPLIFIED_CONTENT_ENTITY_SELECT,
-            orderBy: { updatedAt: 'desc' }
-        })
+        ids = rows
+            .filter(r => {
+                const editorReq = getReq(r.type, Role.editor)
+                const adminReq = getReq(r.type, Role.admin)
+                return r.editor_count >= editorReq && r.admin_count < adminReq
+            })
+            .map(r => r.id)
+    } else if (user.roles.includes(Role.editor)) {
+        ids = rows
+            .filter(r => {
+                const editorReq = getReq(r.type, Role.editor)
+                return r.editor_count < editorReq
+            })
+            .map(r => r.id)
+    } else {
+        return []
     }
 
-    if (user.roles.includes(Role.editor)) {
-        const rows: Array<{ id: number }>
-            = await prisma.$queryRaw`
-            WITH counts AS (SELECT ce.id,
-                                   SUM(CASE WHEN a."role" = 'editor' THEN 1 ELSE 0 END) AS editor_count
-                            FROM "ContentEntity" ce
-                                     LEFT JOIN "Approval" a ON a."entityId" = ce.id
-                            WHERE ce."type" = 'post'
-                            GROUP BY ce.id)
-            SELECT id
-            FROM counts
-            WHERE editor_count < ${EDITOR_REQUIRED}::int
-            ORDER BY id DESC
-                LIMIT 24;`
+    if (ids.length === 0) return []
 
-        const ids = rows.map(r => r.id)
-        if (ids.length === 0) return []
-        return prisma.contentEntity.findMany({
-            where: { id: { in: ids } },
-            select: SIMPLIFIED_CONTENT_ENTITY_SELECT,
-            orderBy: { updatedAt: 'desc' }
-        })
-    }
-
-    return []
+    const limited = ids.slice(0, 24)
+    return prisma.contentEntity.findMany({
+        where: { id: { in: limited } },
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT,
+        orderBy: { updatedAt: 'desc' }
+    })
 }
 
 export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[]> {
