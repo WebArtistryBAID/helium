@@ -1,7 +1,8 @@
 import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Accreditations from '@/app/lib/puck/components/Accreditations'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const AccreditationsConfig: ComponentConfig = {
     label: '认证',
@@ -31,12 +32,7 @@ const AccreditationsConfig: ComponentConfig = {
         resolvedAccreditations: {
             type: 'array',
             visible: false,
-            arrayFields: {
-                name: {
-                    type: 'text'
-                },
-                image: RESOLVED_IMAGE_TYPE
-            }
+            arrayFields: {}
         },
         resolvedUploadPrefix: {
             type: 'text',
@@ -54,7 +50,7 @@ const AccreditationsConfig: ComponentConfig = {
                     if (!accreditation) return null
                     return {
                         name: accreditation.name,
-                        image: accreditation.image == null ? null : await getImage(parseInt(accreditation.image))
+                        image: accreditation.image == null ? null : convertDatesToStrings(await getImage(parseInt(accreditation.image)))
                     }
                 }))
             }

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { PrismaClient, UserAuditLogType } from '@prisma/client'
+import { UserAuditLogType } from '@prisma/client'
 import { createSecretKey } from 'node:crypto'
 import { SignJWT } from 'jose'
 import { cookies } from 'next/headers'
+import { prisma } from '@/app/lib/prisma'
 
-const prisma = new PrismaClient()
 const secret = createSecretKey(process.env.JWT_SECRET!, 'utf-8')
 
 export async function GET(request: NextRequest): Promise<NextResponse> {

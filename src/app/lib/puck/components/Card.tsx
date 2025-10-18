@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 export default function Card({ href, image, title, shortContent, uploadPrefix }: {
     href: string | null | undefined,
@@ -61,7 +62,7 @@ export const CardConfig: ComponentConfig = {
         return {
             props: {
                 resolvedUploadPrefix: await getUploadServePath(),
-                resolvedImage: props.image == null ? null : await getImage(parseInt(props.image))
+                resolvedImage: props.image == null ? null : convertDatesToStrings(await getImage(parseInt(props.image)))
             }
         }
     },

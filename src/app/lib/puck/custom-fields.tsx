@@ -21,22 +21,6 @@ export const RESOLVED_IMAGE_TYPE: ObjectField = {
     }
 }
 
-export const RESOLVED_USER_TYPE: ObjectField = {
-    type: 'object',
-    visible: false,
-    objectFields: {
-        id: {
-            type: 'number'
-        },
-        name: {
-            type: 'text'
-        },
-        pinyin: {
-            type: 'text'
-        }
-    }
-}
-
 export const RESOLVED_CONTENT_ENTITY_TYPE: ObjectField = {
     type: 'object',
     visible: false,

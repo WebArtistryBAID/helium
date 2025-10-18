@@ -50,7 +50,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
 
     return <div className="p-8">
         <h2 className="text-2xl font-bold mb-5">
-            审核与发布流程<If condition={entityType === EntityType.page}>: "{entity.titleDraftZH}" 页面</If>
+            审核与发布流程<If condition={entityType === EntityType.page}>: &#34;{entity.titleDraftZH}&#34; 页面</If>
         </h2>
         <Timeline>
             <TimelineItem>
@@ -169,7 +169,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                             }}>{publishConfirm ? '确认发布?' : '发布'}</Button>
                         </If>
                         <If condition={isAligned(entity)}>
-                            <p>内容已成功发布!</p>
+                            <p>内容已成功发布! 自动更新可能需要最多一小时。</p>
                         </If>
                     </TimelineBody>
                 </TimelineContent>

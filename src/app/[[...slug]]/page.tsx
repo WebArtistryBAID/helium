@@ -2,7 +2,7 @@ import { cookies, headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { Render } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
-import { getContentEntityBySlug } from '@/app/studio/editor/entity-actions'
+import { getContentEntityBySlug, refreshPageData } from '@/app/studio/editor/entity-actions'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
 import GlobalHeader from '@/app/[[...slug]]/GlobalHeader'
 import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
@@ -75,6 +75,7 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         redirect(`/${finalLocale}/${route.join('/')}`)
     }
 
+    void refreshPageData()
     const newRoute = route.slice(1)
     const slug = newRoute.length === 0 ? '/' : newRoute.join('/')
 
@@ -83,6 +84,9 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         const entity = await getContentEntityBySlug(actualSlug)
         if (entity == null) {
             notFound()
+        }
+        if (typeof entity.createdAt === 'string') {
+            entity.createdAt = new Date(entity.createdAt)
         }
         const year = entity.createdAt.getFullYear().toString()
         const month = (entity.createdAt.getMonth() + 1).toString().padStart(2, '0')

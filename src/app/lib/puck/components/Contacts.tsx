@@ -2,6 +2,7 @@ import { Image } from '@prisma/client'
 import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 function Contacts({ title, description, emailText, emails, phoneText, phones, backgroundImage, uploadPrefix }: {
     title: string | undefined,
@@ -113,7 +114,7 @@ const ContactsConfig: ComponentConfig = {
         return {
             props: {
                 ...props,
-                resolvedBackgroundImage: props.backgroundImage == null ? null : await getImage(parseInt(props.backgroundImage)),
+                resolvedBackgroundImage: props.backgroundImage == null ? null : convertDatesToStrings(await getImage(parseInt(props.backgroundImage))),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

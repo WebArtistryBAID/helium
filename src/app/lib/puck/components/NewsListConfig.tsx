@@ -3,6 +3,7 @@ import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { EntityType } from '@prisma/client'
 import NewsList from '@/app/lib/puck/components/NewsList'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const NewsListConfig: ComponentConfig = {
     label: '新闻列表',
@@ -20,7 +21,7 @@ const NewsListConfig: ComponentConfig = {
     resolveData: async () => {
         return {
             props: {
-                resolvedEntitiesInit: await getPublishedContentEntities(0, EntityType.post),
+                resolvedEntitiesInit: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post)),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

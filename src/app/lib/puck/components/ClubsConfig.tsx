@@ -3,6 +3,7 @@ import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@prisma/client'
 import Clubs from '@/app/lib/puck/components/Clubs'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const ClubsConfig: ComponentConfig = {
     label: '社团',
@@ -25,7 +26,7 @@ const ClubsConfig: ComponentConfig = {
     resolveData: async () => {
         return {
             props: {
-                resolvedClubs: await getPublishedContentEntities(0, EntityType.club),
+                resolvedClubs: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.club)),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

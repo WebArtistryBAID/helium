@@ -2,7 +2,7 @@ import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_CONTENT_ENTITY_TYPE, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import InFocusProjects from '@/app/lib/puck/components/InFocusProjects'
-import { SimplifiedContentEntity } from '@/app/lib/data-types'
+import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { getContentEntity, getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@prisma/client'
 import InFocusNewStudents from '@/app/lib/puck/components/InFocusNewStudents'
@@ -68,25 +68,17 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
             },
             max: 6
         },
-        resolvedHeroBg: RESOLVED_IMAGE_TYPE,
+        resolvedHeroBg: { type: 'object', objectFields: {} },
         resolvedIntroCards: {
             type: 'array',
             visible: false,
-            arrayFields: {
-                href: { type: 'text' },
-                image: RESOLVED_IMAGE_TYPE,
-                title: { type: 'text' },
-                shortContent: { type: 'text' }
-            }
+            arrayFields: {}
         },
-        resolvedResourcesImage: RESOLVED_IMAGE_TYPE,
+        resolvedResourcesImage: { type: 'object', objectFields: {} },
         resolvedProjects: {
             type: 'array',
             visible: false,
-            arrayFields: {
-                project: RESOLVED_CONTENT_ENTITY_TYPE,
-                discipline: { type: 'text' }
-            }
+            arrayFields: {}
         },
         resolvedUploadPrefix: { type: 'text', visible: false }
     },
@@ -141,7 +133,7 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
 
     resolveData: async ({ props }) => {
         const resolvedHeroBg =
-            props.heroBg == null ? null : await getImage(parseInt(props.heroBg))
+            props.heroBg == null ? null : convertDatesToStrings(await getImage(parseInt(props.heroBg)))
 
         const resolvedIntroCards = await Promise.all(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -149,7 +141,7 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
                 if (!c) return null
                 return {
                     href: c.href,
-                    image: c.image ? await getImage(parseInt(c.image)) : null,
+                    image: c.image ? convertDatesToStrings(await getImage(parseInt(c.image))) : null,
                     title: c.title,
                     shortContent: c.shortContent
                 }
@@ -161,7 +153,7 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
             (props.projects ?? []).map(async (p: any) => {
                 if (!p?.project?.id) return null
                 return {
-                    project: await getContentEntity(p.project.id),
+                    project: convertDatesToStrings(await getContentEntity(p.project.id)),
                     discipline: p.discipline
                 }
             })
@@ -320,12 +312,12 @@ export const InFocusProjectsConfig: ComponentConfig = {
     resolveData: async ({ props }) => {
         return {
             props: {
-                resolvedHeroBg: props.heroBg == null ? null : await getImage(parseInt(props.heroBg)),
+                resolvedHeroBg: props.heroBg == null ? null : convertDatesToStrings(await getImage(parseInt(props.heroBg))),
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 resolvedProjects: await Promise.all((props.projects ?? []).map(async (item: any) => {
                     if (!item?.project?.id) return null
                     return {
-                        project: await getContentEntity(item.project.id),
+                        project: convertDatesToStrings(await getContentEntity(item.project.id)),
                         discipline: item.discipline,
                         description: item.description,
                         linkText: item.linkText

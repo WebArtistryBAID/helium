@@ -1,9 +1,9 @@
-import { RESOLVED_CONTENT_ENTITY_TYPE } from '@/app/lib/puck/custom-fields'
 import { ComponentConfig } from '@measured/puck'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@prisma/client'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import LatestNews from '@/app/lib/puck/components/LatestNews'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const LatestNewsConfig: ComponentConfig = {
     label: '最新文章',
@@ -22,7 +22,7 @@ const LatestNewsConfig: ComponentConfig = {
         },
         resolvedPosts: {
             type: 'array',
-            arrayFields: RESOLVED_CONTENT_ENTITY_TYPE.objectFields,
+            arrayFields: {},
             visible: false
         },
         uploadPrefix: {
@@ -35,13 +35,12 @@ const LatestNewsConfig: ComponentConfig = {
         otherNewsText: '其他新闻',
         readMoreText: '了解更多'
     },
-    resolveData: async ({ props }) => {
-        const posts = await getPublishedContentEntities(0, EntityType.post)
+    resolveData: async () => {
+        const posts = convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post))
         return {
             props: {
-                ...props,
                 uploadPrefix: await getUploadServePath(),
-                resolvedPosts: posts.pages > 0 ? posts.items : []
+                resolvedPosts: posts.pages > 0 ? convertDatesToStrings(posts.items) : []
             }
         }
     },

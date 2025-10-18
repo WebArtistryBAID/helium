@@ -2,6 +2,7 @@ import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Alumni from '@/app/lib/puck/components/Alumni'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 const AlumniConfig: ComponentConfig = {
     label: '校友寄语',
@@ -31,15 +32,7 @@ const AlumniConfig: ComponentConfig = {
         resolvedAlumni: {
             visible: false,
             type: 'array',
-            arrayFields: {
-                name: {
-                    type: 'text'
-                },
-                quote: {
-                    type: 'text'
-                },
-                image: RESOLVED_IMAGE_TYPE
-            }
+            arrayFields: {}
         },
         resolvedUploadPrefix: {
             type: 'text',
@@ -75,7 +68,7 @@ const AlumniConfig: ComponentConfig = {
                     return {
                         name: alum.name,
                         quote: alum.quote,
-                        image: alum.image == null ? null : await getImage(parseInt(alum.image))
+                        image: alum.image == null ? null : convertDatesToStrings(await getImage(parseInt(alum.image)))
                     }
                 })),
                 resolvedUploadPrefix: await getUploadServePath()

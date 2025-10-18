@@ -2,6 +2,7 @@ import { Image } from '@prisma/client'
 import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 function Quote({ text, source, image, uploadPrefix }: {
     text: string | null,
@@ -171,7 +172,7 @@ const QuoteConfig: ComponentConfig = {
     resolveData: async ({ props }) => ({
         props: {
             ...props,
-            resolvedImage: props.image == null ? null : await getImage(parseInt(props.image)),
+            resolvedImage: props.image == null ? null : convertDatesToStrings(await getImage(parseInt(props.image))),
             resolvedUploadPrefix: await getUploadServePath()
         }
     }),

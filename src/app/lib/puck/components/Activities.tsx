@@ -26,7 +26,7 @@ function ActivityTextBlock({ name, description, background, light }: {
 function ActivityBlock({ name, description, createdAt, slug, image, background, light, textAlign, uploadPrefix }: {
     name: string,
     description: string,
-    createdAt: Date | null | undefined,
+    createdAt: Date | string | null | undefined,
     slug: string | null | undefined,
     image: Image | undefined,
     background: string,
