@@ -6,9 +6,9 @@ import { getContentEntityBySlug, refreshPageData } from '@/app/studio/editor/ent
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
 import GlobalHeader from '@/app/[[...slug]]/GlobalHeader'
 import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
-import Head from 'next/head'
-import { generateMetadata } from '@/app/[[...slug]]/metadata-utils'
+import { retrieveMetadata } from '@/app/[[...slug]]/metadata-utils'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
+import { Metadata } from 'next'
 
 const PAGES = [
     { id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about' },
@@ -19,12 +19,92 @@ const PAGES = [
     { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news' }
 ]
 
+export async function generateMetadata({ params }: { params: { slug: string[] | undefined } }): Promise<Metadata> {
+    const route = params.slug ?? []
+
+    // Determine locale
+    let finalLocale: string
+    if (route.length > 0 && (route[0] === 'en' || route[0] === 'zh')) {
+        finalLocale = route[0]
+    } else {
+        const langCookie = (await cookies()).get('lang')?.value
+        if (langCookie === 'en' || langCookie === 'zh') {
+            finalLocale = langCookie
+        } else {
+            const rawLocale = ((await headers()).get('Accept-Language') ?? 'en').split(';')
+            finalLocale = rawLocale[0].includes('zh') ? 'zh' : 'en'
+        }
+    }
+
+    const newRoute = route.slice(1)
+    const metadata = await retrieveMetadata(route)
+
+    let ogImage = `${process.env.HOST}/assets/components/bento/life.webp`
+    let ogType: 'website' | 'article' = 'website'
+    let publishedTime
+    if (newRoute.length === 5 && newRoute[0] === 'content') {
+        const actualSlug = newRoute[4]
+        const entity = await getContentEntityBySlug(actualSlug)
+        if (entity && entity.coverImagePublished) {
+            ogImage = `${process.env.HOST}${await getUploadServePath()}/${entity.coverImagePublished.sha1}.webp`
+        }
+        ogType = 'article'
+        if (entity && entity.createdAt) {
+            publishedTime = (typeof entity.createdAt === 'string'
+                    ? new Date(entity.createdAt)
+                    : entity.createdAt
+            ).toISOString()
+        }
+    }
+
+    return {
+        title: metadata.title,
+        description: metadata.description,
+        openGraph: {
+            title: metadata.title,
+            description: metadata.description,
+            url: finalLocale === 'en' ? metadata.urlEN : metadata.urlZH,
+            type: ogType,
+            images: [
+                {
+                    url: ogImage,
+                    width: 1080,
+                    height: 720,
+                    alt: metadata.title
+                }
+            ],
+            siteName: finalLocale === 'en'
+                ? 'Beijing Academy International Division'
+                : '北京中学国际部',
+            locale: finalLocale === 'zh' ? 'zh_CN' : 'en_US',
+            alternateLocale: finalLocale === 'zh' ? 'en_US' : 'zh_CN',
+            ...(publishedTime ? { publishedTime } : {})
+        },
+        twitter: {
+            card: 'summary_large_image',
+            title: metadata.title,
+            description: metadata.description,
+            images: [ ogImage ]
+        },
+        alternates: {
+            canonical: finalLocale === 'en' ? metadata.urlEN : metadata.urlZH,
+            languages: {
+                'x-default': metadata.urlEN,
+                en: metadata.urlEN,
+                zh: metadata.urlZH
+            }
+        },
+        other: ogType === 'article' && publishedTime
+            ? { 'article:published_time': publishedTime }
+            : {}
+    }
+}
+
 export default async function RouteHandler({ params }: { params: Promise<{ slug: string[] | undefined }> }) {
     const route = (await params).slug ?? []
 
     // Determine locale
     let finalLocale: string
-
     if (route.length > 0 && (route[0] === 'en' || route[0] === 'zh')) {
         finalLocale = route[0]
     } else {
@@ -46,8 +126,6 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     const newRoute = route.slice(1)
     const slug = newRoute.length === 0 ? '/' : newRoute.join('/')
 
-    const metadata = await generateMetadata(route)
-
     if (newRoute.length === 5 && newRoute[0] === 'content') {
         const actualSlug = newRoute[4]
         const entity = await getContentEntityBySlug(actualSlug)
@@ -63,73 +141,27 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         if (year !== newRoute[1] || month !== newRoute[2] || day !== newRoute[3]) {
             notFound()
         }
-        return <>
-            <Head>
-                <title>{metadata.title}</title>
-                <meta name="description" content={metadata.description}/>
-                <meta property="og:title" content={metadata.title}/>
-                <meta property="og:description" content={metadata.description}/>
-                <meta property="og:url" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
-                <meta property="og:type"
-                      content={newRoute.length === 5 && newRoute[0] === 'content' ? 'article' : 'website'}/>
-                <meta property="og:image"
-                      content={entity.coverImagePublished == null ? `${process.env.HOST}/assets/components/bento/life.webp` : `${process.env.HOST}${await getUploadServePath()}/${entity.coverImagePublished.sha1}.webp`}/>
-                <meta property="og:site_name"
-                      content={finalLocale === 'en' ? 'Beijing Academy International Division' : '北京中学国际部'}/>
-                <meta property="og:locale" content={finalLocale === 'zh' ? 'zh_CN' : 'en_US'}/>
-                <meta property="og:locale:alternate" content={finalLocale === 'zh' ? 'en_US' : 'zh_CN'}/>
-                <meta property="article:published_time" content={entity.createdAt.toISOString()}/>
-                <meta name="twitter:card" content="summary_large_image"/>
-                <meta name="twitter:title" content={metadata.title}/>
-                <meta name="twitter:description" content={metadata.description}/>
-                <meta name="twitter:image"
-                      content={entity.coverImagePublished == null ? `${process.env.HOST}/assets/components/bento/life.webp` : `${process.env.HOST}${await getUploadServePath()}/${entity.coverImagePublished.sha1}.webp`}/>
-                <link rel="canonical" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
-                <link rel="alternate" href={metadata.urlEN} hrefLang="x-default"/>
-                <link rel="alternate" href={metadata.urlEN} hrefLang="en"/>
-                <link rel="alternate" href={metadata.urlZH} hrefLang="zh"/>
-            </Head>
-
-            <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
-            <AnyContentEntityPage entity={entity} params={params}/>
-            <GlobalFooter pages={PAGES}/>
-        </>
+        return (
+            <>
+                <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
+                <AnyContentEntityPage entity={entity} params={params}/>
+                <GlobalFooter pages={PAGES}/>
+            </>
+        )
     }
 
     const entity = await getContentEntityBySlug(slug)
     if (entity == null) {
         notFound()
     }
-
-    return <>
-        <Head>
-            <title>{metadata.title}</title>
-            <meta name="description" content={metadata.description}/>
-            <meta property="og:title" content={metadata.title}/>
-            <meta property="og:description" content={metadata.description}/>
-            <meta property="og:url" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
-            <meta property="og:type"
-                  content={newRoute.length === 5 && newRoute[0] === 'content' ? 'article' : 'website'}/>
-            <meta property="og:image" content={`${process.env.HOST}/assets/components/bento/life.webp`}/>
-            <meta property="og:site_name"
-                  content={finalLocale === 'en' ? 'Beijing Academy International Division' : '北京中学国际部'}/>
-            <meta property="og:locale" content={finalLocale === 'zh' ? 'zh_CN' : 'en_US'}/>
-            <meta property="og:locale:alternate" content={finalLocale === 'zh' ? 'en_US' : 'zh_CN'}/>
-            <meta name="twitter:card" content="summary_large_image"/>
-            <meta name="twitter:title" content={metadata.title}/>
-            <meta name="twitter:description" content={metadata.description}/>
-            <meta name="twitter:image" content={`${process.env.HOST}/assets/components/bento/life.webp`}/>
-            <link rel="canonical" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
-            <link rel="alternate" href={metadata.urlEN} hrefLang="x-default"/>
-            <link rel="alternate" href={metadata.urlEN} hrefLang="en"/>
-            <link rel="alternate" href={metadata.urlZH} hrefLang="zh"/>
-        </Head>
-
-        <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
-        <Render config={PUCK_CONFIG}
-                data={finalLocale === 'en'
-                    ? JSON.parse(entity.contentPublishedEN!)
-                    : JSON.parse(entity.contentPublishedZH!)}/>
-        <GlobalFooter pages={PAGES}/>
-    </>
+    return (
+        <>
+            <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
+            <Render config={PUCK_CONFIG}
+                    data={finalLocale === 'en'
+                        ? JSON.parse(entity.contentPublishedEN!)
+                        : JSON.parse(entity.contentPublishedZH!)}/>
+            <GlobalFooter pages={PAGES}/>
+        </>
+    )
 }

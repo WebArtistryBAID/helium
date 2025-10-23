@@ -1,6 +1,6 @@
 import { getContentEntityBySlug } from '@/app/studio/editor/entity-actions'
 
-export async function generateMetadata(slugs: string[] | null): Promise<{
+export async function retrieveMetadata(slugs: string[] | null): Promise<{
     title: string,
     description: string,
     urlEN: string,
