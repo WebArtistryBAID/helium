@@ -1,9 +1,11 @@
+'use client'
+
 import { Button } from 'flowbite-react'
 import { ComponentConfig } from '@measured/puck'
 import { prefixLink } from '@/app/lib/data-types'
-import serverLanguage from '@/app/[[...slug]]/serverLanguage'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
-async function ButtonWidget({ text, link, color, size, align, blank }: {
+function ButtonWidget({ text, link, color, size, align, blank }: {
     text: string,
     link: string,
     color: string,
@@ -11,8 +13,9 @@ async function ButtonWidget({ text, link, color, size, align, blank }: {
     align: string,
     blank: boolean
 }) {
+    const language = useLanguage()
     return <div className={`w-full flex ${align != null ? `justify-${align}` : ''}`}>
-        <Button as={'a'} href={prefixLink(await serverLanguage(), link)} target={blank ? '_blank' : undefined}
+        <Button as={'a'} href={prefixLink(language, link)} target={blank ? '_blank' : undefined}
                 color={color} size={size}
                 pill>{text}</Button>
     </div>

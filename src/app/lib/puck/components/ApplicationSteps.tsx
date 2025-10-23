@@ -1,6 +1,8 @@
+'use client'
+
 import { ComponentConfig } from '@measured/puck'
 import { prefixLink } from '@/app/lib/data-types'
-import serverLanguage from '@/app/[[...slug]]/serverLanguage'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 interface Step {
     name: string | undefined
@@ -9,8 +11,8 @@ interface Step {
     linkText: string | undefined
 }
 
-async function ApplicationSteps({ title, steps }: { title: string, steps: (Step | undefined)[] | undefined }) {
-    const lang = await serverLanguage()
+function ApplicationSteps({ title, steps }: { title: string, steps: (Step | undefined)[] | undefined }) {
+    const lang = useLanguage()
     const list: Step[] = (steps ?? []).filter((s): s is Step => !!s)
 
     const dotClass = (idx: number) => {
