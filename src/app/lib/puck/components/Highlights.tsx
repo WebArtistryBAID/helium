@@ -14,7 +14,7 @@ interface Highlight {
     linkText: string | null
 }
 
-async function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | null, uploadPrefix: string }) {
+function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | null, uploadPrefix: string }) {
     return <section
         aria-label="Highlights"
         className="border-t border-gray-200 my-0 mx-auto"
