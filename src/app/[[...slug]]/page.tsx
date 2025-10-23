@@ -19,8 +19,10 @@ const PAGES = [
     { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news' }
 ]
 
-export async function generateMetadata({ params }: { params: { slug: string[] | undefined } }): Promise<Metadata> {
-    const route = params.slug ?? []
+export async function generateMetadata({ params }: {
+    params: Promise<{ slug: string[] | undefined }>
+}): Promise<Metadata> {
+    const route = (await params).slug ?? []
 
     // Determine locale
     let finalLocale: string
