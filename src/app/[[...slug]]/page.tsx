@@ -68,8 +68,6 @@ export async function generateMetadata({ params }: { params: { slug: string[] | 
             images: [
                 {
                     url: ogImage,
-                    width: 1080,
-                    height: 720,
                     alt: metadata.title
                 }
             ],
@@ -144,7 +142,9 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         return (
             <>
                 <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
-                <AnyContentEntityPage entity={entity} params={params}/>
+                <div id="main-content">
+                    <AnyContentEntityPage entity={entity} params={params}/>
+                </div>
                 <GlobalFooter pages={PAGES}/>
             </>
         )
@@ -157,10 +157,12 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     return (
         <>
             <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
-            <Render config={PUCK_CONFIG}
-                    data={finalLocale === 'en'
-                        ? JSON.parse(entity.contentPublishedEN!)
-                        : JSON.parse(entity.contentPublishedZH!)}/>
+            <div id="main-content">
+                <Render config={PUCK_CONFIG}
+                        data={finalLocale === 'en'
+                            ? JSON.parse(entity.contentPublishedEN!)
+                            : JSON.parse(entity.contentPublishedZH!)}/>
+            </div>
             <GlobalFooter pages={PAGES}/>
         </>
     )

@@ -43,7 +43,7 @@ export async function retrieveMetadata(slugs: string[] | null): Promise<{
     return {
         title: language === 'en' ? `${entity.titlePublishedEN} | Beijing Academy International Division` : `${entity.titlePublishedZH} | 北京中学国际部`,
         description: (language === 'en' ? entity.shortContentPublishedEN : entity.shortContentPublishedZH) ?? baseDescription,
-        urlEN: process.env.HOST + `/en/${route.join('/')}`,
-        urlZH: process.env.HOST + `/zh/${route.join('/')}`
+        urlEN: process.env.HOST + `/en/${route.slice(1).join('/')}`,
+        urlZH: process.env.HOST + `/zh/${route.slice(1).join('/')}`
     }
 }

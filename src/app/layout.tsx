@@ -3,6 +3,7 @@ import './globals.css'
 import { ReactNode } from 'react'
 import NextTopLoader from 'nextjs-toploader'
 import { ThemeInit } from '../../.flowbite-react/init'
+import { cookies, headers } from 'next/headers'
 
 export const metadata: Metadata = {
     title: 'Beijing Academy International Division',
@@ -10,8 +11,15 @@ export const metadata: Metadata = {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
+    const pathname = (await headers()).get('X-Invoke-Path') || '/'
+    const locale =
+        pathname.startsWith('/zh') ||
+        (await cookies()).get('lang')?.value === 'zh'
+            ? 'zh'
+            : 'en'
+
     return (
-        <html lang="en" suppressHydrationWarning>
+        <html lang={locale} suppressHydrationWarning>
         <head><ThemeInit/></head>
         <body className="antialiased">
         <NextTopLoader showSpinner={false}/>
