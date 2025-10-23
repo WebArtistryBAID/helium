@@ -4,8 +4,7 @@ import ReadMore from '@/app/lib/puck/components/ReadMore'
 import { ComponentConfig } from '@measured/puck'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
-import { convertDatesToStrings, prefixLink } from '@/app/lib/data-types'
-import serverLanguage from '@/app/[[...slug]]/serverLanguage'
+import { convertDatesToStrings } from '@/app/lib/data-types'
 
 interface Highlight {
     image: Image | null
@@ -16,8 +15,6 @@ interface Highlight {
 }
 
 async function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | null, uploadPrefix: string }) {
-    const lang = await serverLanguage()
-
     return <section
         aria-label="Highlights"
         className="border-t border-gray-200 my-0 mx-auto"
@@ -48,7 +45,7 @@ async function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[
                 <If condition={highlight.link != null && highlight.linkText != null}>
                     <div className="mt-2">
                         <ReadMore text={highlight.linkText ?? ''}
-                                  to={highlight.link == null ? '' : prefixLink(lang, highlight.link)}/>
+                                  to={highlight.link == null ? '' : highlight.link}/>
                     </div>
                 </If>
             </div>)}
