@@ -50,7 +50,13 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
         const onScroll = () => {
             const y = window.scrollY
             setScrollY(y)
-            setHeaderVisible(y < lastY)
+            // Always show header when close to top
+            if (y <= 1) {
+                setHeaderVisible(true)
+            } else {
+                // Show on upward scroll, hide on downward
+                setHeaderVisible(y < lastY)
+            }
             lastY = y
         }
         window.addEventListener('scroll', onScroll, { passive: true })
