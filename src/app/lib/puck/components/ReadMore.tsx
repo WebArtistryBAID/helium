@@ -2,6 +2,8 @@
 
 import Link from 'next/link'
 import { useState } from 'react'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
+import { prefixLink } from '@/app/lib/data-types'
 
 function hexToRgb(hex: string) {
     hex = hex.replace(/^#/, '')
@@ -91,8 +93,10 @@ function lightenColor(color: string, percent: number) {
 export default function ReadMore({ text, to, color = '#82181a', iconColor = 'match' }:
                                  { text: string, to: string, color?: string, iconColor?: string }) {
     const [ isHovered, setIsHovered ] = useState(false)
+    const language = useLanguage()
 
-    return <Link href={to} className="decoration-none group" onMouseEnter={() => setIsHovered(true)}
+    return <Link href={prefixLink(language, to)} className="decoration-none group"
+                 onMouseEnter={() => setIsHovered(true)}
                  onMouseLeave={() => setIsHovered(false)}>
         <div className="flex items-center w-min">
             <i

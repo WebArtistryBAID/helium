@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Image } from '@prisma/client'
 import Card from '@/app/lib/puck/components/Card'
-import { SimplifiedContentEntity } from '@/app/lib/data-types'
+import { prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 export default function InFocusNewStudents({
@@ -116,7 +116,7 @@ export default function InFocusNewStudents({
                                     transition={{ duration: 0.8, delay: 0.3 * index }}
                                     key={`introCard-${index}`}
                                     viewport={{ once: true }} className="w-full h-full">
-                            <Card href={card.href} image={card.image} title={card.title}
+                            <Card href={prefixLink(language, card.href)} image={card.image} title={card.title}
                                   shortContent={card.shortContent}
                                   uploadPrefix={uploadPrefix}/>
                         </motion.div>

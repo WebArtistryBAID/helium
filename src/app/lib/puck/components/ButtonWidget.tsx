@@ -1,7 +1,9 @@
 import { Button } from 'flowbite-react'
 import { ComponentConfig } from '@measured/puck'
+import { prefixLink } from '@/app/lib/data-types'
+import serverLanguage from '@/app/[[...slug]]/serverLanguage'
 
-function ButtonWidget({ text, link, color, size, align, blank }: {
+async function ButtonWidget({ text, link, color, size, align, blank }: {
     text: string,
     link: string,
     color: string,
@@ -10,7 +12,8 @@ function ButtonWidget({ text, link, color, size, align, blank }: {
     blank: boolean
 }) {
     return <div className={`w-full flex ${align != null ? `justify-${align}` : ''}`}>
-        <Button as={'a'} href={link} target={blank ? '_blank' : undefined} color={color} size={size}
+        <Button as={'a'} href={prefixLink(await serverLanguage(), link)} target={blank ? '_blank' : undefined}
+                color={color} size={size}
                 pill>{text}</Button>
     </div>
 }

@@ -1,6 +1,6 @@
 'use client'
 
-import { getContentEntityURI, HydratedContentEntity } from '@/app/lib/data-types'
+import { prefixLink, getContentEntityURI, HydratedContentEntity } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { Image } from '@prisma/client'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
@@ -34,7 +34,9 @@ function ActivityBlock({ name, description, createdAt, slug, image, background, 
     textAlign: 'left' | 'right',
     uploadPrefix: string | undefined
 }) {
-    return <Link href={getContentEntityURI(createdAt, slug)}>
+    const language = useLanguage()
+
+    return <Link href={prefixLink(language, getContentEntityURI(createdAt, slug))}>
         <section aria-label="`Activity: ${name}`" role="region">
             <div className="hidden sm:grid grid-cols-2">
                 {textAlign === 'left' &&

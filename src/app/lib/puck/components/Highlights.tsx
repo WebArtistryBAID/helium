@@ -2,9 +2,10 @@ import { Image } from '@prisma/client'
 import If from '@/app/lib/If'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
-import { convertDatesToStrings } from '@/app/lib/data-types'
+import { convertDatesToStrings, prefixLink } from '@/app/lib/data-types'
+import serverLanguage from '@/app/[[...slug]]/serverLanguage'
 
 interface Highlight {
     image: Image | null
@@ -14,7 +15,9 @@ interface Highlight {
     linkText: string | null
 }
 
-function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | null, uploadPrefix: string }) {
+async function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | null, uploadPrefix: string }) {
+    const lang = await serverLanguage()
+
     return <section
         aria-label="Highlights"
         className="border-t border-gray-200 my-0 mx-auto"
@@ -44,7 +47,8 @@ function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | nu
                 <p>{highlight.text}</p>
                 <If condition={highlight.link != null && highlight.linkText != null}>
                     <div className="mt-2">
-                        <ReadMore text={highlight.linkText ?? ''} to={highlight.link ?? ''}/>
+                        <ReadMore text={highlight.linkText ?? ''}
+                                  to={highlight.link == null ? '' : prefixLink(lang, highlight.link)}/>
                     </div>
                 </If>
             </div>)}

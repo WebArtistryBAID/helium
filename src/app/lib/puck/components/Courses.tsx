@@ -1,6 +1,6 @@
 'use client'
 
-import { getContentEntityURI, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
@@ -88,7 +88,7 @@ export default function Courses({ title, courses }: {
                     className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-5 mb-5 transition-opacity duration-200"
                 >
                     {currentItems?.map((item) => (
-                        <Link href={getContentEntityURI(item?.createdAt, item?.slug)}
+                        <Link href={prefixLink(language, getContentEntityURI(item?.createdAt, item?.slug))}
                             key={item?.id ?? Math.random()}
                             role="listitem"
                               className="block text-2xl border-l-4 border-red-800 pl-3 col-span-1 md:col-span-2">

@@ -1,6 +1,6 @@
 'use client'
 
-import { getContentEntityURI, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, Paginated, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedProjectsByCategory } from '@/app/studio/editor/entity-actions'
 import Link from 'next/link'
@@ -28,7 +28,7 @@ export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }
         <h2 className="text-3xl font-bold mb-5">{language === 'en' ? titleEN : titleZH}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
             {page.items.map(project => <Link
-                href={getContentEntityURI(project.createdAt, project.slug)}
+                href={prefixLink(language, getContentEntityURI(project.createdAt, project.slug))}
                 className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
                 key={project.id}>
                 <If condition={project.coverImagePublished != null}>

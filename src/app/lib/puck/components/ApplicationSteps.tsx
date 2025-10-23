@@ -1,4 +1,6 @@
 import { ComponentConfig } from '@measured/puck'
+import { prefixLink } from '@/app/lib/data-types'
+import serverLanguage from '@/app/[[...slug]]/serverLanguage'
 
 interface Step {
     name: string | undefined
@@ -7,7 +9,8 @@ interface Step {
     linkText: string | undefined
 }
 
-function ApplicationSteps({ title, steps }: { title: string, steps: (Step | undefined)[] | undefined }) {
+async function ApplicationSteps({ title, steps }: { title: string, steps: (Step | undefined)[] | undefined }) {
+    const lang = await serverLanguage()
     const list: Step[] = (steps ?? []).filter((s): s is Step => !!s)
 
     const dotClass = (idx: number) => {
@@ -44,7 +47,7 @@ function ApplicationSteps({ title, steps }: { title: string, steps: (Step | unde
                             <h3 className="text-2xl font-bold mb-1">{step.name}</h3>
                             <div className="!text-lg">{step.content}</div>
                             {step.link && step.linkText ? (
-                                <a href={step.link}
+                                <a href={prefixLink(lang, step.link)}
                                    className="inline-block py-1 px-2 font-sans rounded-full bg-[var(--standard-blue)] text-white">
                                     {step.linkText}
                                 </a>

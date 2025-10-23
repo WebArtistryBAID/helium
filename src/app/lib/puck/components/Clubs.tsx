@@ -1,6 +1,6 @@
 'use client'
 
-import { getContentEntityURI, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, Paginated, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@prisma/client'
@@ -32,7 +32,7 @@ export default function Clubs({ title, init, uploadPrefix }: {
 
             <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
                 {page.items.map(club => <Link
-                    href={getContentEntityURI(club.createdAt, club.slug)}
+                    href={prefixLink(language, getContentEntityURI(club.createdAt, club.slug))}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
                     key={club.id}>
                     <If condition={club.coverImagePublished != null}>

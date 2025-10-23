@@ -6,8 +6,9 @@ import ReadMore from '@/app/lib/puck/components/ReadMore'
 import If from '@/app/lib/If'
 import { motion } from 'motion/react'
 import { InFocusProject } from '@/app/lib/puck/components/InFocusConfigs'
-import { getContentEntityURI } from '@/app/lib/data-types'
+import { getContentEntityURI, prefixLink } from '@/app/lib/data-types'
 import Link from 'next/link'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 export default function InFocusProjects({
                                             heroBg,
@@ -30,6 +31,7 @@ export default function InFocusProjects({
     startMainText: string | null,
     uploadPrefix: string | null
 }) {
+    const language = useLanguage()
     // Pre-processing, remove all nulls from resolvedProjects
     const projects = useMemo(() =>
         (resolvedProjects ?? []).filter(p => p != null) as InFocusProject[], [ resolvedProjects ])
@@ -189,7 +191,7 @@ export default function InFocusProjects({
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {projects.length > 3 && <>
                                 <Link className="group block"
-                                      href={getContentEntityURI(projects[3].project?.createdAt, projects[3].project?.slug)}>
+                                      href={prefixLink(language, getContentEntityURI(projects[3].project?.createdAt, projects[3].project?.slug))}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[3].discipline}
                                     </p>
@@ -208,7 +210,7 @@ export default function InFocusProjects({
 
                             {projects.length > 4 && <>
                                 <Link className="group block"
-                                      href={getContentEntityURI(projects[4].project?.createdAt, projects[4].project?.slug)}>
+                                      href={prefixLink(language, getContentEntityURI(projects[4].project?.createdAt, projects[4].project?.slug))}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[4].discipline}
                                     </p>
@@ -227,7 +229,7 @@ export default function InFocusProjects({
 
                             {projects.length > 5 && <>
                                 <Link className="group block"
-                                      href={getContentEntityURI(projects[5].project?.createdAt, projects[5].project?.slug)}>
+                                      href={prefixLink(language, getContentEntityURI(projects[5].project?.createdAt, projects[5].project?.slug))}>
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[5].discipline}
                                     </p>

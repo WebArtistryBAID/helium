@@ -1,6 +1,6 @@
 'use client'
 
-import { getContentEntityURI, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, Paginated, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import If from '@/app/lib/If'
@@ -25,7 +25,7 @@ export default function NewsList({ init, uploadPrefix }: {
 
     return <section className="container my-24 section">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
-            {page.items.map(post => <Card href={getContentEntityURI(post.createdAt, post.slug)}
+            {page.items.map(post => <Card href={prefixLink(language, getContentEntityURI(post.createdAt, post.slug))}
                                           image={post.coverImagePublished}
                                           title={language === 'en' ? post.titlePublishedEN : post.titlePublishedZH}
                                           shortContent={language === 'en' ? post.shortContentPublishedEN : post.shortContentPublishedZH}

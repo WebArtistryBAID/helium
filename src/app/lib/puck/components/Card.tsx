@@ -6,7 +6,7 @@ import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-field
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
-export default function Card({ href, image, title, shortContent, uploadPrefix }: {
+export default async function Card({ href, image, title, shortContent, uploadPrefix }: {
     href: string | null | undefined,
     image: Image | null | undefined,
     title: string | null | undefined,

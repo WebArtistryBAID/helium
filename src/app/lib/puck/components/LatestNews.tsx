@@ -1,6 +1,6 @@
 'use client'
 
-import { getContentEntityURI, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
@@ -22,7 +22,7 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
                     {title}
                 </h2>
 
-                <Link href="/news"
+                <Link href={prefixLink(language, '/news')}
                       className="flex items-center gap-1 text-black decoration-none opacity-80 hover:opacity-100 transition">
                     <span className="!font-sans">{readMoreText}</span>
                     <svg
@@ -43,7 +43,8 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
         <section aria-labelledby="news-heading" className="section !mb-24 container">
             <div className="w-full flex flex-col md:flex-row gap-8">
                 {resolvedPosts.length > 0 ?
-                    <Link href={getContentEntityURI(resolvedPosts[0].createdAt, resolvedPosts[0].slug)}
+                    <Link
+                        href={prefixLink(language, getContentEntityURI(resolvedPosts[0].createdAt, resolvedPosts[0].slug))}
                           className="w-full md:w-2/3 group block">
                     <div className="w-full h-64 md:h-96 overflow-hidden rounded-3xl mb-3">
                         <img alt={resolvedPosts[0].coverImagePublished?.altText}
@@ -64,7 +65,8 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
                         >
                             {otherNewsText}
                         </p>
-                        <Link href={getContentEntityURI(news.createdAt, news.slug)} className="block group">
+                        <Link href={prefixLink(language, getContentEntityURI(news.createdAt, news.slug))}
+                              className="block group">
                             <p className="text-xl font-bold fancy-link">
                                 {language === 'en' ? news.titlePublishedEN : news.titlePublishedZH}
                             </p>

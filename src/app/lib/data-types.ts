@@ -175,3 +175,13 @@ export function convertDatesToStrings<T>(value: T): T {
     }
     return value
 }
+
+export function prefixLink(prefix: string | null | undefined, link: string | null | undefined): string {
+    if (prefix == null || link == null) {
+        return ''
+    }
+    if (/^(https?:)?\/\//.test(link)) {
+        return link
+    }
+    return `/${prefix.replace(/\/+$/, '')}/${link.replace(/^\/+/, '')}`
+}
