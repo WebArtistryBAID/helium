@@ -6,7 +6,9 @@ import { getContentEntityBySlug, refreshPageData } from '@/app/studio/editor/ent
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
 import GlobalHeader from '@/app/[[...slug]]/GlobalHeader'
 import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
-import { Metadata } from 'next'
+import Head from 'next/head'
+import { generateMetadata } from '@/app/[[...slug]]/metadata-utils'
+import { getUploadServePath } from '@/app/studio/media/media-actions'
 
 const PAGES = [
     { id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about' },
@@ -16,41 +18,6 @@ const PAGES = [
     { id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions' },
     { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news' }
 ]
-
-export async function generateMetadata({ params }: {
-    params: Promise<{ slug: string[] | undefined }>
-}): Promise<Metadata> {
-    const route = (await params).slug ?? []
-
-    if (route.length < 1 || (route[0] !== 'en' && route[0] !== 'zh')) {
-        return { title: 'Beijing Academy International Division' }
-    }
-
-    const language = route[0]
-    const newRoute = route.slice(1)
-    const slug = newRoute.length === 5 ? newRoute[4] : (newRoute.length === 0 ? '/' : newRoute.join('/'))
-    const baseDescription = language === 'en'
-        ? 'Beijing Academy International Division (BAID) is a CIS-member international high school program in Beijing offering AP and Cambridge curricula.'
-        : '北京中学国际部 (BAID) 是北京中学下设的国际高中项目，提供 AP 和剑桥课程。我们以立足北京、植根中国、面向世界的现代教育，培养全面发展的未来领袖。'
-    if (slug === '/') {
-        return {
-            title: language === 'en' ? 'Beijing Academy International Division' : '北京中学国际部',
-            description: baseDescription
-        }
-    }
-    const entity = await getContentEntityBySlug(slug)
-    if (entity == null) {
-        return {
-            title: language === 'en' ? 'Not Found | Beijing Academy International Division' : '未找到 | 北京中学国际部',
-            description: baseDescription
-        }
-    }
-    return {
-        title: language === 'en' ? `${entity.titlePublishedEN} | Beijing Academy International Division` : `${entity.titlePublishedZH} | 北京中学国际部`,
-        description: (language === 'en' ? entity.shortContentPublishedEN : entity.shortContentPublishedZH) ?? baseDescription
-    }
-}
-
 
 export default async function RouteHandler({ params }: { params: Promise<{ slug: string[] | undefined }> }) {
     const route = (await params).slug ?? []
@@ -79,6 +46,8 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     const newRoute = route.slice(1)
     const slug = newRoute.length === 0 ? '/' : newRoute.join('/')
 
+    const metadata = await generateMetadata(route)
+
     if (newRoute.length === 5 && newRoute[0] === 'content') {
         const actualSlug = newRoute[4]
         const entity = await getContentEntityBySlug(actualSlug)
@@ -95,6 +64,32 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
             notFound()
         }
         return <>
+            <Head>
+                <title>{metadata.title}</title>
+                <meta name="description" content={metadata.description}/>
+                <meta property="og:title" content={metadata.title}/>
+                <meta property="og:description" content={metadata.description}/>
+                <meta property="og:url" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
+                <meta property="og:type"
+                      content={newRoute.length === 5 && newRoute[0] === 'content' ? 'article' : 'website'}/>
+                <meta property="og:image"
+                      content={entity.coverImagePublished == null ? `${process.env.HOST}/assets/components/bento/life.webp` : `${process.env.HOST}${await getUploadServePath()}/${entity.coverImagePublished.sha1}.webp`}/>
+                <meta property="og:site_name"
+                      content={finalLocale === 'en' ? 'Beijing Academy International Division' : '北京中学国际部'}/>
+                <meta property="og:locale" content={finalLocale === 'zh' ? 'zh_CN' : 'en_US'}/>
+                <meta property="og:locale:alternate" content={finalLocale === 'zh' ? 'en_US' : 'zh_CN'}/>
+                <meta property="article:published_time" content={entity.createdAt.toISOString()}/>
+                <meta name="twitter:card" content="summary_large_image"/>
+                <meta name="twitter:title" content={metadata.title}/>
+                <meta name="twitter:description" content={metadata.description}/>
+                <meta name="twitter:image"
+                      content={entity.coverImagePublished == null ? `${process.env.HOST}/assets/components/bento/life.webp` : `${process.env.HOST}${await getUploadServePath()}/${entity.coverImagePublished.sha1}.webp`}/>
+                <link rel="canonical" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
+                <link rel="alternate" href={metadata.urlEN} hrefLang="x-default"/>
+                <link rel="alternate" href={metadata.urlEN} hrefLang="en"/>
+                <link rel="alternate" href={metadata.urlZH} hrefLang="zh"/>
+            </Head>
+
             <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
             <AnyContentEntityPage entity={entity} params={params}/>
             <GlobalFooter pages={PAGES}/>
@@ -107,6 +102,29 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     }
 
     return <>
+        <Head>
+            <title>{metadata.title}</title>
+            <meta name="description" content={metadata.description}/>
+            <meta property="og:title" content={metadata.title}/>
+            <meta property="og:description" content={metadata.description}/>
+            <meta property="og:url" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
+            <meta property="og:type"
+                  content={newRoute.length === 5 && newRoute[0] === 'content' ? 'article' : 'website'}/>
+            <meta property="og:image" content={`${process.env.HOST}/assets/components/bento/life.webp`}/>
+            <meta property="og:site_name"
+                  content={finalLocale === 'en' ? 'Beijing Academy International Division' : '北京中学国际部'}/>
+            <meta property="og:locale" content={finalLocale === 'zh' ? 'zh_CN' : 'en_US'}/>
+            <meta property="og:locale:alternate" content={finalLocale === 'zh' ? 'en_US' : 'zh_CN'}/>
+            <meta name="twitter:card" content="summary_large_image"/>
+            <meta name="twitter:title" content={metadata.title}/>
+            <meta name="twitter:description" content={metadata.description}/>
+            <meta name="twitter:image" content={`${process.env.HOST}/assets/components/bento/life.webp`}/>
+            <link rel="canonical" content={finalLocale === 'en' ? metadata.urlEN : metadata.urlZH}/>
+            <link rel="alternate" href={metadata.urlEN} hrefLang="x-default"/>
+            <link rel="alternate" href={metadata.urlEN} hrefLang="en"/>
+            <link rel="alternate" href={metadata.urlZH} hrefLang="zh"/>
+        </Head>
+
         <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life' ].includes(slug)}/>
         <Render config={PUCK_CONFIG}
                 data={finalLocale === 'en'
