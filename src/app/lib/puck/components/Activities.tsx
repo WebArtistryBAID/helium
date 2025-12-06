@@ -1,8 +1,8 @@
 'use client'
 
-import { prefixLink, getContentEntityURI, HydratedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, HydratedContentEntity, prefixLink } from '@/app/lib/data-types'
 import Link from 'next/link'
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 function ActivityTextBlock({ name, description, background, light }: {

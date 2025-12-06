@@ -1,11 +1,11 @@
 generator client {
-  provider        = "prisma-client-js"
+  provider        = "prisma-client"
   previewFeatures = ["fullTextSearchPostgres"]
+  output          = "../src/generated/prisma"
 }
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URI")
 }
 
 model User {
@@ -79,13 +79,13 @@ model UserAuditLog {
 }
 
 model ContentEntity {
-  id                      Int         @id @default(autoincrement())
+  id                      Int          @id @default(autoincrement())
   type                    EntityType
   titlePublishedEN        String?
   titlePublishedZH        String?
   titleDraftEN            String
   titleDraftZH            String
-  slug                    String      @unique
+  slug                    String       @unique
   categoryEN              String?
   categoryZH              String?
   shortContentPublishedEN String?
@@ -96,14 +96,14 @@ model ContentEntity {
   contentPublishedZH      String? // Markdown OR Puck data
   contentDraftEN          String // Markdown OR Puck data
   contentDraftZH          String // Markdown OR Puck data
-  coverImagePublished     Image?      @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublished     Image?       @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
   coverImagePublishedId   Int?
-  coverImageDraft         Image?      @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraft         Image?       @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
   coverImageDraftId       Int?
   creatorId               Int
-  creator                 User        @relation(fields: [creatorId], references: [id])
-  createdAt               DateTime    @default(now())
-  updatedAt               DateTime    @updatedAt
+  creator                 User         @relation(fields: [creatorId], references: [id])
+  createdAt               DateTime     @default(now())
+  updatedAt               DateTime     @updatedAt
   locks                   EntityLock[]
 }
 

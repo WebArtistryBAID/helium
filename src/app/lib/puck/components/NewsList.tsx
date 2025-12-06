@@ -6,7 +6,7 @@ import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import If from '@/app/lib/If'
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import Card from '@/app/lib/puck/components/Card'
 
 export default function NewsList({ init, uploadPrefix }: {

@@ -1,7 +1,7 @@
 'use client'
 
 import { ReactNode, useEffect, useState } from 'react'
-import { Role, User } from '@prisma/client'
+import { Role, User } from '@/generated/prisma/browser'
 import { getMyUser } from '@/app/login/login-actions'
 import {
     Badge,
@@ -53,50 +53,70 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                             className="font-display">Helium</span></SidebarLogo>
                         <SidebarItems>
                             <SidebarItemGroup>
-                                <SidebarItem as={Link} href="/studio" icon={HiChartPie}>
-                                    主页
-                                </SidebarItem>
-                                <SidebarItem as={Link} href="/studio/pages" icon={HiBookmarkSquare}>
-                                    页面
-                                </SidebarItem>
-                                <SidebarItem as={Link} href="/studio/media" icon={HiPhoto}>
-                                    媒体库
-                                </SidebarItem>
-                                <SidebarCollapse label="内容" icon={HiShare}>
-                                    <SidebarItem as={Link} href="/studio/posts" icon={HiNewspaper}>
-                                        文章
+                                <Link href="/studio">
+                                    <SidebarItem as="div" icon={HiChartPie}>
+                                        主页
                                     </SidebarItem>
-
-                                    <SidebarItem as={Link} href="/studio/clubs" icon={HiPuzzlePiece}>
-                                        社团
+                                </Link>
+                                <Link href="/studio/pages">
+                                    <SidebarItem as="div" icon={HiBookmarkSquare}>
+                                        页面
                                     </SidebarItem>
-
-                                    <SidebarItem as={Link} href="/studio/activities" icon={HiStar}>
-                                        校园活动
+                                </Link>
+                                <Link href="/studio/media">
+                                    <SidebarItem as="div" icon={HiPhoto}>
+                                        媒体库
                                     </SidebarItem>
-
-                                    <SidebarItem as={Link} href="/studio/projects" icon={HiPresentationChartBar}>
-                                        自主项目
-                                    </SidebarItem>
-
-                                    <SidebarItem as={Link} href="/studio/courses" icon={HiPencil}>
-                                        课程介绍
-                                    </SidebarItem>
-
-                                    <SidebarItem as={Link} href="/studio/faculties" icon={HiUser}>
-                                        教职工介绍
-                                    </SidebarItem>
-                                </SidebarCollapse>
+                                </Link>
                                 <If condition={myUser?.roles.includes(Role.admin)}>
-                                    <SidebarItem as={Link} href="/studio/users" icon={HiUsers}>
-                                        用户管理
-                                    </SidebarItem>
+                                    <Link href="/studio/users">
+                                        <SidebarItem as="div" icon={HiUsers}>
+                                            用户管理
+                                        </SidebarItem>
+                                    </Link>
                                 </If>
+                                <SidebarCollapse label="内容" icon={HiShare}>
+                                    <Link href="/studio/posts">
+                                        <SidebarItem as="div" icon={HiNewspaper}>
+                                            文章
+                                        </SidebarItem>
+                                    </Link>
+
+                                    <Link href="/studio/clubs">
+                                        <SidebarItem as="div" icon={HiPuzzlePiece}>
+                                            社团
+                                        </SidebarItem>
+                                    </Link>
+
+                                    <Link href="/studio/activities">
+                                        <SidebarItem as="div" icon={HiStar}>
+                                            校园活动
+                                        </SidebarItem>
+                                    </Link>
+
+                                    <Link href="/studio/projects">
+                                        <SidebarItem as="div" icon={HiPresentationChartBar}>
+                                            自主项目
+                                        </SidebarItem>
+                                    </Link>
+
+                                    <Link href="/studio/courses">
+                                        <SidebarItem as="div" icon={HiPencil}>
+                                            课程介绍
+                                        </SidebarItem>
+                                    </Link>
+
+                                    <Link href="/studio/faculties">
+                                        <SidebarItem as="div" icon={HiUser}>
+                                            教职工介绍
+                                        </SidebarItem>
+                                    </Link>
+                                </SidebarCollapse>
                             </SidebarItemGroup>
                         </SidebarItems>
                         <div className="mr-3 mb-3 absolute bottom-0">
                             <Link href="/studio/"
-                                  className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-100">
+                                  className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 transition-colors duration-100">
                                 <Badge icon={HiUser}/>
                                 <div>
                                     <p className="font-bold font-display text-sm">{myUser?.name ?? '...'}</p>

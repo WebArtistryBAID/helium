@@ -1,7 +1,7 @@
 'use server'
 
 import crypto from 'crypto'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
 
 const FRESH_MS = 90_000

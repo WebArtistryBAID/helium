@@ -1,6 +1,6 @@
 'use server'
 
-import { Role, User } from '@prisma/client'
+import { Role, User } from '@/generated/prisma/client'
 import { me } from '@/app/login/login'
 import { Paginated, SIMPLIFIED_USER_SELECT, SimplifiedUser } from '@/app/lib/data-types'
 import { prisma } from '@/app/lib/prisma'

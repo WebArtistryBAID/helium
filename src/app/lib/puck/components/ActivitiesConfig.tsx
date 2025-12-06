@@ -1,7 +1,6 @@
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@measured/puck'
 import { getContentEntity, getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import { RESOLVED_CONTENT_ENTITY_TYPE } from '@/app/lib/puck/custom-fields'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import Activities from '@/app/lib/puck/components/Activities'
 import { convertDatesToStrings } from '@/app/lib/data-types'

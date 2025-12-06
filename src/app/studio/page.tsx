@@ -1,6 +1,6 @@
 import StudioHome from '@/app/studio/StudioHome'
 import { getMyPendingApprovals, getRecentEntities } from '@/app/studio/editor/entity-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/client'
 
 export default async function PageStudio() {
     return <div className="p-16">

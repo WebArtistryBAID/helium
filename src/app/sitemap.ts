@@ -1,6 +1,6 @@
 import { MetadataRoute } from 'next'
 import { getAllPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/client'
 import { getContentEntityURI } from '@/app/lib/data-types'
 
 const entityChanges: Record<string, 'yearly' | 'monthly' | 'daily' | 'never'> = {

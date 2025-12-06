@@ -1,5 +1,5 @@
 import { HydratedContentEntity } from '@/app/lib/data-types'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import { notFound, redirect } from 'next/navigation'
 import If from '@/app/lib/If'
 import Markdown from 'react-markdown'

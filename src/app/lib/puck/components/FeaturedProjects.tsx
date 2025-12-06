@@ -1,6 +1,6 @@
 'use client'
 
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Autoplay, Pagination } from 'swiper/modules'
 import ReadMore from '@/app/lib/puck/components/ReadMore'

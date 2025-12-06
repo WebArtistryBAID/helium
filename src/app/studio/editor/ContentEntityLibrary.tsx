@@ -14,7 +14,7 @@ import If from '@/app/lib/If'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
-import { EntityType, Role, User } from '@prisma/client'
+import { EntityType, Role, User } from '@/generated/prisma/browser'
 
 export default function ContentEntityLibrary({ init, title, user, type }: {
     init: Paginated<SimplifiedContentEntity>,

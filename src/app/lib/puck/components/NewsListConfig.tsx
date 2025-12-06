@@ -1,7 +1,7 @@
 import { ComponentConfig } from '@measured/puck'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import NewsList from '@/app/lib/puck/components/NewsList'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 

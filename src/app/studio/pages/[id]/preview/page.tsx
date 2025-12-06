@@ -4,7 +4,7 @@ import { redirect } from 'next/navigation'
 import { Render } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import PreviewToolbar from '@/app/studio/pages/[id]/preview/PreviewToolbar'
-import { Role } from '@prisma/client'
+import { Role } from '@/generated/prisma/client'
 
 export default async function StudioPagePreview({ params, searchParams }: {
     params: Promise<{ id: string }>

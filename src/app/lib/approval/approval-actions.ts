@@ -1,6 +1,6 @@
 'use server'
 
-import { EntityType, Role } from '@prisma/client'
+import { EntityType, Role } from '@/generated/prisma/client'
 import { requireUserWithRole } from '@/app/login/login-actions'
 import { prisma } from '@/app/lib/prisma'
 

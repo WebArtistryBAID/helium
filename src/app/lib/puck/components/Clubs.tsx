@@ -3,7 +3,7 @@
 import { getContentEntityURI, Paginated, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import Link from 'next/link'
 import If from '@/app/lib/If'
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'

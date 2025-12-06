@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'motion/react'
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 
 export default function Hero({ title, lightText, image, backgroundColor, uploadPrefix }: {
     title: string | undefined,

@@ -1,6 +1,6 @@
 'use client'
 
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import { useCallback, useState } from 'react'
 
 export interface SpecialtyItem {

@@ -1,4 +1,4 @@
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 import { ComponentConfig } from '@measured/puck'

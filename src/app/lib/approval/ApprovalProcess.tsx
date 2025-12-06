@@ -11,7 +11,7 @@ import {
 } from 'flowbite-react'
 import { HiPencil } from 'react-icons/hi2'
 import If from '@/app/lib/If'
-import { EntityType, Role, User } from '@prisma/client'
+import { EntityType, Role, User } from '@/generated/prisma/browser'
 import { addApproval, ApprovalThresholds, getApprovalNames, getThresholds } from '@/app/lib/approval/approval-actions'
 import { HiCloudUpload } from 'react-icons/hi'
 import { useEffect, useState } from 'react'

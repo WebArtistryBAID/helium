@@ -1,6 +1,6 @@
 'use server'
 
-import { Image, Role, UserAuditLogType } from '@prisma/client'
+import { Image, Role, UserAuditLogType } from '@/generated/prisma/client'
 import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import path from 'node:path'
 import fs from 'node:fs/promises'

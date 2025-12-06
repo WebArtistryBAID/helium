@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import Card from '@/app/lib/puck/components/Card'
 import { prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'

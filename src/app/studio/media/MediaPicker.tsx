@@ -3,7 +3,7 @@ import { useEffect, useState } from 'react'
 import { Modal, ModalHeader } from 'flowbite-react'
 import MediaLibrary from '@/app/studio/media/MediaLibrary'
 import type { Paginated } from '@/app/lib/data-types'
-import type { Image } from '@prisma/client'
+import type { Image } from '@/generated/prisma/browser'
 import { getImages } from '@/app/studio/media/media-actions'
 
 type Props = {

@@ -5,7 +5,7 @@ import MediaPicker from '@/app/studio/media/MediaPicker'
 import If from '@/app/lib/If'
 import { Button } from 'flowbite-react'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import { HiPhoto } from 'react-icons/hi2'
 
 export default function MediaPickerPuck({ name, onChange, value }:

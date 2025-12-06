@@ -2,7 +2,7 @@
 
 import { SimplifiedContentEntity } from '@/app/lib/data-types'
 import Link from 'next/link'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
 
 export default function StudioHome({ pages, posts, pendingApprovals, uploadServePath }: {

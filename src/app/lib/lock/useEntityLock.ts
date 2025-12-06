@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import { acquireLock, isLockAlive, releaseLock } from '@/app/lib/lock/lock-actions'
 
 type UseEntityLockOpts = {

@@ -1,6 +1,6 @@
 'use client'
 
-import { Role, User } from '@prisma/client'
+import { Role, User } from '@/generated/prisma/browser'
 import { GENDER_TRANSLATIONS, ROLES_TRANSLATIONS, USER_TYPE_TRANSLATIONS } from '@/app/lib/common-translations'
 import { useEffect, useState } from 'react'
 import { Checkbox, Label } from 'flowbite-react'

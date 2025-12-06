@@ -1,6 +1,6 @@
 import ContentEntityLibrary from '@/app/studio/editor/ContentEntityLibrary'
 import { getContentEntities } from '@/app/studio/editor/entity-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/client'
 import { requireUser } from '@/app/login/login-actions'
 
 export default async function PagePageLibrary() {

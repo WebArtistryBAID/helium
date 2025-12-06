@@ -4,7 +4,7 @@ import { Button, Modal, ModalBody, ModalFooter, ModalHeader } from 'flowbite-rea
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { overrideLock } from '@/app/lib/lock/lock-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 
 export default function LockOverridePrompt({ entityType, entityId, userId }: {
     entityType: EntityType,

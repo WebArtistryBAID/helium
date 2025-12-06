@@ -10,7 +10,8 @@ import {
     ModalFooter,
     ModalHeader,
     TabItem,
-    Tabs, TabsRef,
+    Tabs,
+    TabsRef,
     TextInput
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
@@ -34,7 +35,7 @@ import {
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
-import { Role, User } from '@prisma/client'
+import { Role, User } from '@/generated/prisma/browser'
 
 export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
     init: HydratedContentEntity,

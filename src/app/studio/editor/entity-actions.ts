@@ -1,6 +1,6 @@
 'use server'
 
-import { ContentEntity, EntityType, Role, User, UserAuditLogType } from '@prisma/client'
+import { ContentEntity, EntityType, Role, User, UserAuditLogType } from '@/generated/prisma/client'
 import {
     HYDRATED_CONTENT_ENTITY_SELECT,
     HydratedContentEntity,

@@ -1,5 +1,5 @@
 import If from '@/app/lib/If'
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import Link from 'next/link'
 import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'

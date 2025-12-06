@@ -1,4 +1,4 @@
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@measured/puck'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'

@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/browser'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 import If from '@/app/lib/If'
 import { motion } from 'motion/react'

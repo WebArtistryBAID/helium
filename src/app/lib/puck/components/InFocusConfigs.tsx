@@ -4,7 +4,7 @@ import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import InFocusProjects from '@/app/lib/puck/components/InFocusProjects'
 import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { getContentEntity, getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/browser'
 import InFocusNewStudents from '@/app/lib/puck/components/InFocusNewStudents'
 
 export const InFocusNewStudentsConfig: ComponentConfig = {

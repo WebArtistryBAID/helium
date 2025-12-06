@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { UserAuditLogType } from '@prisma/client'
+import { UserAuditLogType } from '@/generated/prisma/client'
 import { createSecretKey } from 'node:crypto'
 import { SignJWT } from 'jose'
 import { cookies } from 'next/headers'

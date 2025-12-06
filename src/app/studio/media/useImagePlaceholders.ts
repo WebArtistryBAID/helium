@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react'
-import type { Image } from '@prisma/client'
+import type { Image } from '@/generated/prisma/browser'
 import { getImage } from '@/app/studio/media/media-actions'
 
 export function useImagePlaceholders(opts: {

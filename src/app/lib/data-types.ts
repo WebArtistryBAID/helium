@@ -1,4 +1,4 @@
-import { EntityType, Gender, Image, Role, UserType } from '@prisma/client'
+import { EntityType, Gender, Image, Role, UserType } from '@/generated/prisma/browser'
 
 export interface Paginated<T> {
     items: T[]

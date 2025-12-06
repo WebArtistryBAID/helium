@@ -1,5 +1,5 @@
 import { acquireLock } from '@/app/lib/lock/lock-actions'
-import { EntityType } from '@prisma/client'
+import { EntityType } from '@/generated/prisma/client'
 import LockOverridePrompt from '@/app/lib/lock/LockOverridePrompt'
 import { ReactNode } from 'react'
 
