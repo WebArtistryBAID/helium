@@ -14,7 +14,7 @@ function TopText({ title, text, to = null, linkText = null }: {
                 {title}
             </h2>
             <p className="text-xl">{text}</p>
-            <If condition={to != null}>
+            <If condition={to != null && to.length > 0}>
                 <div className="flex justify-end mt-5">
                     <ReadMore text={linkText ?? '了解更多'} to={to ?? ''}/>
                 </div>
