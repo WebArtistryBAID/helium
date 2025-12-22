@@ -150,7 +150,13 @@ export default function PageEditor({ init, userId, lockToken }: {
             </ModalBody>
             <ModalFooter>
                 <Button pill color="alternative"
-                        onClick={() => router.push(`/studio/pages/${draft.id}/preview?lang=${inEnglish ? 'en' : 'zh'}`)}>预览页面</Button>
+                        onClick={() => {
+                            setDraft(prev => ({
+                                ...prev,
+                                contentDraftEN: prev.contentDraftZH,
+                                titleDraftEN: prev.titleDraftZH
+                            }))
+                        }}>从中文复制到英文</Button>
 
                 <If condition={draft.contentPublishedEN != null || draft.contentPublishedZH != null}>
                     <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
