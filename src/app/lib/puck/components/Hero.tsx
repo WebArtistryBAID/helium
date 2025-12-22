@@ -3,17 +3,19 @@
 import { motion } from 'motion/react'
 import { Image } from '@/generated/prisma/browser'
 
-export default function Hero({ title, lightText, image, backgroundColor, uploadPrefix }: {
+export default function Hero({ title, lightText, image, backgroundColor, uploadPrefix, topPadding }: {
     title: string | undefined,
     lightText: boolean | undefined,
     image: Image | undefined,
     backgroundColor: string | undefined,
-    uploadPrefix: string | undefined
+    uploadPrefix: string | undefined,
+    topPadding: boolean | undefined
 }) {
     lightText = lightText ?? false
     return <>
         <section aria-labelledby="hero-heading" className="px-6 sm:px-10 md:px-16 lg:px-24"
-                 style={{ backgroundColor }}>
+                 style={{ backgroundColor, paddingTop: topPadding ? '5rem' : '' }}
+                 data-surface={lightText ? 'dark' : 'light'}>
             <motion.h1
                 id="hero-heading"
                 initial={{ opacity: 0, transform: 'translateY(16px)' }}

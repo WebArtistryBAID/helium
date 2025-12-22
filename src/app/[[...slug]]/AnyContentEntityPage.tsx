@@ -39,6 +39,9 @@ export default async function AnyContentEntityPage({ entity, params }: {
         </If>
         <article className="container px-5 my-16">
             <article>
+                <If condition={entity.coverImagePublished == null}>
+                    <div className="mb-24"/>
+                </If>
                 <If condition={entity.type === EntityType.post}>
                     <h1>{locale === 'en' ? entity.titlePublishedEN : entity.titlePublishedZH}</h1>
                     <p className="secondary text-sm">{(entity.createdAt as Date).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</p>

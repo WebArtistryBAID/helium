@@ -22,6 +22,14 @@ const HeroConfig: ComponentConfig = {
                 { label: '关闭', value: false }
             ]
         },
+        topPadding: {
+            label: '顶部空白',
+            type: 'radio',
+            options: [
+                { label: '启用', value: true },
+                { label: '关闭', value: false }
+            ]
+        },
         resolvedImage: {
             type: 'object',
             objectFields: {}
@@ -45,9 +53,9 @@ const HeroConfig: ComponentConfig = {
         backgroundColor: '#ffffff',
         lightText: false
     },
-    render: ({ title, lightText, resolvedImage, backgroundColor, resolvedUploadPrefix }) =>
+    render: ({ title, lightText, resolvedImage, backgroundColor, topPadding, resolvedUploadPrefix }) =>
         <Hero title={title} lightText={lightText} image={resolvedImage} backgroundColor={backgroundColor}
-              uploadPrefix={resolvedUploadPrefix}/>
+              topPadding={topPadding} uploadPrefix={resolvedUploadPrefix}/>
 }
 
 export default HeroConfig
