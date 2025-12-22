@@ -29,17 +29,19 @@ export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
             {page.items.map(project => <Link
                 href={prefixLink(language, getContentEntityURI(project.createdAt, project.slug))}
-                className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
+                className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all overflow-hidden duration-100 group cursor-pointer"
                 key={project.id}>
-                <If condition={project.coverImagePublished != null}>
-                    <img src={`${uploadPrefix}/${project.coverImagePublished?.sha1}_thumb.webp`}
-                         alt={project.coverImagePublished?.altText}
-                         className="object-cover w-full rounded-3xl h-48 group-hover-scale"/>
-                </If>
-                <If condition={project.coverImagePublished == null}>
-                    <div
-                        className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr group-hover-scale"/>
-                </If>
+                <div className="overflow-hidden rounded-3xl h-48 w-full">
+                    <If condition={project.coverImagePublished != null}>
+                        <img src={`${uploadPrefix}/${project.coverImagePublished?.sha1}_thumb.webp`}
+                             alt={project.coverImagePublished?.altText}
+                             className="object-cover w-full h-full group-hover-scale"/>
+                    </If>
+                    <If condition={project.coverImagePublished == null}>
+                        <div
+                            className="w-full h-full rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr group-hover-scale"/>
+                    </If>
+                </div>
 
                 <div className="p-8">
                     <p className="text-xl font-bold mb-1 fancy-link">{language === 'en' ? project.titlePublishedEN : project.titlePublishedZH}</p>

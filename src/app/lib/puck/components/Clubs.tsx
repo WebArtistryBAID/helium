@@ -35,15 +35,17 @@ export default function Clubs({ title, init, uploadPrefix }: {
                     href={prefixLink(language, getContentEntityURI(club.createdAt, club.slug))}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer"
                     key={club.id}>
-                    <If condition={club.coverImagePublished != null}>
-                        <img src={`${uploadPrefix}/${club.coverImagePublished?.sha1}_thumb.webp`}
-                             alt={club.coverImagePublished?.altText}
-                             className="object-cover w-full rounded-3xl h-48 group-hover-scale"/>
-                    </If>
-                    <If condition={club.coverImagePublished == null}>
-                        <div
-                            className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr group-hover-scale"/>
-                    </If>
+                    <div className="overflow-hidden rounded-3xl h-48 w-full">
+                        <If condition={club.coverImagePublished != null}>
+                            <img src={`${uploadPrefix}/${club.coverImagePublished?.sha1}_thumb.webp`}
+                                 alt={club.coverImagePublished?.altText}
+                                 className="object-cover w-full h-full group-hover-scale"/>
+                        </If>
+                        <If condition={club.coverImagePublished == null}>
+                            <div
+                                className="w-full h-full from-blue-300 to-blue-500 bg-gradient-to-tr group-hover-scale"/>
+                        </If>
+                    </div>
 
                     <div className="p-8">
                         <p className="text-xl font-bold mb-1 fancy-link">{language === 'en' ? club.titlePublishedEN : club.titlePublishedZH}</p>
