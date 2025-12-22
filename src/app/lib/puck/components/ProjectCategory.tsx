@@ -7,6 +7,7 @@ import Link from 'next/link'
 import If from '@/app/lib/If'
 import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
+import Card from '@/app/lib/puck/components/Card'
 
 export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }: {
     titleEN: string,
@@ -27,27 +28,13 @@ export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }
     return <section className="container my-24 section">
         <h2 className="text-3xl font-bold mb-5">{language === 'en' ? titleEN : titleZH}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
-            {page.items.map(project => <Link
+            {page.items.map(project => <Card
+                key={project.id}
                 href={prefixLink(language, getContentEntityURI(project.createdAt, project.slug))}
-                className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all overflow-hidden duration-100 group cursor-pointer"
-                key={project.id}>
-                <div className="overflow-hidden rounded-3xl h-48 w-full">
-                    <If condition={project.coverImagePublished != null}>
-                        <img src={`${uploadPrefix}/${project.coverImagePublished?.sha1}_thumb.webp`}
-                             alt={project.coverImagePublished?.altText}
-                             className="object-cover w-full h-full group-hover-scale"/>
-                    </If>
-                    <If condition={project.coverImagePublished == null}>
-                        <div
-                            className="w-full h-full rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr group-hover-scale"/>
-                    </If>
-                </div>
-
-                <div className="p-8">
-                    <p className="text-xl font-bold mb-1 fancy-link">{language === 'en' ? project.titlePublishedEN : project.titlePublishedZH}</p>
-                    <p className="text-sm secondary">{language === 'en' ? project.shortContentPublishedEN : project.shortContentPublishedZH}</p>
-                </div>
-            </Link>)}
+                title={language === 'en' ? project.titlePublishedEN : project.titlePublishedZH}
+                shortContent={language === 'en' ? project.shortContentPublishedEN : project.shortContentPublishedZH}
+                image={project.coverImagePublished}
+                uploadPrefix={uploadPrefix}/>)}
         </div>
 
         <div className="flex items-center justify-center gap-3">
