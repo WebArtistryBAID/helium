@@ -156,7 +156,7 @@ export default function PageEditor({ init, userId, lockToken }: {
                                 contentDraftEN: prev.contentDraftZH,
                                 titleDraftEN: prev.titleDraftZH
                             }))
-                        }}>从中文复制到英文</Button>
+                        }}>用中文内容覆盖英文</Button>
 
                 <If condition={draft.contentPublishedEN != null || draft.contentPublishedZH != null}>
                     <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
