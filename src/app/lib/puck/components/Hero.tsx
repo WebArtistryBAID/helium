@@ -14,7 +14,7 @@ export default function Hero({ title, lightText, image, backgroundColor, uploadP
     lightText = lightText ?? false
     return <>
         <section aria-labelledby="hero-heading" className="px-6 sm:px-10 md:px-16 lg:px-24"
-                 style={{ backgroundColor, paddingTop: topPadding ? '5rem' : '' }}
+                 style={{ backgroundColor, paddingTop: topPadding ? '12rem' : '' }}
                  data-surface={lightText ? 'dark' : 'light'}>
             <motion.h1
                 id="hero-heading"
