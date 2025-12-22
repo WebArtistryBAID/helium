@@ -32,7 +32,8 @@ const HeroConfig: ComponentConfig = {
         },
         resolvedImage: {
             type: 'object',
-            objectFields: {}
+            objectFields: {},
+            visible: false
         },
         resolvedUploadPrefix: {
             type: 'text',
