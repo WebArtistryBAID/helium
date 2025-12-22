@@ -9,7 +9,7 @@ function HorizontalTopText({ title, text }: { title: string | undefined, text: s
                 </h2>
             </div>
             <div className="w-full md:w-2/3">
-                <p className="text-2xl md:text-3xl lg:text-4xl">
+                <p className="text-2xl md:text-3xl lg:text-4xl" style={{ lineHeight: '3rem' }}>
                     {text}
                 </p>
             </div>
