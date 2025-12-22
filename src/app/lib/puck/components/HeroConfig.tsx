@@ -52,7 +52,8 @@ const HeroConfig: ComponentConfig = {
     defaultProps: {
         title: 'About Us',
         backgroundColor: '#ffffff',
-        lightText: false
+        lightText: false,
+        topPadding: false
     },
     render: ({ title, lightText, resolvedImage, backgroundColor, topPadding, resolvedUploadPrefix }) =>
         <Hero title={title} lightText={lightText} image={resolvedImage} backgroundColor={backgroundColor}
