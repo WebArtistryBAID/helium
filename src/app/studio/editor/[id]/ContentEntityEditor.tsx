@@ -344,7 +344,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                     <div className="w-1/3 2xl:w-1/4">
                         <div className="flex mb-3 gap-3">
                             <Button pill color="blue"
-                                    disabled={!hasChanges || loading || !user.roles.includes(Role.writer)}
+                                    disabled={loading || !user.roles.includes(Role.writer)}
                                     onClick={save}>保存更改</Button>
                             <Button pill color="alternative" onClick={switchLanguage}>
                                 <If condition={inEnglish}>
