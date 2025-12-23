@@ -1,7 +1,7 @@
 import type { Config } from '@measured/puck'
 import TopTextConfig from '@/app/lib/puck/components/TopText'
 import HighlightsConfig from '@/app/lib/puck/components/Highlights'
-import ContainerConfig from '@/app/lib/puck/components/Container'
+import ContainerConfig from '@/app/lib/puck/components/ContainerConfig'
 import LatestNewsConfig from '@/app/lib/puck/components/LatestNewsConfig'
 import BentoBoxConfig from '@/app/lib/puck/components/BentoBox'
 import QuoteConfig from '@/app/lib/puck/components/Quote'
@@ -25,7 +25,7 @@ import ProjectCategoryConfig from '@/app/lib/puck/components/ProjectCategoryConf
 import ParagraphConfig from '@/app/lib/puck/components/Paragraph'
 import HeadingConfig from '@/app/lib/puck/components/Heading'
 import SpacerConfig from '@/app/lib/puck/components/Spacer'
-import ButtonConfig from '@/app/lib/puck/components/ButtonWidget'
+import ButtonConfig from '@/app/lib/puck/components/ButtonConfig'
 import NewsListConfig from '@/app/lib/puck/components/NewsListConfig'
 import { CardConfig } from '@/app/lib/puck/components/Card'
 
