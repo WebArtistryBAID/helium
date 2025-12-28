@@ -143,11 +143,11 @@ const DECISION_TREE: {
             required: true,
             title: {
                 zh: '你是否具有北京市普通中学升学资格?',
-                en: 'Is the student eligible for entry into Beijing high schools?'
+                en: 'Is the student eligible for entry into Beijing public high schools?'
             },
             helper: {
                 zh: '请选择最符合学生本人的选项。',
-                en: 'Please choose the option that best matches the student.'
+                en: 'Please choose the option that best matches the student. Typically, noncitizens are not eligible (except for those with PRC Foreign Permanent Residence ID Cards).'
             },
             options: [
                 { value: 'yes', label: { zh: '是', en: 'Yes' } },
