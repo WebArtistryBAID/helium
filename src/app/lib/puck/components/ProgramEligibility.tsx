@@ -1,11 +1,13 @@
+'use client'
+
 import React, { useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
-type Lang = 'zh' | 'en';
+type Lang = 'zh' | 'en'
 
-type AnswerValue = string | string[] | null;
+type AnswerValue = string | string[] | null
 
-type Answers = Record<string, AnswerValue>;
+type Answers = Record<string, AnswerValue>
 
 type Rule =
     | { op: 'all'; rules: Rule[] }
@@ -14,58 +16,58 @@ type Rule =
     | { op: 'eq'; q: string; value: string }
     | { op: 'in'; q: string; values: string[] }
     | { op: 'selected'; q: string; value: string } // checkbox contains value
-    | { op: 'date_gte'; q: string; value: string }; // YYYY-MM-DD
+    | { op: 'date_gte'; q: string; value: string } // YYYY-MM-DD
 
-type EvalResult = { pass: boolean; unknown: boolean };
+type EvalResult = { pass: boolean; unknown: boolean }
 
 type Option = {
-    value: string;
-    label: { zh: string; en: string };
-};
+    value: string
+    label: { zh: string; en: string }
+}
 
 type Question =
     | {
-    id: string;
-    type: 'single';
-    title: { zh: string; en: string };
-    helper?: { zh: string; en: string };
-    options: Option[];
-    required?: boolean;
-    showIf?: Rule;
+    id: string
+    type: 'single'
+    title: { zh: string; en: string }
+    helper?: { zh: string; en: string }
+    options: Option[]
+    required?: boolean
+    showIf?: Rule
 }
     | {
-    id: string;
-    type: 'date';
-    title: { zh: string; en: string };
-    helper?: { zh: string; en: string };
-    required?: boolean;
-    showIf?: Rule;
+    id: string
+    type: 'date'
+    title: { zh: string; en: string }
+    helper?: { zh: string; en: string }
+    required?: boolean
+    showIf?: Rule
 }
     | {
-    id: string;
-    type: 'multi';
-    title: { zh: string; en: string };
-    helper?: { zh: string; en: string };
-    options: Option[];
-    required?: boolean;
-    showIf?: Rule;
-};
+    id: string
+    type: 'multi'
+    title: { zh: string; en: string }
+    helper?: { zh: string; en: string }
+    options: Option[]
+    required?: boolean
+    showIf?: Rule
+}
 
 type Program = {
-    id: string;
-    name: { zh: string; en: string };
-    rule: Rule;
-    notes?: { zh: string; en: string };
-};
+    id: string
+    name: { zh: string; en: string }
+    rule: Rule
+    notes?: { zh: string; en: string }
+}
 
 const DECISION_TREE: {
     constants: {
-        cutoffDobForUnder18: string; // inclusive
-        chineseCitizenIds: string[];
-        hkmoTwIds: string[];
-    };
-    questions: Question[];
-    programs: Program[];
+        cutoffDobForUnder18: string // inclusive
+        chineseCitizenIds: string[]
+        hkmoTwIds: string[]
+    }
+    questions: Question[]
+    programs: Program[]
 } = {
     constants: {
         cutoffDobForUnder18: '2008-09-01',
@@ -90,8 +92,8 @@ const DECISION_TREE: {
                 {
                     value: 'CN_MAIN',
                     label: {
-                        zh: '中国公民 (五港澳台永久居民身份)',
-                        en: 'Chinese citizen (without HK, MO, or TW permanent residency)'
+                        zh: '中国公民，且不具有港澳台永久居民身份',
+                        en: 'Chinese citizen without Hong Kong, Macau, or Taiwan permanent residency'
                     }
                 },
                 {
@@ -129,8 +131,8 @@ const DECISION_TREE: {
                 {
                     value: 'DUAL',
                     label: {
-                        zh: '同时具有中国公民身份和其他国籍',
-                        en: 'Chinese citizen with multiple nationalities'
+                        zh: '同时具有中国和其他国籍',
+                        en: 'Dual citizen of China and another country'
                     }
                 }
             ]
@@ -174,21 +176,24 @@ const DECISION_TREE: {
             type: 'date',
             required: true,
             title: { zh: '你的出生日期是?', en: 'What is the student\'s date of birth?' },
-            helper: { zh: '格式: 2000-10-01', en: 'Format: 2000-10-01' }
+            helper: {
+                zh: '请填写最符合学生本人的内容。',
+                en: 'Please fill in content that best matches the student.'
+            }
         },
         {
             id: 'is_current_g9',
             type: 'single',
             required: true,
             showIf: { op: 'eq', q: 'current_grade', value: 'g9' },
-            title: { zh: '你是否为应届初三学生?', en: 'Is the student a current Grade 9 (current-year) student?' },
+            title: { zh: '你是否为应届初三学生?', en: 'Is the student a current-year (应届) Grade 9 student?' },
             helper: {
                 zh: '请选择最符合学生本人的选项。',
                 en: 'Please choose the option that best matches the student.'
             },
             options: [
-                { value: 'current', label: { zh: '是（应届）', en: 'Yes (current-year)' } },
-                { value: 'past', label: { zh: '否（往届）', en: 'No (previous-year graduate)' } }
+                { value: 'current', label: { zh: '是 (应届)', en: 'Yes (current-year)' } },
+                { value: 'past', label: { zh: '否 (往届)', en: 'No (previous-year graduate)' } }
             ]
         },
         {
@@ -201,7 +206,7 @@ const DECISION_TREE: {
                 en: 'Please choose the option that best matches the student.'
             },
             title: {
-                zh: '你是否在北京市朝阳区同一所学校连续具有两年初中学籍？',
+                zh: '你是否在北京市朝阳区同一所学校连续具有两年初中学籍?',
                 en: 'Has the student been enrolled for two years at the same middle school in Chaoyang District, Beijing?'
             },
             options: [
@@ -232,16 +237,24 @@ const DECISION_TREE: {
         {
             id: 'bjms_intl_g10',
             name: {
-                zh: '北京中学中外合作办学项目班 (北京中学国际部)：十年级入学 (中考招生)',
+                zh: '北京中学中外合作办学项目班 (北京中学国际部): 十年级入学 (中考招生)',
                 en: 'Beijing Academy International Division: Grade 10 Entry (Zhongkao Track)'
             },
             rule: {
                 op: 'all',
                 rules: [
                     {
-                        op: 'in',
-                        q: 'student_identity',
-                        values: [ 'CN_MAIN', 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR', 'DUAL' ]
+                        op: 'any',
+                        rules: [
+                            {
+                                op: 'all',
+                                rules: [
+                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR' ] },
+                                    { op: 'eq', q: 'entry_doc_used_hkmo_tw', value: 'yes' }
+                                ]
+                            },
+                            { op: 'in', q: 'student_identity', values: [ 'CN_MAIN', 'DUAL', 'NONCN_PR' ] }
+                        ]
                     },
                     { op: 'eq', q: 'bj_eligibility', value: 'yes' },
                     {
@@ -277,9 +290,17 @@ const DECISION_TREE: {
                 op: 'all',
                 rules: [
                     {
-                        op: 'in',
-                        q: 'student_identity',
-                        values: [ 'CN_MAIN', 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR', 'DUAL' ]
+                        op: 'any',
+                        rules: [
+                            {
+                                op: 'all',
+                                rules: [
+                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR' ] },
+                                    { op: 'eq', q: 'entry_doc_used_hkmo_tw', value: 'yes' }
+                                ]
+                            },
+                            { op: 'in', q: 'student_identity', values: [ 'CN_MAIN', 'DUAL', 'NONCN_PR' ] }
+                        ]
                     },
                     { op: 'eq', q: 'bj_eligibility', value: 'yes' },
                     { op: 'eq', q: 'current_grade', value: 'g8' },
@@ -434,7 +455,7 @@ export default function EligibilityWizard() {
     const [ step, setStep ] = useState(0)
 
     useEffect(() => {
-        // Keep step within bounds; prefer first unanswered.
+        // Keep step within bounds prefer first unanswered.
         const next = Math.max(0, Math.min(firstUnansweredIndex, visibleQuestions.length - 1))
         setStep((prev) => {
             if (prev < 0) return next
@@ -620,8 +641,12 @@ export default function EligibilityWizard() {
                         <button
                             type="button"
                             onClick={() => setShowResults(true)}
+                            disabled={!allVisibleAnswered && (canGoNext || step < visibleQuestions.length)}
                             className={`rounded-xl px-4 py-2 border ${
-                                allVisibleAnswered ? 'border-indigo-500/70 hover:border-indigo-400' : 'border-neutral-700/40 hover:border-neutral-500/60'
+                                allVisibleAnswered ? 'border-indigo-500/70 hover:border-indigo-400' :
+                                    (canGoNext || step < visibleQuestions.length
+                                        ? 'opacity-40 cursor-not-allowed border-neutral-700/40'
+                                        : 'border-neutral-700/40 hover:border-neutral-500/60')
                             }`}
                         >
                             {lang === 'zh' ? '查看结果' : 'View Results'}
