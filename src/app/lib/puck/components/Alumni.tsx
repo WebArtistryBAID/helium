@@ -34,7 +34,7 @@ export default function Alumni({ title, alumni, uploadPrefix }: {
                         <div className="w-full md:w-2/3">
                             <div className="p-8 md:p-20">
                                 <div className="transition-all duration-300 md:h-80 justify-center flex flex-col">
-                                    <p className="text-3xl mb-3">{alum?.quote}</p>
+                                    <p className="text-3xl mb-3" style={{ lineHeight: '3rem' }}>{alum?.quote}</p>
                                     <p className="text-right">— {alum?.name}</p>
                                 </div>
                             </div>

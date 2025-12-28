@@ -1,5 +1,5 @@
 import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Alumni from '@/app/lib/puck/components/Alumni'
 import { convertDatesToStrings } from '@/app/lib/data-types'

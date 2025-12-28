@@ -25,12 +25,16 @@ const FeaturedProjectsConfig: ComponentConfig = {
                         if (!query) {
                             return (await getPublishedContentEntities(0, EntityType.project)).items.map(project => ({
                                 id: project.id,
-                                title: project.titlePublishedZH ?? '(无标题)'
+                                title: project.titlePublishedZH ?? '(无标题)',
+                                createdAt: project.createdAt,
+                                slug: project.slug
                             }))
                         }
                         return (await getPublishedContentEntities(0, EntityType.project, query)).items.map(project => ({
                             id: project.id,
-                            title: project.titlePublishedZH ?? '(无标题)'
+                            title: project.titlePublishedZH ?? '(无标题)',
+                            createdAt: project.createdAt,
+                            slug: project.slug
                         }))
                     },
                     placeholder: '选择',
@@ -73,7 +77,7 @@ const FeaturedProjectsConfig: ComponentConfig = {
                     return {
                         quote: item.quote,
                         name: item.name,
-                        link: getContentEntityURI(item.createdAt, item.slug),
+                        link: getContentEntityURI(item.project.createdAt, item.project.slug),
                         linkText: item.linkText,
                         image: item.image == null ? null : convertDatesToStrings(await getImage(parseInt(item.image)))
                     }

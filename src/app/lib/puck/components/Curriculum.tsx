@@ -89,7 +89,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
                                 aria-selected={isActive}
                                 tabIndex={isActive ? 0 : -1}
                                 role="tab"
-                                className={`desktop-section-title mb-5 block text-left ${isActive ? 'active' : ''}`}
+                                className={`desktop-section-title cursor-pointer mb-5 block text-left ${isActive ? 'active' : ''}`}
                                 onClick={() => setActiveDesktopItem(index)}
                                 onKeyDown={(e) => handleTabKey(e, index)}
                             >

@@ -18,6 +18,7 @@ import { Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, 
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
 import '@measured/puck/puck.css'
+import { Role } from '@/generated/prisma/enums'
 
 export default function PageEditor({ init, userId, lockToken }: {
     init: HydratedContentEntity,
@@ -149,7 +150,13 @@ export default function PageEditor({ init, userId, lockToken }: {
             </ModalBody>
             <ModalFooter>
                 <Button pill color="alternative"
-                        onClick={() => router.push(`/studio/pages/${draft.id}/preview?lang=${inEnglish ? 'en' : 'zh'}`)}>预览页面</Button>
+                        onClick={() => {
+                            setDraft(prev => ({
+                                ...prev,
+                                contentDraftEN: prev.contentDraftZH,
+                                titleDraftEN: prev.titleDraftZH
+                            }))
+                        }}>用中文内容覆盖英文</Button>
 
                 <If condition={draft.contentPublishedEN != null || draft.contentPublishedZH != null}>
                     <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
@@ -213,7 +220,7 @@ export default function PageEditor({ init, userId, lockToken }: {
                     <Button pill color="alternative" onClick={() => setShowMetadata(true)}>页面信息</Button>
                     <Button pill color="alternative"
                             onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
-                    <Button pill color="blue" disabled={!hasChanges || loading} onClick={save}>保存更改</Button>
+                    <Button pill color="blue" disabled={loading} onClick={save}>保存更改</Button>
                 </>
             }}
         />

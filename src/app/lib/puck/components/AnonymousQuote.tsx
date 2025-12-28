@@ -3,7 +3,7 @@ import { ComponentConfig } from '@measured/puck'
 function AnonymousQuote({ quote }: { quote: string }) {
     return <section className="relative container py-24 px-4 md:px-36 my-12 md:my-24 items-center">
         <div className="w-full">
-            <p className="tracking-wide text-3xl md:text-5xl !mb-3">{quote}</p>
+            <p className="text-3xl md:text-5xl !mb-3" style={{ lineHeight: '4rem' }}>{quote}</p>
         </div>
 
         <div className="absolute left-4 top-0">

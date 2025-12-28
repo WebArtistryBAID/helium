@@ -22,9 +22,18 @@ const HeroConfig: ComponentConfig = {
                 { label: '关闭', value: false }
             ]
         },
+        topPadding: {
+            label: '顶部空白',
+            type: 'radio',
+            options: [
+                { label: '启用', value: true },
+                { label: '关闭', value: false }
+            ]
+        },
         resolvedImage: {
             type: 'object',
-            objectFields: {}
+            objectFields: {},
+            visible: false
         },
         resolvedUploadPrefix: {
             type: 'text',
@@ -43,11 +52,12 @@ const HeroConfig: ComponentConfig = {
     defaultProps: {
         title: 'About Us',
         backgroundColor: '#ffffff',
-        lightText: false
+        lightText: false,
+        topPadding: false
     },
-    render: ({ title, lightText, resolvedImage, backgroundColor, resolvedUploadPrefix }) =>
+    render: ({ title, lightText, resolvedImage, backgroundColor, topPadding, resolvedUploadPrefix }) =>
         <Hero title={title} lightText={lightText} image={resolvedImage} backgroundColor={backgroundColor}
-              uploadPrefix={resolvedUploadPrefix}/>
+              topPadding={topPadding} uploadPrefix={resolvedUploadPrefix}/>
 }
 
 export default HeroConfig

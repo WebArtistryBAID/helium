@@ -21,9 +21,10 @@ function Quote({ text, source, image, uploadPrefix }: {
         </h2>
         <div className="w-full md:w-1/2">
             <p
-                className="tracking-wide !text-3xl !mb-3"
+                className="!text-3xl !mb-3"
                 aria-label="Quote"
                 role="region"
+                style={{ lineHeight: '4rem' }}
                 tabIndex={0}>{text}</p>
             <p className="w-full text-right font-sans text-xl">
                 — {source}
