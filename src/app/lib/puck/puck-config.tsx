@@ -28,6 +28,7 @@ import SpacerConfig from '@/app/lib/puck/components/Spacer'
 import ButtonConfig from '@/app/lib/puck/components/ButtonWidget'
 import NewsListConfig from '@/app/lib/puck/components/NewsListConfig'
 import { CardConfig } from '@/app/lib/puck/components/Card'
+import ProgramEligibilityConfig from '@/app/lib/puck/components/ProgramEligibilityConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -60,7 +61,8 @@ export const PUCK_CONFIG: Config = {
         FeaturedProjectsConfig,
         ProjectCategoryConfig,
         NewsListConfig,
-        CardConfig
+        CardConfig,
+        ProgramEligibilityConfig
     },
     categories: {
         foundational: {
@@ -71,18 +73,45 @@ export const PUCK_CONFIG: Config = {
             title: '布局',
             components: [ 'ContainerConfig', 'SpacerConfig' ]
         },
-        sections: {
-            title: '内容区块',
-            components: [ 'HeroConfig', 'TopTextConfig', 'HighlightsConfig', 'LatestNewsConfig',
-                'BentoBoxConfig', 'NewsListConfig',
-                'QuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
-                'AccreditationsConfig', 'AlumniConfig', 'CoursesConfig', 'CurriculumConfig',
-                'SpecialtiesConfig', 'ContactsConfig', 'ApplicationStepsConfig', 'AnonymousQuoteConfig',
-                'ActivitiesConfig', 'ClubsConfig', 'FeaturedProjectsConfig', 'ProjectCategoryConfig' ]
+        sharedContent: {
+            title: '共享内容',
+            components: [ 'HeroConfig', 'TopTextConfig', 'HighlightsConfig', 'QuoteConfig',
+                'AnonymousQuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig' ]
         },
-        heroes: {
-            title: '主题首页',
-            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig' ]
+        home: {
+            title: '首页内容',
+            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig', 'BentoBoxConfig',
+                'LatestNewsConfig', 'NewsListConfig' ]
+        },
+        about: {
+            title: '关于内容',
+            components: [
+                'AccreditationsConfig', 'AlumniConfig'
+            ]
+        },
+        academics: {
+            title: '学术内容',
+            components: [
+                'CoursesConfig', 'CurriculumConfig', 'SpecialtiesConfig'
+            ]
+        },
+        life: {
+            title: '校园生活内容',
+            components: [
+                'ActivitiesConfig', 'ClubsConfig'
+            ]
+        },
+        admissions: {
+            title: '招生内容',
+            components: [
+                'SpecialtiesConfig', 'ApplicationStepsConfig', 'ContactsConfig', 'ProgramEligibilityConfig'
+            ]
+        },
+        projects: {
+            title: '学生项目内容',
+            components: [
+                'FeaturedProjectsConfig', 'ProjectCategoryConfig'
+            ]
         }
     }
 }
