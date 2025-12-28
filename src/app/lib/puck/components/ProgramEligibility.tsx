@@ -125,7 +125,7 @@ const DECISION_TREE: {
                     value: 'NONCN_STUDY',
                     label: {
                         zh: '非中国公民，持有在中国允许学习的居留身份 (如父母工作类居留许可)',
-                        en: 'Non-Chinese citizen with an immigration status that allows study (e.g., the student has a parent with a work residence permit)'
+                        en: 'Non-Chinese citizen who is legally authorized to study in China (e.g., the student has a parent with a work residence permit)'
                     }
                 },
                 {
