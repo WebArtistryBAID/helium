@@ -146,8 +146,8 @@ const DECISION_TREE: {
                 en: 'Is the student eligible for entry into Beijing public high schools?'
             },
             helper: {
-                zh: '请选择最符合学生本人的选项。',
-                en: 'Please choose the option that best matches the student. Typically, noncitizens are not eligible (except for those with PRC Foreign Permanent Residence ID Cards).'
+                zh: '请选择最符合学生本人的选项。请查阅 https://www.bjeea.cn/html/zkzz/faq/2025/1028/87463.html 了解详情。通常，非中国公民不具有该资格 (持有中华人民共和国外国人永久居留身份证的除外)。',
+                en: 'Please choose the option that best matches the student. Refer to https://www.bjeea.cn/html/zkzz/faq/2025/1028/87463.html (only in Chinese) for details. Typically, noncitizens are not eligible (except for those with PRC Foreign Permanent Residence ID Cards).'
             },
             options: [
                 { value: 'yes', label: { zh: '是', en: 'Yes' } },
@@ -615,7 +615,7 @@ export default function EligibilityWizard() {
                             setShowResults(false)
                             setStep(0)
                         }}
-                        className="rounded-xl border border-neutral-700/40 px-3 py-1.5 hover:border-neutral-500/60"
+                        className="rounded-xl border border-neutral-700/40 cursor-pointer px-3 py-1.5 hover:border-neutral-500/60"
                     >
                         {lang === 'zh' ? '重置' : 'Reset'}
                     </button>
@@ -631,7 +631,7 @@ export default function EligibilityWizard() {
                         onClick={() => setStep((s) => Math.max(0, s - 1))}
                         disabled={step <= 0}
                         className={`rounded-xl px-4 py-2 border ${
-                            step <= 0 ? 'opacity-40 cursor-not-allowed border-neutral-700/40' : 'border-neutral-700/40 hover:border-neutral-500/60'
+                            step <= 0 ? 'opacity-40 cursor-not-allowed border-neutral-700/40' : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'
                         }`}
                     >
                         {lang === 'zh' ? '上一步' : 'Back'}
@@ -643,10 +643,10 @@ export default function EligibilityWizard() {
                             onClick={() => setShowResults(true)}
                             disabled={!allVisibleAnswered && (canGoNext || step < visibleQuestions.length)}
                             className={`rounded-xl px-4 py-2 border ${
-                                allVisibleAnswered ? 'border-indigo-500/70 hover:border-indigo-400' :
+                                allVisibleAnswered ? 'border-indigo-500/70 cursor-pointer hover:border-indigo-400' :
                                     (canGoNext || step < visibleQuestions.length
                                         ? 'opacity-40 cursor-not-allowed border-neutral-700/40'
-                                        : 'border-neutral-700/40 hover:border-neutral-500/60')
+                                        : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60')
                             }`}
                         >
                             {lang === 'zh' ? '查看结果' : 'View Results'}
@@ -659,7 +659,7 @@ export default function EligibilityWizard() {
                             className={`rounded-xl px-4 py-2 border ${
                                 !canGoNext || step >= visibleQuestions.length - 1
                                     ? 'opacity-40 cursor-not-allowed border-neutral-700/40'
-                                    : 'border-neutral-700/40 hover:border-neutral-500/60'
+                                    : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'
                             }`}
                         >
                             {lang === 'zh' ? '下一步' : 'Next'}
@@ -714,8 +714,8 @@ export default function EligibilityWizard() {
 
                             <div className="pt-2 text-sm">
                                 {lang === 'zh'
-                                    ? '这一结果仅供参考，且不代表招生结果。有关确切的资格信息，请咨询招生办公室了解详情。'
-                                    : 'This result is for reference only and does not represent admissions decisions. For definitive eligibility information, please contact the Admissions Office.'}
+                                    ? '这一结果仅供参考，且不代表资格审查或招生结果。中考跨区招生存在一定限制。有关确切的资格信息，请咨询招生办公室了解详情。'
+                                    : 'This result is for reference only and does not indicate eligibility or represent admissions decisions. There are limits on cross-district admissions through zhongkao. To confirm the student\'s eligibility, please contact the Admissions Office.'}
                             </div>
                         </div>
                     )}
