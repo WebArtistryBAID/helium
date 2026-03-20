@@ -29,6 +29,7 @@ import ButtonConfig from '@/app/lib/puck/components/ButtonConfig'
 import NewsListConfig from '@/app/lib/puck/components/NewsListConfig'
 import { CardConfig } from '@/app/lib/puck/components/Card'
 import ProgramEligibilityConfig from '@/app/lib/puck/components/ProgramEligibilityConfig'
+import ImageTextLayoutConfig from '@/app/lib/puck/components/ImageTextLayout'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -62,7 +63,8 @@ export const PUCK_CONFIG: Config = {
         ProjectCategoryConfig,
         NewsListConfig,
         CardConfig,
-        ProgramEligibilityConfig
+        ProgramEligibilityConfig,
+        ImageTextLayoutConfig
     },
     categories: {
         foundational: {
@@ -71,7 +73,7 @@ export const PUCK_CONFIG: Config = {
         },
         layout: {
             title: '布局',
-            components: [ 'ContainerConfig', 'SpacerConfig' ]
+            components: [ 'ContainerConfig', 'SpacerConfig', 'ImageTextLayoutConfig' ]
         },
         sharedContent: {
             title: '共享内容',

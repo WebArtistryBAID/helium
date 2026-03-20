@@ -68,7 +68,7 @@ export default function InFocusProjects({
                                 transition={{ duration: 0.8 }}>
                         <p className="text-lg uppercase text-center tracking-wider text-gray-300 !mb-3">In Focus</p>
                         <h1 id="hero-heading"
-                            className="mb-3 text-white text-center font-bold font-serif text-5xl md:text-7xl">
+                            className="mb-3 text-white text-center font-bold font-serif text-5xl md:text-6xl">
                             {title}
                         </h1>
                     </motion.div>
@@ -253,7 +253,7 @@ export default function InFocusProjects({
                         <p className="text-lg uppercase tracking-wider text-gray-400 !mb-3">
                             {startTopText}
                         </p>
-                        <h2 className="text-4xl md:text-5xl">{startMainText}</h2>
+                        <h2 className="text-4xl">{startMainText}</h2>
                     </div>
                 </div>
             </div>
