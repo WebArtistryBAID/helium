@@ -72,8 +72,8 @@ const DECISION_TREE: {
     constants: {
         cutoffDobForUnder18: '2008-09-01',
         // For the two 中外合作办学项目班, treat these as "Chinese citizen" in the student-identity question.
-        chineseCitizenIds: [ 'CN_MAIN', 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR', 'DUAL' ],
-        hkmoTwIds: [ 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR' ]
+        chineseCitizenIds: [ 'CN_MAIN', 'CN_HK_PR', 'DUAL' ],
+        hkmoTwIds: [ 'CN_HK_PR' ]
     },
     questions: [
         {
@@ -99,19 +99,8 @@ const DECISION_TREE: {
                 {
                     value: 'CN_HK_PR',
                     label: {
-                        zh: '中国公民，且具有香港永久居住权',
-                        en: 'Chinese citizen with Hong Kong permanent residency'
-                    }
-                },
-                {
-                    value: 'CN_MO_PR',
-                    label: { zh: '中国公民，且具有澳门永久居住权', en: 'Chinese citizen with Macau permanent residency' }
-                },
-                {
-                    value: 'CN_TW_PR',
-                    label: {
-                        zh: '中国公民，且具有台湾永久居住权',
-                        en: 'Chinese citizen with Taiwan permanent residency'
+                        zh: '中国公民，且具有港澳台永久居住权',
+                        en: 'Chinese citizen with Hong Kong, Macao, or Taiwan permanent residency'
                     }
                 },
                 {
@@ -218,7 +207,7 @@ const DECISION_TREE: {
             id: 'entry_doc_used_hkmo_tw',
             type: 'single',
             required: true,
-            showIf: { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR' ] },
+            showIf: { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR' ] },
             helper: {
                 zh: '请选择最符合学生本人的选项。',
                 en: 'Please choose the option that best matches the student.'
@@ -237,8 +226,8 @@ const DECISION_TREE: {
         {
             id: 'bjms_intl_g10',
             name: {
-                zh: '北京中学中外合作办学项目班 (北京中学国际部): 十年级入学 (中考招生)',
-                en: 'Beijing Academy International Division: Grade 10 Entry (Zhongkao Track)'
+                zh: '北京中学国际部',
+                en: 'Beijing Academy International Division'
             },
             rule: {
                 op: 'all',
@@ -249,7 +238,7 @@ const DECISION_TREE: {
                             {
                                 op: 'all',
                                 rules: [
-                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR' ] },
+                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR' ] },
                                     { op: 'eq', q: 'entry_doc_used_hkmo_tw', value: 'yes' }
                                 ]
                             },
@@ -283,8 +272,8 @@ const DECISION_TREE: {
         {
             id: 'bjms_intl_g9_13',
             name: {
-                zh: '北京中学中外合作办学项目班 (北京中学国际部): 九年级入学 (1+3 招生)',
-                en: 'Beijing Academy International Division: Grade 9 Entry (1+3 Track)'
+                zh: '北京中学国际部',
+                en: 'Beijing Academy International Division'
             },
             rule: {
                 op: 'all',
@@ -295,7 +284,7 @@ const DECISION_TREE: {
                             {
                                 op: 'all',
                                 rules: [
-                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR' ] },
+                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR' ] },
                                     { op: 'eq', q: 'entry_doc_used_hkmo_tw', value: 'yes' }
                                 ]
                             },
@@ -311,8 +300,8 @@ const DECISION_TREE: {
         {
             id: 'foreign_children_g7',
             name: {
-                zh: '北中外籍人员子女学校: 七年级入学',
-                en: 'International School of Beijing Academy: Grade 7 Entry'
+                zh: '北中外籍人员子女学校',
+                en: 'International School of Beijing Academy'
             },
             rule: {
                 op: 'all',
@@ -324,7 +313,7 @@ const DECISION_TREE: {
                             {
                                 op: 'all',
                                 rules: [
-                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR', 'CN_MO_PR', 'CN_TW_PR' ] },
+                                    { op: 'in', q: 'student_identity', values: [ 'CN_HK_PR' ] },
                                     { op: 'eq', q: 'entry_doc_used_hkmo_tw', value: 'yes' }
                                 ]
                             },
@@ -676,8 +665,8 @@ export default function EligibilityWizard() {
                         <div className="space-y-2">
                             <div className="text-sm">
                                 {lang === 'zh'
-                                    ? '当前条件不符合任何招生项目。您可能可以通过其他方式或转学入学，详情请咨询招生办公室。'
-                                    : 'Based on the current answers, the student is not eligible for any programs. However, you may be eligible for alternative entry routes or transfer admissions. Please contact the Admissions Office for details.'}
+                                    ? '当前条件不符合任何招生项目。请注意，本资格向导并未覆盖北京中学国际部的所有招生项目，也未覆盖转学入学。您可能可以通过其他方式或转学入学，详情请咨询招生办公室。'
+                                    : 'Based on the current answers, the student is not eligible for any programs. Please note that this eligibility wizard has not covered all admission programs at BAID. You may be eligible for alternative admission programs or transfer admissions. Please contact the Admissions Office for details.'}
                             </div>
                         </div>
                     ) : (
@@ -714,8 +703,8 @@ export default function EligibilityWizard() {
 
                             <div className="pt-2 text-sm">
                                 {lang === 'zh'
-                                    ? '这一结果仅供参考，且不代表资格审查或招生结果。中考跨区招生存在一定限制。有关确切的资格信息，请咨询招生办公室了解详情。'
-                                    : 'This result is for reference only and does not indicate eligibility or represent admissions decisions. There are limits on cross-district admissions through zhongkao. To confirm the student\'s eligibility, please contact the Admissions Office.'}
+                                    ? '这一结果仅供参考，且不代表资格审查或招生结果。有关确切的资格信息，请咨询招生办公室了解详情。'
+                                    : 'This result is for reference only and does not indicate eligibility or represent admissions decisions. To confirm the student\'s eligibility, please contact the Admissions Office.'}
                             </div>
                         </div>
                     )}
