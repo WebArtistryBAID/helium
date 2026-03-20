@@ -8,6 +8,10 @@ import { convertDatesToStrings } from '@/app/lib/data-types'
 const NewsListConfig: ComponentConfig = {
     label: '新闻列表',
     fields: {
+        category: {
+            label: '筛选分类',
+            type: 'text'
+        },
         resolvedEntitiesInit: {
             type: 'array',
             visible: false,
@@ -18,10 +22,10 @@ const NewsListConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async () => {
+    resolveData: async ({ props }) => {
         return {
             props: {
-                resolvedEntitiesInit: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post)),
+                resolvedEntitiesInit: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post, props.category)),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

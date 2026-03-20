@@ -199,11 +199,12 @@ export async function getAllPublishedContentEntities(): Promise<SimplifiedConten
     })
 }
 
-export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
+export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
             type,
             contentPublishedEN: { not: null },
+            categoryEN: category == null ? undefined : category,
             OR: query == null ? undefined : [
                 { titlePublishedEN: { contains: query, mode: 'insensitive' } },
                 { titlePublishedZH: { contains: query, mode: 'insensitive' } },
@@ -215,6 +216,7 @@ export async function getPublishedContentEntities(page: number, type: EntityType
         where: {
             type,
             contentPublishedEN: { not: null },
+            categoryEN: category == null ? undefined : category,
             OR: query == null ? undefined : [
                 { titlePublishedEN: { contains: query, mode: 'insensitive' } },
                 { titlePublishedZH: { contains: query, mode: 'insensitive' } },
