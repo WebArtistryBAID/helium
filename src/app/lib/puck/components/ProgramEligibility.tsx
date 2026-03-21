@@ -81,7 +81,7 @@ const DECISION_TREE: {
             type: 'single',
             required: true,
             title: {
-                zh: '你的国籍或身份情况属于以下哪一类?',
+                zh: '您学生的国籍或身份情况属于以下哪一类?',
                 en: 'Which category best describes the student\'s nationality/immigration status?'
             },
             helper: {
@@ -92,7 +92,7 @@ const DECISION_TREE: {
                 {
                     value: 'CN_MAIN',
                     label: {
-                        zh: '中国公民，且不具有港澳台永久居民身份',
+                        zh: '中国公民，且不具有港澳台永久居住权',
                         en: 'Chinese citizen without Hong Kong, Macau, or Taiwan permanent residency'
                     }
                 },
@@ -131,7 +131,7 @@ const DECISION_TREE: {
             type: 'single',
             required: true,
             title: {
-                zh: '你是否具有北京市普通中学升学资格?',
+                zh: '您学生是否具有北京市普通中学升学资格?',
                 en: 'Is the student eligible for entry into Beijing public high schools?'
             },
             helper: {
@@ -148,7 +148,7 @@ const DECISION_TREE: {
             id: 'current_grade',
             type: 'single',
             required: true,
-            title: { zh: '你目前的在读年级是?', en: 'What is the student\'s current grade level?' },
+            title: { zh: '您学生目前的在读年级是?', en: 'What is the student\'s current grade level?' },
             helper: {
                 zh: '请选择最符合学生本人的选项。',
                 en: 'Please choose the option that best matches the student.'
@@ -164,7 +164,7 @@ const DECISION_TREE: {
             id: 'dob',
             type: 'date',
             required: true,
-            title: { zh: '你的出生日期是?', en: 'What is the student\'s date of birth?' },
+            title: { zh: '您学生的出生日期是?', en: 'What is the student\'s date of birth?' },
             helper: {
                 zh: '请填写最符合学生本人的内容。',
                 en: 'Please fill in content that best matches the student.'
@@ -175,7 +175,7 @@ const DECISION_TREE: {
             type: 'single',
             required: true,
             showIf: { op: 'eq', q: 'current_grade', value: 'g9' },
-            title: { zh: '你是否为应届初三学生?', en: 'Is the student a current-year (应届) Grade 9 student?' },
+            title: { zh: '您学生是否为应届初三学生?', en: 'Is the student a current-year (应届) Grade 9 student?' },
             helper: {
                 zh: '请选择最符合学生本人的选项。',
                 en: 'Please choose the option that best matches the student.'
@@ -195,7 +195,7 @@ const DECISION_TREE: {
                 en: 'Please choose the option that best matches the student.'
             },
             title: {
-                zh: '你是否在北京市朝阳区同一所学校连续具有两年初中学籍?',
+                zh: '您学生是否在北京市朝阳区同一所学校连续具有两年初中学籍?',
                 en: 'Has the student been enrolled for two years at the same middle school in Chaoyang District, Beijing?'
             },
             options: [
@@ -213,7 +213,7 @@ const DECISION_TREE: {
                 en: 'Please choose the option that best matches the student.'
             },
             title: {
-                zh: '您是否正在使用港澳居民来往内地通行证或台湾居民来往大陆通行证进入中国内地?',
+                zh: '您的学生是否正在使用港澳居民来往内地通行证或台湾居民来往大陆通行证进入中国内地?',
                 en: 'Has the student entered Mainland China using a Mainland Travel Permit for Hong Kong and Macau Residents or a Mainland Travel Permit for Taiwan Residents?'
             },
             options: [
