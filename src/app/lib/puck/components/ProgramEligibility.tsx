@@ -293,7 +293,7 @@ const DECISION_TREE: {
                     },
                     { op: 'eq', q: 'bj_eligibility', value: 'yes' },
                     { op: 'eq', q: 'current_grade', value: 'g8' },
-                    { op: 'eq', q: 'cy_two_year_same_school', value: 'yes' }
+//                  { op: 'eq', q: 'cy_two_year_same_school', value: 'yes' }
                 ]
             }
         },
