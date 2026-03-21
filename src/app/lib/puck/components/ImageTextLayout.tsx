@@ -2,7 +2,7 @@ import { ComponentConfig } from '@measured/puck'
 import { colorTypeField, imageTypeField } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
-import { Image } from '@prisma/client'
+import { Image } from '@/generated/prisma/client'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 
 function ImageTextLayout({

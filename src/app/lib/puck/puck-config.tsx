@@ -30,6 +30,7 @@ import NewsListConfig from '@/app/lib/puck/components/NewsListConfig'
 import { CardConfig } from '@/app/lib/puck/components/Card'
 import ProgramEligibilityConfig from '@/app/lib/puck/components/ProgramEligibilityConfig'
 import ImageTextLayoutConfig from '@/app/lib/puck/components/ImageTextLayout'
+import PeopleConfig from '@/app/lib/puck/components/PeopleConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -64,7 +65,8 @@ export const PUCK_CONFIG: Config = {
         NewsListConfig,
         CardConfig,
         ProgramEligibilityConfig,
-        ImageTextLayoutConfig
+        ImageTextLayoutConfig,
+        PeopleConfig
     },
     categories: {
         foundational: {
@@ -78,7 +80,8 @@ export const PUCK_CONFIG: Config = {
         sharedContent: {
             title: '共享内容',
             components: [ 'HeroConfig', 'TopTextConfig', 'HighlightsConfig', 'QuoteConfig',
-                'AnonymousQuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig' ]
+                'AnonymousQuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
+                'PeopleConfig' ]
         },
         home: {
             title: '首页内容',
