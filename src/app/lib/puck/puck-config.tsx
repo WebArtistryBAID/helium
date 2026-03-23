@@ -31,6 +31,7 @@ import { CardConfig } from '@/app/lib/puck/components/Card'
 import ProgramEligibilityConfig from '@/app/lib/puck/components/ProgramEligibilityConfig'
 import ImageTextLayoutConfig from '@/app/lib/puck/components/ImageTextLayout'
 import PeopleConfig from '@/app/lib/puck/components/PeopleConfig'
+import ImageGalleryConfig from '@/app/lib/puck/components/ImageGalleryConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -66,7 +67,8 @@ export const PUCK_CONFIG: Config = {
         CardConfig,
         ProgramEligibilityConfig,
         ImageTextLayoutConfig,
-        PeopleConfig
+        PeopleConfig,
+        ImageGalleryConfig
     },
     categories: {
         foundational: {
@@ -75,7 +77,7 @@ export const PUCK_CONFIG: Config = {
         },
         layout: {
             title: '布局',
-            components: [ 'ContainerConfig', 'SpacerConfig', 'ImageTextLayoutConfig' ]
+            components: [ 'ContainerConfig', 'SpacerConfig', 'ImageTextLayoutConfig', 'ImageGalleryConfig' ]
         },
         sharedContent: {
             title: '共享内容',
