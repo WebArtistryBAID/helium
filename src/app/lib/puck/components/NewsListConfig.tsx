@@ -23,18 +23,20 @@ const NewsListConfig: ComponentConfig = {
         }
     },
     resolveData: async ({ props }) => {
+        const category = props.category?.trim() || undefined
+
         return {
             props: {
-                resolvedEntitiesInit: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post, props.category)),
+                resolvedEntitiesInit: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post, undefined, category)),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
     },
-    render: ({ resolvedEntitiesInit, resolvedUploadPrefix }) => {
+    render: ({ category, resolvedEntitiesInit, resolvedUploadPrefix }) => {
         if (resolvedEntitiesInit == null) {
             return <></>
         }
-        return <NewsList init={resolvedEntitiesInit} uploadPrefix={resolvedUploadPrefix}/>
+        return <NewsList init={resolvedEntitiesInit} uploadPrefix={resolvedUploadPrefix} category={category}/>
     }
 }
 
