@@ -11,6 +11,16 @@ const CoursesConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
+        categoryENList: {
+            label: '英文分类筛选',
+            type: 'array',
+            arrayFields: {
+                value: {
+                    label: '分类英文名',
+                    type: 'text'
+                }
+            }
+        },
         resolvedCourses: {
             type: 'object',
             objectFields: {},
@@ -18,15 +28,28 @@ const CoursesConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        title: '我们的课程'
+        title: '我们的课程',
+        categoryENList: []
     },
     resolveData: async ({ props }) => {
+        const categoryFilters = (props.categoryENList ?? [])
+            .map((item: { value?: string | null } | null | undefined) => item?.value?.trim() ?? '')
+            .filter(Boolean)
+        const legacyCategoryFilter = typeof props.categoryEN === 'string' ? props.categoryEN.trim() : ''
+        const activeCategoryFilters = categoryFilters.length > 0
+            ? new Set(categoryFilters)
+            : legacyCategoryFilter
+                ? new Set([ legacyCategoryFilter ])
+                : null
         const current: { [courseName: string]: (SimplifiedContentEntity | undefined)[] | undefined } = {}
         for (const course of convertDatesToStrings(await getAllPublishedCourses())) {
-            if (course.categoryZH != null) {
-                if (current[course.categoryZH] == null) current[course.categoryZH] = []
-                current[course.categoryZH]!.push(course)
-            }
+            if (activeCategoryFilters && !activeCategoryFilters.has(course.categoryEN ?? '')) continue
+
+            const categoryKey = course.categoryEN ?? course.categoryZH
+            if (categoryKey == null) continue
+
+            if (current[categoryKey] == null) current[categoryKey] = []
+            current[categoryKey]!.push(course)
         }
         return {
             props: {
