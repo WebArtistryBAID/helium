@@ -11,12 +11,44 @@ import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { Metadata } from 'next'
 
 const PAGES = [
-    { id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about' },
-    { id: 2, titleEN: 'Academics', titleZH: '学术', slug: 'academics' },
-    { id: 3, titleEN: 'Life', titleZH: '学生生活', slug: 'life' },
-    { id: 4, titleEN: 'Projects', titleZH: '自主项目', slug: 'projects' },
-    { id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions' },
-    { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news' }
+    {
+        id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about', subPages: [
+            { id: -1, titleEN: 'Our Mission', titleZH: '我们的使命', slug: 'about' },
+            { id: -1, titleEN: 'Core Values', titleZH: '核心价值观', slug: 'about' },
+            { id: -1, titleEN: 'Accreditation', titleZH: '认证', slug: 'about' }
+        ]
+    },
+    {
+        id: 2, titleEN: 'Academics', titleZH: '学术', slug: 'academics',
+        subPages: [
+            { id: 7, titleEN: 'Middle School Program', titleZH: '初中项目', slug: 'academics/middle-school' },
+            { id: 8, titleEN: 'High School Program', titleZH: '高中项目', slug: 'academics/high-school' },
+            { id: 9, titleEN: 'Project-Based Learning', titleZH: '项目式学习', slug: 'academics/pbl' },
+            { id: 10, titleEN: 'College Counseling', titleZH: '大学升学指导', slug: 'academics/college-counseling' }
+        ]
+    },
+    {
+        id: 3, titleEN: 'Life', titleZH: '学生生活', slug: 'life', subPages: [
+            { id: 11, titleEN: 'Clubs', titleZH: '社团', slug: 'life/clubs' },
+            { id: 12, titleEN: 'Electives', titleZH: '选修课', slug: 'life/electives' },
+            { id: 13, titleEN: 'Dining', titleZH: '用餐', slug: 'life/dining' },
+            { id: 14, titleEN: 'Athletics', titleZH: '运动', slug: 'life/athletics' },
+            { id: 15, titleEN: 'Activities', titleZH: '校园活动', slug: 'life/activities' }
+        ]
+    },
+    {
+        id: 4, titleEN: 'Projects', titleZH: '自主项目', slug: 'projects', subPages: [
+            { id: -1, titleEN: 'Featured Projects', titleZH: '精选项目', slug: 'projects' },
+            { id: -1, titleEN: 'Gallery', titleZH: '项目展览', slug: 'projects' }
+        ]
+    },
+    {
+        id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions', subPages: [
+            { id: 16, titleEN: 'High School Admissions', titleZH: '高中项目招生', slug: 'admissions/baid' },
+            { id: 17, titleEN: 'Middle School Admissions', titleZH: '初中项目招生', slug: 'admissions/isba' }
+        ]
+    },
+    { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news', subPages: [] }
 ]
 
 export async function generateMetadata({ params }: {

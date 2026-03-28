@@ -19,7 +19,13 @@ const locales = {
 }
 
 export default function GlobalFooter({ pages }: {
-    pages: { id: number, titleEN: string, titleZH: string, slug: string }[]
+    pages: {
+        id: number,
+        titleEN: string,
+        titleZH: string,
+        slug: string,
+        subPages: { id: number, titleEN: string, titleZH: string, slug: string }[]
+    }[]
 }) {
     const language = useLanguage()
 
@@ -32,11 +38,21 @@ export default function GlobalFooter({ pages }: {
             <nav aria-label={locales[language].nav} role="navigation"
                  className="lg:flex lg:justify-between lg:gap-3 space-y-3 mb-5">
                 {pages.map((page, index) =>
-                    <Link href={`/${page.slug}`} className="fancy-link link-white mb-2" key={index}>
-                        <h3 className="text-lg font-bold">
-                            {language === 'zh' ? page.titleZH : page.titleEN}
-                        </h3>
-                    </Link>
+                    <div key={index}>
+                        <Link href={`/${page.slug}`} className="fancy-link link-white mb-2">
+                            <h3 className="text-lg font-bold">
+                                {language === 'zh' ? page.titleZH : page.titleEN}
+                            </h3>
+                        </Link>
+                        <div className="flex flex-col">
+                            {page.subPages.map((subPage, subIndex) =>
+                                <Link href={`/${subPage.slug}`} className="link-white"
+                                      key={subIndex}>
+                                    {language === 'zh' ? subPage.titleZH : subPage.titleEN}
+                                </Link>
+                            )}
+                        </div>
+                    </div>
                 )}
             </nav>
 
