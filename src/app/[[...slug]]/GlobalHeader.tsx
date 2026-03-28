@@ -27,7 +27,13 @@ const locales = {
 }
 
 export default function GlobalHeader({ pages, headerAnimate = false }: {
-    pages: { id: number, titleEN: string, titleZH: string, slug: string }[],
+    pages: {
+        id: number,
+        titleEN: string,
+        titleZH: string,
+        slug: string,
+        subPages: { id: number, titleEN: string, titleZH: string, slug: string }[]
+    }[],
     headerAnimate?: boolean
 }) {
     const pathname = usePathname() || '/'
