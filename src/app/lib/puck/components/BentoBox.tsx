@@ -54,7 +54,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-5 row-span-4 lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 from-yellow-500/5 to-gray-50 bg-gradient-to-br rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
+                className="col-span-1 md:col-span-5 row-span-4 lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 from-yellow-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
                 <div>
                     <h3
                         className="text-2xl leading-tight mb-3 font-bold"
@@ -71,7 +71,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-3 row-span-1 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1 from-orange-500/5 to-gray-50 bg-gradient-to-br rounded-3xl p-8 flex items-center gap-3">
+                className="col-span-1 md:col-span-3 row-span-1 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1 from-orange-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-5 flex items-center">
                 <h3
                     className="text-lg"
                     role="heading">
@@ -80,7 +80,7 @@ function BentoBox({
                 </h3>
                 <div
                     aria-hidden="true"
-                    className="relative flex justify-start pr-5 items-center">
+                    className="relative flex justify-center items-end">
                     <img
                         src="/assets/components/bento/lj.jpg"
                         alt=""
@@ -115,7 +115,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-3 row-span-4 lg:col-start-4 lg:col-span-3 lg:row-start-5 lg:row-span-4 from-red-500/5 to-gray-50 bg-gradient-to-br rounded-3xl overflow-hidden">
+                className="col-span-1 md:col-span-3 row-span-4 lg:col-start-4 lg:col-span-3 lg:row-start-5 lg:row-span-4 from-red-500/5 to-gray-50 bg-linear-to-br rounded-3xl overflow-hidden">
                 <div className="relative w-full h-48 lg:h-1/2">
                     <div
                         aria-hidden="true"
@@ -217,7 +217,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-2 row-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-7 lg:row-span-2 from-sky-500/5 to-gray-50 bg-gradient-to-br rounded-3xl p-8 flex justify-center items-center flex-col text-center">
+                className="col-span-1 md:col-span-2 row-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-7 lg:row-span-2 from-sky-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-8 flex justify-center items-center flex-col text-center">
                 <div className="mb-3">
                     <svg
                         className="w-20 h-20 text-blue-500"
