@@ -112,14 +112,16 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                             教职工介绍
                                         </SidebarItem>
                                     </Link>
+
+                                    <Link href="/studio/settings">
+                                        <SidebarItem as="div" icon={HiCog}>
+                                            飞书设置
+                                        </SidebarItem>
+                                    </Link>
                                 </SidebarCollapse>
                             </SidebarItemGroup>
                         </SidebarItems>
                         <div className="mr-3 mb-3 absolute bottom-0">
-                            <Link href="/studio/settings"
-                                  className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 transition-colors duration-100">
-                                <HiCog className="text-xl text-gray-600" />
-                            </Link>
                             <Link href="/studio/"
                                   className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 transition-colors duration-100">
                                 <Badge icon={HiUser}/>
