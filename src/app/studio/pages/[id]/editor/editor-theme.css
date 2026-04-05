@@ -1,0 +1,142 @@
+/* Red, White, Gray Theme for Helium Editor */
+
+:root {
+  --primary-red: #dc2626;
+  --primary-red-dark: #991b1b;
+  --primary-red-light: #fee2e2;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+}
+
+/* Puck Editor Theme */
+.puck-root {
+  background: var(--gray-50);
+}
+
+.puck-frame {
+  background: white;
+  border: 1px solid var(--gray-200);
+}
+
+.puck-canvas {
+  background: white;
+}
+
+.puck-outline-root {
+  background: var(--gray-50);
+  border-left: 1px solid var(--gray-200);
+}
+
+/* Header Actions */
+.puck-header {
+  background: white;
+  border-bottom: 2px solid var(--primary-red);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Buttons */
+.puck-button,
+button[color="blue"] {
+  background-color: var(--primary-red);
+  border-color: var(--primary-red);
+  color: white;
+}
+
+.puck-button:hover,
+button[color="blue"]:hover {
+  background-color: var(--primary-red-dark);
+  border-color: var(--primary-red-dark);
+}
+
+button[color="alternative"] {
+  background-color: var(--gray-100);
+  border-color: var(--gray-300);
+  color: var(--gray-700);
+}
+
+button[color="alternative"]:hover {
+  background-color: var(--gray-200);
+}
+
+/* Selected Elements */
+.puck-selected {
+  outline: 2px solid var(--primary-red);
+  outline-offset: 2px;
+}
+
+/* Sidebar */
+.puck-sidebar {
+  background: var(--gray-50);
+  border-right: 1px solid var(--gray-200);
+}
+
+.puck-fields {
+  background: white;
+}
+
+/* Labels and Text */
+label {
+  color: var(--gray-700);
+  font-weight: 500;
+}
+
+.text-gray-700 {
+  color: var(--gray-700);
+}
+
+.text-gray-500 {
+  color: var(--gray-500);
+}
+
+/* Input Fields */
+input,
+textarea,
+select {
+  border-color: var(--gray-300);
+  color: var(--gray-900);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: var(--primary-red);
+  outline: none;
+  box-shadow: 0 0 0 3px var(--primary-red-light);
+}
+
+/* Modal */
+.puck-modal {
+  background: white;
+  border: 1px solid var(--gray-200);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+}
+
+.puck-modal-header {
+  border-bottom: 1px solid var(--gray-200);
+  background: var(--gray-50);
+}
+
+/* Tabs */
+.puck-tabs {
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.puck-tab-active {
+  border-bottom-color: var(--primary-red);
+  color: var(--primary-red);
+}
+
+/* Disabled State */
+button:disabled,
+input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
