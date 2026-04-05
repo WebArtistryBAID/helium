@@ -7,7 +7,7 @@ const FEISHU_API = 'https://open.feishu.cn/open-apis'
 export async function getFeishuAuthUrl(): Promise<string> {
   const clientId = process.env.FEISHU_CLIENT_ID
   const redirectUri = `${process.env.HOST}/studio/settings/feishu/callback`
-  return `https://open.feishu.cn/open-apis/oauth2/v3/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=contact:user.id:readonly`
+  return `https://open.feishu.cn/open-apis/oauth2/v3/authorize?client_id=${clientId}&redirect_uri=${redirectUri}&response_type=code&scope=contact:user.id:readonly+im:message:create_personal_message`
 }
 
 export async function exchangeFeishuCode(code: string): Promise<{ openId: string; userId: string }> {

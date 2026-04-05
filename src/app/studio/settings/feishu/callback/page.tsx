@@ -3,21 +3,28 @@ import { exchangeFeishuCode, linkFeishuAccount } from '@/app/studio/settings/fei
 import { requireUser } from '@/app/login/login-actions'
 
 export default async function FeishuCallback({ searchParams }: {
-  searchParams: Promise<{ code?: string; state?: string }>
+  searchParams: Promise<{ code?: string; state?: string; error?: string }>
 }) {
   const user = await requireUser()
-  const { code } = await searchParams
+  const params = await searchParams
+  const { code, error } = params
+
+  if (error) {
+    console.error('Feishu OAuth error:', error)
+    redirect('/studio/settings?error=feishu_auth_failed')
+  }
 
   if (!code) {
-    redirect('/studio/settings')
+    redirect('/studio/settings?error=no_code')
   }
 
   try {
     const { openId } = await exchangeFeishuCode(code)
     await linkFeishuAccount(user.id, openId)
+    redirect('/studio/settings?success=linked')
   } catch (error) {
     console.error('Feishu linking failed:', error)
+    redirect('/studio/settings?error=linking_failed')
   }
-
-  redirect('/studio/settings')
 }
+

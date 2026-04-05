@@ -976,7 +976,8 @@ export const UserScalarFieldEnum = {
   type: 'type',
   gender: 'gender',
   createdAt: 'createdAt',
-  updatedAt: 'updatedAt'
+  updatedAt: 'updatedAt',
+  feishuOpenId: 'feishuOpenId'
 } as const
 
 export type UserScalarFieldEnum = (typeof UserScalarFieldEnum)[keyof typeof UserScalarFieldEnum]
@@ -1097,7 +1098,8 @@ export type NullsOrder = (typeof NullsOrder)[keyof typeof NullsOrder]
 export const UserOrderByRelevanceFieldEnum = {
   name: 'name',
   pinyin: 'pinyin',
-  phone: 'phone'
+  phone: 'phone',
+  feishuOpenId: 'feishuOpenId'
 } as const
 
 export type UserOrderByRelevanceFieldEnum = (typeof UserOrderByRelevanceFieldEnum)[keyof typeof UserOrderByRelevanceFieldEnum]
