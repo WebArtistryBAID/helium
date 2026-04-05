@@ -25,7 +25,8 @@ import {
     HiPuzzlePiece,
     HiShare,
     HiStar,
-    HiUsers
+    HiUsers,
+    HiCog
 } from 'react-icons/hi2'
 import If from '@/app/lib/If'
 import { usePathname } from 'next/navigation'
@@ -115,6 +116,10 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                             </SidebarItemGroup>
                         </SidebarItems>
                         <div className="mr-3 mb-3 absolute bottom-0">
+                            <Link href="/studio/settings"
+                                  className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 transition-colors duration-100">
+                                <HiCog className="text-xl text-gray-600" />
+                            </Link>
                             <Link href="/studio/"
                                   className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 transition-colors duration-100">
                                 <Badge icon={HiUser}/>
