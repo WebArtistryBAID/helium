@@ -14,7 +14,7 @@ import {
     TextInput
 } from 'flowbite-react'
 import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState, useMemo, memo } from 'react'
 import { Image, Role, User } from '@/generated/prisma/browser'
 import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
@@ -29,6 +29,20 @@ function formatSize(kb: number): string {
         return `${(kb / 1024).toFixed(2)} MB`
     }
 }
+
+const ImageItem = memo(({ image, isSelected, uploadServePath, onClick }: {
+    image: Image
+    isSelected: boolean
+    uploadServePath: string
+    onClick: () => void
+}) => (
+    <button key={image.sha1} className={`w-full h-full rounded ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
+            onClick={onClick}>
+        <img className="w-full aspect-square object-cover"
+             alt={`图片: ${image.name}`}
+             src={`${uploadServePath}/${image.sha1}_thumb.webp`}/>
+    </button>
+))
 
 export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     init: Paginated<Image>,
@@ -137,20 +151,20 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                             <div className="w-2/3">
                                 <div className="grid grid-cols-6 gap-4 mb-3">
                                     {page.items.map(image =>
-                                        <button key={image.sha1} className={`w-full h-full rounded
-                                     ${selectedImage?.id === image.id ? 'ring-4 ring-blue-500' : ''}`}
-                                                onClick={() => {
-                                                    setDeleteConfirm(false)
-                                                    if (selectedImage?.id === image.id) {
-                                                        setSelectedImage(null)
-                                                    } else {
-                                                        setSelectedImage(image)
-                                                    }
-                                                }}>
-                                            <img className="w-full aspect-square object-cover"
-                                                 alt={`图片: ${image.name}`}
-                                                 src={`${uploadServePath}/${image.sha1}_thumb.webp`}/>
-                                        </button>
+                                        <ImageItem
+                                            key={image.sha1}
+                                            image={image}
+                                            isSelected={selectedImage?.id === image.id}
+                                            uploadServePath={uploadServePath}
+                                            onClick={() => {
+                                                setDeleteConfirm(false)
+                                                if (selectedImage?.id === image.id) {
+                                                    setSelectedImage(null)
+                                                } else {
+                                                    setSelectedImage(image)
+                                                }
+                                            }}
+                                        />
                                     )}
                                 </div>
                                 <Pagination currentPage={currentPage + 1} onPageChange={p => setCurrentPage(p - 1)}

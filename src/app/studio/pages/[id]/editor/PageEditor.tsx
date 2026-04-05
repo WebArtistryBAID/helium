@@ -9,7 +9,7 @@ import {
 } from '@/app/studio/editor/entity-actions'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { Puck } from '@measured/puck'
@@ -195,9 +195,9 @@ export default function PageEditor({ init, userId, lockToken }: {
         </Modal>
 
         <Puck
-            key={inEnglish ? 'en' : 'zh'} // Force re-render
-            config={PUCK_CONFIG}
-            data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
+            key={inEnglish ? 'en' : 'zh'}
+            config={useMemo(() => PUCK_CONFIG, [])}
+            data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)}
             onChange={data => {
                 if (inEnglish) {
                     setDraft(prev => ({

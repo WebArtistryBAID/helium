@@ -103,7 +103,9 @@ export default function SimpleMarkdownEditor({
             <ModalHeader className="border-none absolute z-50 right-0"/>
             <MediaLibrary init={mediaLibraryContent} pickMode={true} onPick={image => {
                 setShowMediaLibrary(false)
-                handleChange(`${value}\n[IMAGE: ${image.id}]\n`)
+                if (image != null) {
+                    handleChange(`${value}\n[IMAGE: ${image.id}]\n`)
+                }
             }}/>
         </Modal>
 

@@ -108,7 +108,7 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
         } finally {
             if (mountedRef.current) setLoading(false)
         }
-    }, [ draft, loading ])
+    }, [ loading ])
 
     const refresh = useCallback(async () => {
         if (loading) return
