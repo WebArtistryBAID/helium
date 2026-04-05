@@ -22,6 +22,11 @@ export default async function authMiddleware(req: NextRequest): Promise<NextResp
     if (!isProtected) {
         return null
     }
+
+    if (process.env.BYPASS_AUTH === 'true') {
+        return null
+    }
+
     const cookie = (await cookies()).get('access_token')?.value
     if (cookie == null) {
         return NextResponse.redirect(new URL(await getLoginTarget(req.nextUrl.pathname + req.nextUrl.search), req.nextUrl))
