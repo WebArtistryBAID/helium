@@ -55,5 +55,11 @@ Contribution is accepted from Beijing Academy students. All contributions are ow
 
 All rights reserved unless otherwise stated. Refer to `LICENSE` for details.
 
+## Content Editor
+
+Content entities (club, course, activity, project, faculty, post) use the **Puck visual editor**, the same as pages. Content is stored as Puck JSON in `contentDraftEN` / `contentPublishedEN` (and ZH equivalents). The public render uses `<Render config={PUCK_CONFIG} data={...} />`.
+
+New Puck components available in the "内容详情" category: Timeline, ContactCard, LeadershipGrid, Syllabus, InstructorCard, LocationCard, TeamGrid, StatBlock, FAQAccordion, VideoEmbed, ImageGalleryBlock, QuoteBlock, CTAButton.
+
 "Beijing Academy," "BAID," "Better Me, Better World," and the Beijing Academy logo are legally protected and may not be
 used without official authorization.
