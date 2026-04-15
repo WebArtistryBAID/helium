@@ -32,6 +32,19 @@ import ProgramEligibilityConfig from '@/app/lib/puck/components/ProgramEligibili
 import ImageTextLayoutConfig from '@/app/lib/puck/components/ImageTextLayout'
 import PeopleConfig from '@/app/lib/puck/components/PeopleConfig'
 import ImageGalleryConfig from '@/app/lib/puck/components/ImageGalleryConfig'
+import TimelineConfig from '@/app/lib/puck/components/Timeline'
+import ContactCardConfig from '@/app/lib/puck/components/ContactCard'
+import LeadershipGridConfig from '@/app/lib/puck/components/LeadershipGrid'
+import SyllabusConfig from '@/app/lib/puck/components/Syllabus'
+import InstructorCardConfig from '@/app/lib/puck/components/InstructorCard'
+import LocationCardConfig from '@/app/lib/puck/components/LocationCard'
+import TeamGridConfig from '@/app/lib/puck/components/TeamGrid'
+import StatBlockConfig from '@/app/lib/puck/components/StatBlock'
+import FAQAccordionConfig from '@/app/lib/puck/components/FAQAccordion'
+import VideoEmbedConfig from '@/app/lib/puck/components/VideoEmbed'
+import ImageGalleryBlockConfig from '@/app/lib/puck/components/ImageGalleryBlock'
+import QuoteBlockConfig from '@/app/lib/puck/components/QuoteBlock'
+import CTAButtonConfig from '@/app/lib/puck/components/CTAButton'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -68,7 +81,20 @@ export const PUCK_CONFIG: Config = {
         ProgramEligibilityConfig,
         ImageTextLayoutConfig,
         PeopleConfig,
-        ImageGalleryConfig
+        ImageGalleryConfig,
+        TimelineConfig,
+        ContactCardConfig,
+        LeadershipGridConfig,
+        SyllabusConfig,
+        InstructorCardConfig,
+        LocationCardConfig,
+        TeamGridConfig,
+        StatBlockConfig,
+        FAQAccordionConfig,
+        VideoEmbedConfig,
+        ImageGalleryBlockConfig,
+        QuoteBlockConfig,
+        CTAButtonConfig
     },
     categories: {
         foundational: {
@@ -118,6 +144,16 @@ export const PUCK_CONFIG: Config = {
             title: '学生项目内容',
             components: [
                 'FeaturedProjectsConfig', 'ProjectCategoryConfig'
+            ]
+        },
+        contentEntity: {
+            title: '内容详情',
+            components: [
+                'TimelineConfig', 'ContactCardConfig', 'LeadershipGridConfig',
+                'SyllabusConfig', 'InstructorCardConfig', 'LocationCardConfig',
+                'TeamGridConfig', 'StatBlockConfig', 'FAQAccordionConfig',
+                'VideoEmbedConfig', 'ImageGalleryBlockConfig', 'QuoteBlockConfig',
+                'CTAButtonConfig'
             ]
         }
     }

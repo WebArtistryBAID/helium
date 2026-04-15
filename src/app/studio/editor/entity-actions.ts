@@ -8,7 +8,7 @@ import {
     SIMPLIFIED_CONTENT_ENTITY_SELECT,
     SimplifiedContentEntity
 } from '@/app/lib/data-types'
-import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
+import { requireUser, requireUserWithRole, getMyUser } from '@/app/login/login-actions'
 import fs from 'fs/promises'
 import path from 'path'
 import { spawn } from 'child_process'
@@ -23,6 +23,14 @@ import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 
 const PAGE_SIZE = 24
 
+function getDefaultContent(type: EntityType, titleEN: string, titleZH: string) {
+    return JSON.stringify({ content: [], root: { props: { title: titleEN } }, zones: {} })
+}
+
+function getDefaultContentZH(type: EntityType, titleZH: string) {
+    return JSON.stringify({ content: [], root: { props: { title: titleZH } }, zones: {} })
+}
+
 export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
         where: { type },
@@ -33,7 +41,8 @@ export async function getRecentEntities(type: EntityType): Promise<SimplifiedCon
 }
 
 export async function getMyPendingApprovals(): Promise<SimplifiedContentEntity[]> {
-    const user = await requireUser()
+    const user = await getMyUser()
+    if (!user) return []
     const entityTypes = Object.values(EntityType) as EntityType[]
     const thresholdsByType = new Map<EntityType, Record<string, number>>()
     for (const t of entityTypes) {
@@ -404,17 +413,9 @@ export async function createContentEntity(type: EntityType, titleEN: string, tit
             type,
             titleDraftEN: titleEN,
             titleDraftZH: titleZH,
-            slug: titleEN.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
-            contentDraftEN: type === EntityType.page ? JSON.stringify({
-                content: [],
-                root: { props: { title: titleEN } },
-                zones: {}
-            }) : '',
-            contentDraftZH: type === EntityType.page ? JSON.stringify({
-                content: [],
-                root: { props: { title: titleZH } },
-                zones: {}
-            }) : '',
+            slug: `${titleEN.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Date.now().toString(36)}`,
+            contentDraftEN: getDefaultContent(type, titleEN, titleZH),
+            contentDraftZH: getDefaultContentZH(type, titleZH),
             contentPublishedEN: null,
             contentPublishedZH: null,
             creatorId: user.id
@@ -697,7 +698,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
             data: {
                 titleDraftEN: title,
                 titleDraftZH: titleChinese,
-                slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+                slug: `${title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '')}-${Date.now().toString(36)}`,
                 contentDraftEN: finalContentEN,
                 contentDraftZH: finalContentZH,
                 coverImageDraftId: coverImageId,

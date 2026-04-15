@@ -2,55 +2,108 @@ import { HydratedContentEntity } from '@/app/lib/data-types'
 import { EntityType } from '@/generated/prisma/browser'
 import { notFound, redirect } from 'next/navigation'
 import If from '@/app/lib/If'
-import Markdown from 'react-markdown'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { Render } from '@measured/puck'
+import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
+import { getUploadServePath } from '@/app/studio/media/media-actions'
+
+function CategoryBadge({ category }: { category: string }) {
+    return (
+        <span className="inline-block px-3 py-1 text-sm font-semibold bg-red-100 text-red-800 rounded-full">
+            {category}
+        </span>
+    )
+}
+
+function EntityHero({ entity, locale, uploadPrefix }: {
+    entity: HydratedContentEntity,
+    locale: string,
+    uploadPrefix: string
+}) {
+    const title = locale === 'en' ? entity.titlePublishedEN : entity.titlePublishedZH
+    const category = locale === 'en' ? entity.categoryEN : entity.categoryZH
+    const shortContent = locale === 'en' ? entity.shortContentPublishedEN : entity.shortContentPublishedZH
+
+    if (!entity.coverImagePublished) {
+        return (
+            <div className="bg-red-900 text-white py-16">
+                <div className="container px-5">
+                    <If condition={!!category}>
+                        <CategoryBadge category={category!}/>
+                    </If>
+                    <h1 className="text-5xl font-bold mt-4">{title}</h1>
+                    <If condition={!!shortContent}>
+                        <p className="text-xl text-white/80 mt-3 max-w-2xl">{shortContent!}</p>
+                    </If>
+                </div>
+            </div>
+        )
+    }
+
+    if (entity.type === EntityType.faculty) {
+        return (
+            <div className="relative w-full min-h-[65vh] overflow-hidden">
+                <img
+                    className="w-full h-[65vh] object-cover object-top"
+                    alt={entity.coverImagePublished.altText}
+                    src={`${uploadPrefix}/${entity.coverImagePublished.sha1}.webp`}
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent flex items-end">
+                    <div className="container px-5 pb-14">
+                        <If condition={!!category}>
+                            <CategoryBadge category={category!}/>
+                        </If>
+                        <h1 className="text-6xl font-bold text-white mt-4">{title}</h1>
+                        <If condition={!!shortContent}>
+                            <p className="text-xl text-white/80 mt-2">{shortContent!}</p>
+                        </If>
+                    </div>
+                </div>
+            </div>
+        )
+    }
+
+    return (
+        <div className="relative w-full min-h-[50vh] overflow-hidden">
+            <img
+                className="w-full h-[50vh] object-cover"
+                alt={entity.coverImagePublished.altText}
+                src={`${uploadPrefix}/${entity.coverImagePublished.sha1}.webp`}
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent flex items-end">
+                <div className="container px-5 pb-12">
+                    <If condition={!!category}>
+                        <CategoryBadge category={category!}/>
+                    </If>
+                    <h1 className="text-5xl font-bold text-white mt-4">{title}</h1>
+                </div>
+            </div>
+        </div>
+    )
+}
 
 export default async function AnyContentEntityPage({ entity, params }: {
     entity: HydratedContentEntity,
     params: Promise<{ slug: string[] | undefined }>
 }) {
     if (entity.contentPublishedEN == null) {
-        notFound() // Not published yet
+        notFound()
     }
     if (entity.type === EntityType.page) {
-        redirect(`/${entity.slug}`) // Redirect to the appropriate page route
+        redirect(`/${entity.slug}`)
     }
 
     const slug = ((await params).slug) ?? []
     const uploadPrefix = await getUploadServePath()
     const locale = slug[0]
-
-    const base = locale === 'en' ? entity.contentPublishedEN ?? entity.contentPublishedEN! : entity.contentPublishedZH ?? entity.contentPublishedEN!
-    const regex = /\[IMAGE:\s*(\d+)\]/g
-    const matches = Array.from(base.matchAll(regex))
-    const ids = matches.map(m => m[1])
-    const images = await Promise.all(ids.map(id => getImage(parseInt(id))))
-    const imageMap = new Map(ids.map((id, i) => [ id, images[i] ]))
-    const renderedContent = base.replace(regex, (_, id) => {
-        const image = imageMap.get(id)
-        if (!image) return ''
-        return `![${image.altText}](${uploadPrefix}/${image.sha1}.webp)`
-    })
+    const data = locale === 'en'
+        ? JSON.parse(entity.contentPublishedEN ?? '{}')
+        : JSON.parse(entity.contentPublishedZH ?? entity.contentPublishedEN ?? '{}')
 
     return <>
-        <If condition={entity.coverImagePublished != null}>
-            <img className="mb-8 w-screen min-h-72 h-[33vh] object-cover" alt={entity.coverImagePublished?.altText}
-                 src={`${uploadPrefix}/${entity.coverImagePublished?.sha1}.webp`}/>
-        </If>
+        <EntityHero entity={entity} locale={locale} uploadPrefix={uploadPrefix}/>
+
         <article className="container px-5 my-16">
-            <article>
-                <If condition={entity.coverImagePublished == null}>
-                    <div className="mb-24"/>
-                </If>
-                <If condition={entity.type === EntityType.post}>
-                    <h1>{locale === 'en' ? entity.titlePublishedEN : entity.titlePublishedZH}</h1>
-                    <p className="secondary text-sm">{(entity.createdAt as Date).toLocaleDateString(locale === 'zh' ? 'zh-CN' : 'en-US')}</p>
-                </If>
-                <If condition={entity.type !== EntityType.post}>
-                    <h1 className="text-5xl text-center">{locale === 'en' ? entity.titlePublishedEN : entity.titlePublishedZH}</h1>
-                </If>
-                <Markdown>{renderedContent}</Markdown>
-            </article>
+            <Render config={PUCK_CONFIG} data={data}/>
         </article>
     </>
 }

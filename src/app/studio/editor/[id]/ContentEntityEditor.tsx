@@ -16,26 +16,28 @@ import {
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
-import Markdown from 'react-markdown'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
-import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
 import MediaPicker from '@/app/studio/media/MediaPicker'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { HydratedContentEntity } from '@/app/lib/data-types'
-import {
-    alignContentEntity,
+import { alignContentEntity,
     deleteContentEntity,
     getContentEntity,
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
 import { Role, User } from '@/generated/prisma/browser'
+import { requestContentReview } from '@/app/lib/approval/approval-actions'
+import { Puck } from '@measured/puck'
+import { Render } from '@measured/puck'
+import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
+import '@measured/puck/puck.css'
+import '@/app/studio/pages/[id]/editor/editor-theme.css'
 
 export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
     init: HydratedContentEntity,
@@ -53,17 +55,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ showCategoryForm, setShowCategoryForm ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
-    const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
+    const [ requestConfirm, setRequestConfirm ] = useState(false)
     const [ inEnglish, setInEnglish ] = useState(false)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [ _, setActiveTab ] = useState(0)
     const tabsRef = useRef<TabsRef>(null)
     const router = useRouter()
-
-    const { previewContent } = useImagePlaceholders({
-        markdown: markdownContent,
-        uploadPrefix
-    })
 
     useEffect(() => {
         if (location.hash === '#approval') {
@@ -75,13 +72,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
 
     // = Switch language
     function switchLanguage() {
-        if (inEnglish) {
-            setMarkdownContent(post.contentDraftZH)
-            setInEnglish(false)
-        } else {
-            setMarkdownContent(post.contentDraftEN)
-            setInEnglish(true)
-        }
+        setInEnglish(prev => !prev)
     }
 
     // = Save
@@ -101,8 +92,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             categoryEN: draft.categoryEN,
             categoryZH: draft.categoryZH,
             slug: draft.slug,
-            contentDraftEN: draft.contentDraftEN,
-            contentDraftZH: draft.contentDraftZH,
+            contentDraftEN: typeof draft.contentDraftEN === 'string' ? draft.contentDraftEN : JSON.stringify(draft.contentDraftEN),
+            contentDraftZH: typeof draft.contentDraftZH === 'string' ? draft.contentDraftZH : JSON.stringify(draft.contentDraftZH),
             shortContentDraftEN: draft.shortContentDraftEN,
             shortContentDraftZH: draft.shortContentDraftZH,
             coverImageDraftId: draft.coverImageDraft?.id,
@@ -325,143 +316,157 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
               onActiveTabChange={(tab) => setActiveTab(tab)}>
             <TabItem active title="内容" icon={HiNewspaper}>
                 <div className="w-full flex gap-8">
-                    <div className="w-2/3 2xl:w-3/4">
-                        <SimpleMarkdownEditor value={markdownContent} onChange={(content: string) => {
-                            setMarkdownContent(content)
-                            if (inEnglish) {
-                                setPost(prev => ({
-                                    ...prev,
-                                    contentDraftEN: content
-                                }))
-                            } else {
-                                setPost(prev => ({
-                                    ...prev,
-                                    contentDraftZH: content
-                                }))
-                            }
-                        }}/>
+                    <div className="flex-1 min-w-0">
+                        <Puck
+                            key={inEnglish ? 'en' : 'zh'}
+                            config={useMemo(() => PUCK_CONFIG, [])}
+                            data={(() => {
+                                const raw = inEnglish ? post.contentDraftEN : post.contentDraftZH
+                                try { return JSON.parse(raw) } catch { return { content: [], root: { props: {} }, zones: {} } }
+                            })()}
+                            onChange={data => {
+                                if (inEnglish) {
+                                    setPost(prev => ({ ...prev, contentDraftEN: JSON.stringify(data) }))
+                                } else {
+                                    setPost(prev => ({ ...prev, contentDraftZH: JSON.stringify(data) }))
+                                }
+                            }}
+                            overrides={{
+                                headerActions: () => <>
+                                    <Button pill color="alternative" onClick={switchLanguage}>
+                                        切换到{inEnglish ? '中文' : '英文'}
+                                    </Button>
+                                    <Button pill color="alternative"
+                                            onClick={() => router.push(`/studio/pages/${post.id}/approval`)}>审核与发布</Button>
+                                    <Button pill className="bg-red-600 hover:bg-red-700 text-white"
+                                            disabled={loading} onClick={save}>保存更改</Button>
+                                </>
+                            }}
+                        />
                     </div>
-                    <div className="w-1/3 2xl:w-1/4">
-                        <div className="flex mb-3 gap-3">
-                            <Button pill color="blue"
-                                    disabled={loading || !user.roles.includes(Role.writer)}
-                                    onClick={save}>保存更改</Button>
-                            <Button pill color="alternative" onClick={switchLanguage}>
-                                <If condition={inEnglish}>
-                                    切换到中文
-                                </If>
-                                <If condition={!inEnglish}>
-                                    切换到英文
-                                </If>
-                            </Button>
-                        </div>
-
-                        <p className="font-bold text-xl flex items-center gap-3">
-                            {post.titleDraftZH}
-                            <button className="p-2 !h-8 !w-8 bg-blue-500 hover:bg-blue-600 transition-colors
-                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑标题"
-                                    onClick={() => setShowTitleForm(true)}>
-                                <HiPencil className="text-white text-xs"/>
-                            </button>
-                        </p>
-                        <p className="text-sm secondary mb-3">{post.titleDraftEN}</p>
-
-                        <p className="font-bold secondary text-sm">链接位置</p>
-                        <p className="mb-3 flex items-center gap-3">
-                            {post.slug}
-                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
-                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑链接位置"
-                                    onClick={() => setShowSlugForm(true)}>
-                                <HiPencil className="text-white text-xs"/>
-                            </button>
-                        </p>
-
-                        <p className="font-bold secondary text-sm">类别</p>
-                        <p className="mb-3 flex items-center gap-3">
-                            {post.categoryZH} / {post.categoryEN}
-                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
-                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑类别"
-                                    onClick={() => setShowCategoryForm(true)}>
-                                <HiPencil className="text-white text-xs"/>
-                            </button>
-                        </p>
-
-                        <p className="font-bold secondary text-sm">短内容</p>
-                        <div className="mb-3 flex items-center gap-3">
-                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
-                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑短内容"
-                                    onClick={() => setShowShortContentForm(true)}>
-                                <HiPencil className="text-white text-xs"/>
-                            </button>
-                        </div>
-
-                        <p className="font-bold secondary text-sm">状态</p>
-                        <p className="mb-3">
-                            <If condition={post.contentPublishedEN === post.contentDraftEN && post.contentPublishedZH === post.contentDraftZH}>
-                                已发布
-                            </If>
-
-                            <If condition={post.contentPublishedEN == null && post.contentPublishedZH == null}>
-                                草稿
-                            </If>
-
-                            <If condition={(post.contentPublishedEN !== post.contentDraftEN || post.contentPublishedZH !== post.contentDraftZH) &&
-                                post.contentPublishedEN != null && post.contentPublishedZH != null}>
-                                有更新未发布
-                            </If>
-                        </p>
-
-                        <p className="font-bold secondary text-sm">显示日期</p>
-                        <p className="mb-3 flex items-center gap-3">
-                            {(typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt).toDateString()}
-                            <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors
-                             duration-100 rounded-full flex justify-center items-center" aria-label="编辑显示日期"
-                                    onClick={() => setShowDateForm(true)}>
-                                <HiPencil className="text-white text-xs"/>
-                            </button>
-                        </p>
-
-                        <p className="font-bold secondary text-sm">最新更改时间</p>
-                        <p className="mb-3">{post.updatedAt.toLocaleString()}</p>
-
-                        <p className="font-bold secondary text-sm">封面</p>
-                        <If condition={post.coverImageDraft != null}>
-                            <button onClick={() => setShowMediaLibrary(true)} className="cursor-pointer">
-                                <img className="mt-1 mb-3 h-24" alt={post.coverImageDraft?.altText}
-                                     src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
-                            </button>
-                        </If>
-                        <If condition={post.coverImageDraft == null}>
-                            <Button pill color="blue" className="mt-1 mb-3"
-                                    onClick={() => setShowMediaLibrary(true)}>设置封面</Button>
-                        </If>
-
-                        <p className="font-bold secondary text-sm">创建用户</p>
-                        <p className="mb-3">{post.creator.name}</p>
-
-                        <div className="flex gap-3">
-                            <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
-                                <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill
-                                        color="red" onClick={async () => {
-                                    if (!unpublishConfirm) {
-                                        setUnpublishConfirm(true)
+                    <div className="w-64 xl:w-72 space-y-6">
+                        <Button pill color="blue"
+                                disabled={loadingAdditional || !user.roles.includes(Role.writer)}
+                                onClick={async () => {
+                                    if (!requestConfirm) {
+                                        setRequestConfirm(true)
                                         return
                                     }
+                                    setLoadingAdditional(true)
+                                    await requestContentReview({ entityType: init.type, entityId: post.id })
+                                    setLoadingAdditional(false)
+                                    setRequestConfirm(false)
+                                    await refresh()
+                                    router.refresh()
+                                }}>{requestConfirm ? '确认请求审核？' : '请求审核'}</Button>
+
+                        <div>
+                            <p className="font-bold text-sm secondary">标题</p>
+                            <div className="flex items-center gap-2">
+                                <p className="font-bold text-lg">{post.titleDraftZH}</p>
+                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
+                                        aria-label="编辑标题" onClick={() => setShowTitleForm(true)}>
+                                    <HiPencil className="text-white text-xs"/>
+                                </button>
+                            </div>
+                            <p className="text-sm secondary">{post.titleDraftEN}</p>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">链接位置</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm truncate flex-1">{post.slug}</p>
+                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
+                                        aria-label="编辑链接位置" onClick={() => setShowSlugForm(true)}>
+                                    <HiPencil className="text-white text-xs"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">类别</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm truncate flex-1">{post.categoryZH} / {post.categoryEN}</p>
+                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
+                                        aria-label="编辑类别" onClick={() => setShowCategoryForm(true)}>
+                                    <HiPencil className="text-white text-xs"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">短内容</p>
+                            <div className="flex items-center gap-2">
+                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
+                                        aria-label="编辑短内容" onClick={() => setShowShortContentForm(true)}>
+                                    <HiPencil className="text-white text-xs"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">状态</p>
+                            <p className="text-sm">
+                                <If condition={post.contentPublishedEN === post.contentDraftEN && post.contentPublishedZH === post.contentDraftZH}>
+                                    已发布
+                                </If>
+                                <If condition={post.contentPublishedEN == null && post.contentPublishedZH == null}>
+                                    草稿
+                                </If>
+                                <If condition={(post.contentPublishedEN !== post.contentDraftEN || post.contentPublishedZH !== post.contentDraftZH) && post.contentPublishedEN != null && post.contentPublishedZH != null}>
+                                    有更新未发布
+                                </If>
+                            </p>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">显示日期</p>
+                            <div className="flex items-center gap-2">
+                                <p className="text-sm">{(typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt).toDateString()}</p>
+                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
+                                        aria-label="编辑显示日期" onClick={() => setShowDateForm(true)}>
+                                    <HiPencil className="text-white text-xs"/>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">最新更改</p>
+                            <p className="text-sm">{post.updatedAt.toLocaleString()}</p>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">封面</p>
+                            <If condition={post.coverImageDraft != null}>
+                                <button onClick={() => setShowMediaLibrary(true)} className="cursor-pointer block">
+                                    <img className="mt-1 h-24 rounded" alt={post.coverImageDraft?.altText}
+                                         src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
+                                </button>
+                            </If>
+                            <If condition={post.coverImageDraft == null}>
+                                <Button pill color="blue" className="mt-1"
+                                        onClick={() => setShowMediaLibrary(true)}>设置封面</Button>
+                            </If>
+                        </div>
+
+                        <div>
+                            <p className="font-bold secondary text-sm">创建用户</p>
+                            <p className="text-sm">{post.creator.name}</p>
+                        </div>
+
+                        <div className="space-y-2">
+                            <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
+                                <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red" onClick={async () => {
+                                    if (!unpublishConfirm) { setUnpublishConfirm(true); return }
                                     setLoadingAdditional(true)
                                     await unpublishContentEntity(post.id)
                                     setLoadingAdditional(false)
                                     await refresh()
                                     router.refresh()
-                                }}>
-                                    {unpublishConfirm ? '确认撤回?' : '撤回发布'}
-                                </Button>
+                                }}>{unpublishConfirm ? '确认撤回?' : '撤回发布'}</Button>
                             </If>
-                            <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red"
-                                    onClick={async () => {
-                                if (!deleteConfirm) {
-                                    setDeleteConfirm(true)
-                                    return
-                                }
+                            <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red" onClick={async () => {
+                                if (!deleteConfirm) { setDeleteConfirm(true); return }
                                 setLoadingAdditional(true)
                                 await deleteContentEntity(post.id)
                                 setLoadingAdditional(false)
@@ -473,12 +478,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             </TabItem>
             <TabItem title="预览" icon={HiSearch}>
                 <Button pill color="alternative" className="mb-5" onClick={switchLanguage}>
-                    <If condition={inEnglish}>
-                        切换到中文
-                    </If>
-                    <If condition={!inEnglish}>
-                        切换到英文
-                    </If>
+                    切换到{inEnglish ? '中文' : '英文'}
                 </Button>
                 <If condition={post.coverImageDraft != null}>
                     <img className="mb-5 w-full h-64 object-cover" alt={post.coverImageDraft?.altText}
@@ -486,7 +486,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                 </If>
                 <article>
                     <h1>{inEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
-                    <Markdown>{previewContent}</Markdown>
+                    <Render
+                        config={PUCK_CONFIG}
+                        data={(() => {
+                            const raw = inEnglish ? post.contentDraftEN : post.contentDraftZH
+                            try { return JSON.parse(raw) } catch { return { content: [], root: { props: {} }, zones: {} } }
+                        })()}
+                    />
                 </article>
             </TabItem>
             <TabItem title="审核与发布" icon={HiCloudUpload}>
