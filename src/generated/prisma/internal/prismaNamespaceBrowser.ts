@@ -57,7 +57,8 @@ export const ModelName = {
   Image: 'Image',
   Approval: 'Approval',
   ApprovalConfig: 'ApprovalConfig',
-  EntityLock: 'EntityLock'
+  EntityLock: 'EntityLock',
+  FeishuMessage: 'FeishuMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -180,6 +181,21 @@ export const EntityLockScalarFieldEnum = {
 export type EntityLockScalarFieldEnum = (typeof EntityLockScalarFieldEnum)[keyof typeof EntityLockScalarFieldEnum]
 
 
+export const FeishuMessageScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  recipient: 'recipient',
+  recipientId: 'recipientId',
+  content: 'content',
+  status: 'status',
+  createdAt: 'createdAt',
+  sentAt: 'sentAt',
+  error: 'error'
+} as const
+
+export type FeishuMessageScalarFieldEnum = (typeof FeishuMessageScalarFieldEnum)[keyof typeof FeishuMessageScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -256,4 +272,17 @@ export const EntityLockOrderByRelevanceFieldEnum = {
 } as const
 
 export type EntityLockOrderByRelevanceFieldEnum = (typeof EntityLockOrderByRelevanceFieldEnum)[keyof typeof EntityLockOrderByRelevanceFieldEnum]
+
+
+export const FeishuMessageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  type: 'type',
+  recipient: 'recipient',
+  recipientId: 'recipientId',
+  content: 'content',
+  status: 'status',
+  error: 'error'
+} as const
+
+export type FeishuMessageOrderByRelevanceFieldEnum = (typeof FeishuMessageOrderByRelevanceFieldEnum)[keyof typeof FeishuMessageOrderByRelevanceFieldEnum]
 

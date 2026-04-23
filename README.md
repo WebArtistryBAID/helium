@@ -46,6 +46,17 @@ Certain pages have hardcoded constants associated with them; for example, header
 | `ONELOGIN_CLIENT_ID`     | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                            |
 | `ONELOGIN_CLIENT_SECRET` | OneLogin client secret.                                                                                         |
 | `DEEPSEEK_API_KEY`       | Used for sanitizing articles automatically.                                                                     |
+| `FEISHU_CLIENT_ID`       | Feishu app ID used for approval reminder notifications.                                                         |
+| `FEISHU_CLIENT_SECRET`   | Feishu app secret used for approval reminder notifications.                                                     |
+
+## Feishu Self-Test
+
+1. Set `HOST`, `FEISHU_CLIENT_ID`, and `FEISHU_CLIENT_SECRET` correctly in `.env`.
+2. Start the site and sign in with the account you want to bind.
+3. Open `/studio/settings`, click the Feishu bind button, and finish OAuth.
+4. Return to `/studio/settings` and click the test-message button. If it succeeds, your `feishuOpenId` and message-send chain are working.
+5. To test approval notifications, use a writer account to open any content item and click `请求审核`, then verify that bound editor/admin accounts receive the Feishu card.
+6. Admins can review recent send records at `/studio/settings/feishu`.
 
 ## Contribution
 
