@@ -12,7 +12,7 @@ import {
 import { HiPencil } from 'react-icons/hi2'
 import If from '@/app/lib/If'
 import { EntityType, Role, User } from '@/generated/prisma/browser'
-import { addApproval, ApprovalThresholds, getApprovalNames, getThresholds } from '@/app/lib/approval/approval-actions'
+import { addApproval, ApprovalThresholds, getApprovalNames, getThresholds, requestContentReview } from '@/app/lib/approval/approval-actions'
 import { HiCloudUpload } from 'react-icons/hi'
 import { useEffect, useState } from 'react'
 import { getMyUser } from '@/app/login/login-actions'
@@ -32,6 +32,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
     const [ publishConfirm, setPublishConfirm ] = useState(false)
     const [ approvalConfirm, setApprovalConfirm ] = useState(false)
     const [ approvalConfirm2, setApprovalConfirm2 ] = useState(false)
+    const [ requestConfirm, setRequestConfirm ] = useState(false)
 
     const router = useRouter()
 
@@ -48,6 +49,13 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
         setApprovalNames(await getApprovalNames(entityType, entityId))
     }
 
+    const previewUrl = entityType === EntityType.page
+        ? `/studio/pages/${entityId}/preview`
+        : `/studio/editor/${entityId}#preview`
+    const editorUrl = entityType === EntityType.page
+        ? `/studio/pages/${entityId}/editor`
+        : `/studio/editor/${entityId}`
+
     return <div className="p-8">
         <h2 className="text-2xl font-bold mb-5">
             审核与发布流程<If condition={entityType === EntityType.page}>: &#34;{entity.titleDraftZH}&#34; 页面</If>
@@ -60,12 +68,27 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                     <TimelineBody>
                         由撰稿员完成内容编写。
                     </TimelineBody>
-                    <If condition={entityType === EntityType.page}>
-                        <div className="flex gap-3">
-                            <Button pill color="blue"
-                                    onClick={() => router.push(`/studio/pages/${entityId}/preview`)}>查看预览</Button>
-                            <Button pill color="alternative"
-                                    onClick={() => router.push(`/studio/pages/${entityId}/editor`)}>返回编辑器</Button>
+                    <div className="flex gap-3">
+                        <Button pill color="blue"
+                                onClick={() => router.push(previewUrl)}>查看预览</Button>
+                        <Button pill color="alternative"
+                                onClick={() => router.push(editorUrl)}>返回编辑器</Button>
+                    </div>
+                    <If condition={user?.roles?.includes(Role.writer)}>
+                        <div className="mt-3">
+                            <Button pill color="blue" disabled={loading}
+                                    onClick={async () => {
+                                        if (!requestConfirm) {
+                                            setRequestConfirm(true)
+                                            return
+                                        }
+                                        setLoading(true)
+                                        await requestContentReview({ entityType, entityId })
+                                        setLoading(false)
+                                        setRequestConfirm(false)
+                                        await refresh()
+                                        router.refresh()
+                                    }}>{requestConfirm ? '确认请求审核？' : '请求审核'}</Button>
                         </div>
                     </If>
                 </TimelineContent>
@@ -118,7 +141,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                         </If>
                         <If condition={approvalsNames.admin.length > 0 && approvalsNames.admin.length < (approvalsThreshold?.admin ?? 1)}>
                             <p className="text-blue-500">已经由 {approvalsNames.admin.join('、')} 批准，
-                                还需要 {(approvalsThreshold?.admin ?? 1) - approvalsNames.editor.length} 人。</p>
+                                还需要 {(approvalsThreshold?.admin ?? 1) - approvalsNames.admin.length} 人。</p>
                         </If>
                         <If condition={approvalsNames.admin.length >= (approvalsThreshold?.admin ?? 1)}>
                             <p className="text-green-400">已经由 {approvalsNames.admin.join('、')} 批准，本步骤已完成。</p>

@@ -52,3 +52,8 @@ export type ApprovalConfig = Prisma.ApprovalConfigModel
  * 
  */
 export type EntityLock = Prisma.EntityLockModel
+/**
+ * Model FeishuMessage
+ * 
+ */
+export type FeishuMessage = Prisma.FeishuMessageModel
