@@ -390,7 +390,8 @@ export const ModelName = {
   Image: 'Image',
   Approval: 'Approval',
   ApprovalConfig: 'ApprovalConfig',
-  EntityLock: 'EntityLock'
+  EntityLock: 'EntityLock',
+  FeishuMessage: 'FeishuMessage'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -406,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "userAuditLog" | "contentEntity" | "image" | "approval" | "approvalConfig" | "entityLock"
+    modelProps: "user" | "userAuditLog" | "contentEntity" | "image" | "approval" | "approvalConfig" | "entityLock" | "feishuMessage"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -928,6 +929,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    FeishuMessage: {
+      payload: Prisma.$FeishuMessagePayload<ExtArgs>
+      fields: Prisma.FeishuMessageFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.FeishuMessageFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.FeishuMessageFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>
+        }
+        findFirst: {
+          args: Prisma.FeishuMessageFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.FeishuMessageFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>
+        }
+        findMany: {
+          args: Prisma.FeishuMessageFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>[]
+        }
+        create: {
+          args: Prisma.FeishuMessageCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>
+        }
+        createMany: {
+          args: Prisma.FeishuMessageCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.FeishuMessageCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>[]
+        }
+        delete: {
+          args: Prisma.FeishuMessageDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>
+        }
+        update: {
+          args: Prisma.FeishuMessageUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>
+        }
+        deleteMany: {
+          args: Prisma.FeishuMessageDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.FeishuMessageUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.FeishuMessageUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>[]
+        }
+        upsert: {
+          args: Prisma.FeishuMessageUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$FeishuMessagePayload>
+        }
+        aggregate: {
+          args: Prisma.FeishuMessageAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateFeishuMessage>
+        }
+        groupBy: {
+          args: Prisma.FeishuMessageGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FeishuMessageGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.FeishuMessageCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.FeishuMessageCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1070,6 +1145,21 @@ export const EntityLockScalarFieldEnum = {
 export type EntityLockScalarFieldEnum = (typeof EntityLockScalarFieldEnum)[keyof typeof EntityLockScalarFieldEnum]
 
 
+export const FeishuMessageScalarFieldEnum = {
+  id: 'id',
+  type: 'type',
+  recipient: 'recipient',
+  recipientId: 'recipientId',
+  content: 'content',
+  status: 'status',
+  createdAt: 'createdAt',
+  sentAt: 'sentAt',
+  error: 'error'
+} as const
+
+export type FeishuMessageScalarFieldEnum = (typeof FeishuMessageScalarFieldEnum)[keyof typeof FeishuMessageScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1145,6 +1235,19 @@ export const EntityLockOrderByRelevanceFieldEnum = {
 } as const
 
 export type EntityLockOrderByRelevanceFieldEnum = (typeof EntityLockOrderByRelevanceFieldEnum)[keyof typeof EntityLockOrderByRelevanceFieldEnum]
+
+
+export const FeishuMessageOrderByRelevanceFieldEnum = {
+  id: 'id',
+  type: 'type',
+  recipient: 'recipient',
+  recipientId: 'recipientId',
+  content: 'content',
+  status: 'status',
+  error: 'error'
+} as const
+
+export type FeishuMessageOrderByRelevanceFieldEnum = (typeof FeishuMessageOrderByRelevanceFieldEnum)[keyof typeof FeishuMessageOrderByRelevanceFieldEnum]
 
 
 
@@ -1380,6 +1483,7 @@ export type GlobalOmitConfig = {
   approval?: Prisma.ApprovalOmit
   approvalConfig?: Prisma.ApprovalConfigOmit
   entityLock?: Prisma.EntityLockOmit
+  feishuMessage?: Prisma.FeishuMessageOmit
 }
 
 /* Types for Logging */

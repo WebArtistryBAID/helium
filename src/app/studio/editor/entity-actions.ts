@@ -20,8 +20,25 @@ import { pkgUp } from 'pkg-up'
 import { prisma } from '@/app/lib/prisma'
 import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
+import { sendApprovalProgressNotification } from '@/app/lib/feishu-approval'
 
 const PAGE_SIZE = 24
+
+function getStudioReviewUrls(entityType: EntityType, entityId: number) {
+    const baseUrl = process.env.HOST || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+
+    if (entityType === EntityType.page) {
+        return {
+            previewUrl: `${baseUrl}/studio/pages/${entityId}/preview`,
+            approvalUrl: `${baseUrl}/studio/pages/${entityId}/approval`
+        }
+    }
+
+    return {
+        previewUrl: `${baseUrl}/studio/editor/${entityId}#preview`,
+        approvalUrl: `${baseUrl}/studio/editor/${entityId}#approval`
+    }
+}
 
 export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
@@ -352,10 +369,11 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
     if (post == null) {
         return AlignEntityResponse.notFound
     }
-    if (!(await meetsThresholds({
+    const approvalState = await meetsThresholds({
         entityType: post.type,
         entityId: id
-    }))) {
+    })
+    if (!approvalState.editorOk || !approvalState.adminOk) {
         return AlignEntityResponse.insufficientApprovals
     }
     await prisma.contentEntity.update({
@@ -376,6 +394,20 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
             userId: user.id,
             values: [ post.id.toString(), post.titleDraftEN ]
         }
+    })
+    const { previewUrl, approvalUrl } = getStudioReviewUrls(post.type, id)
+    await sendApprovalProgressNotification({
+        entityId: id,
+        entityType: post.type,
+        title: post.titleDraftEN || post.titleDraftZH || `Entity #${id}`,
+        previewUrl,
+        approvalUrl,
+        actionBy: user.name,
+        statusText: `${user.name} 已发布内容。\n审核流程已完成，公开页面会显示最新发布版本。`,
+        editorCount: approvalState.counts[Role.editor] ?? 0,
+        editorThreshold: approvalState.thresholds[Role.editor] ?? 1,
+        adminCount: approvalState.counts[Role.admin] ?? 0,
+        adminThreshold: approvalState.thresholds[Role.admin] ?? 1
     })
     return AlignEntityResponse.success
 }

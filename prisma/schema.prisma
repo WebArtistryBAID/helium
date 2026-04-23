@@ -154,3 +154,15 @@ model EntityLock {
   @@unique([entityType, entityId])
   @@index([lockedBy])
 }
+
+model FeishuMessage {
+  id          String    @id @default(cuid())
+  type        String
+  recipient   String
+  recipientId String
+  content     String
+  status      String    @default("pending")
+  createdAt   DateTime  @default(now())
+  sentAt      DateTime?
+  error       String?
+}
