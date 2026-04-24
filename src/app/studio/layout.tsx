@@ -18,6 +18,7 @@ import { ROLES_TRANSLATIONS } from '@/app/lib/common-translations'
 import {
     HiBookmarkSquare,
     HiChartPie,
+    HiSquares2X2,
     HiNewspaper,
     HiPencil,
     HiPhoto,
@@ -47,7 +48,10 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
         </div>
 
         <div className="h-screen flex">
-            <If condition={!pathName.includes('preview') && !(pathName.includes('pages') && pathName.includes('editor'))}>
+            <If condition={!pathName.includes('preview') &&
+                !(pathName.includes('pages') && pathName.includes('editor')) &&
+                !pathName.includes('/studio/editor/')
+            }>
                 <div className="h-screen">
                     <Sidebar className="h-full relative">
                         <SidebarLogo href="/" img="/assets/icon.png"><span
@@ -67,6 +71,11 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                 <Link href="/studio/media">
                                     <SidebarItem as="div" icon={HiPhoto}>
                                         媒体库
+                                    </SidebarItem>
+                                </Link>
+                                <Link href="/studio/wangzhanjiegou">
+                                    <SidebarItem as="div" icon={HiSquares2X2}>
+                                        网站结构
                                     </SidebarItem>
                                 </Link>
                                 <If condition={myUser?.roles.includes(Role.admin)}>

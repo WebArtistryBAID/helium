@@ -73,8 +73,8 @@ const ImageGalleryBlockConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Gallery',
-        titleZH: '图片集',
+        titleEN: 'Campus Moments',
+        titleZH: '校园瞬间',
         layout: 'grid',
         images: []
     },

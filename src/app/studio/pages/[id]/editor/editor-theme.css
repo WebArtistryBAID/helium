@@ -42,6 +42,18 @@
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
+.puck-editor-actions,
+.puck-editor-actions button {
+  white-space: nowrap;
+  width: auto;
+  writing-mode: horizontal-tb;
+  word-break: keep-all;
+}
+
+.puck-editor-actions button {
+  flex-shrink: 0;
+}
+
 /* Buttons */
 .puck-button,
 button[color="blue"] {

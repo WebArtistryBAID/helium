@@ -58,7 +58,8 @@ export const ModelName = {
   Approval: 'Approval',
   ApprovalConfig: 'ApprovalConfig',
   EntityLock: 'EntityLock',
-  FeishuMessage: 'FeishuMessage'
+  FeishuMessage: 'FeishuMessage',
+  SiteStructureItem: 'SiteStructureItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -196,6 +197,25 @@ export const FeishuMessageScalarFieldEnum = {
 export type FeishuMessageScalarFieldEnum = (typeof FeishuMessageScalarFieldEnum)[keyof typeof FeishuMessageScalarFieldEnum]
 
 
+export const SiteStructureItemScalarFieldEnum = {
+  id: 'id',
+  titleEN: 'titleEN',
+  titleZH: 'titleZH',
+  slug: 'slug',
+  jumpLabelEN: 'jumpLabelEN',
+  jumpLabelZH: 'jumpLabelZH',
+  jumpDescriptionEN: 'jumpDescriptionEN',
+  jumpDescriptionZH: 'jumpDescriptionZH',
+  parentId: 'parentId',
+  position: 'position',
+  pageEntityId: 'pageEntityId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SiteStructureItemScalarFieldEnum = (typeof SiteStructureItemScalarFieldEnum)[keyof typeof SiteStructureItemScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -285,4 +305,17 @@ export const FeishuMessageOrderByRelevanceFieldEnum = {
 } as const
 
 export type FeishuMessageOrderByRelevanceFieldEnum = (typeof FeishuMessageOrderByRelevanceFieldEnum)[keyof typeof FeishuMessageOrderByRelevanceFieldEnum]
+
+
+export const SiteStructureItemOrderByRelevanceFieldEnum = {
+  titleEN: 'titleEN',
+  titleZH: 'titleZH',
+  slug: 'slug',
+  jumpLabelEN: 'jumpLabelEN',
+  jumpLabelZH: 'jumpLabelZH',
+  jumpDescriptionEN: 'jumpDescriptionEN',
+  jumpDescriptionZH: 'jumpDescriptionZH'
+} as const
+
+export type SiteStructureItemOrderByRelevanceFieldEnum = (typeof SiteStructureItemOrderByRelevanceFieldEnum)[keyof typeof SiteStructureItemOrderByRelevanceFieldEnum]
 

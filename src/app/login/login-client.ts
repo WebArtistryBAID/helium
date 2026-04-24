@@ -17,6 +17,7 @@ export function useCachedUser(): User | null {
         roles: data.roles as Role[],
         type: data.userType as UserType,
         gender: data.gender as Gender,
+        feishuOpenId: (data.feishuOpenId as string | null | undefined) ?? null,
         createdAt: new Date(),
         updatedAt: new Date()
     }

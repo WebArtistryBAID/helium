@@ -77,10 +77,11 @@ const FAQAccordionConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'FAQ',
-        titleZH: '常见问题',
+        titleEN: 'Frequently Asked Questions',
+        titleZH: '家长常见问题',
         items: [
-            { questionEN: 'Question 1?', questionZH: '问题一？', answerEN: 'Answer 1.', answerZH: '回答一。' }
+            { questionEN: 'Where should families find the latest admissions information?', questionZH: '家长应该在哪里查看最新招生信息？', answerEN: 'Please refer to the current admissions page and official school notices for the most accurate information.', answerZH: '请以当年招生页面和学校官方通知为准。' },
+            { questionEN: 'Can students visit the campus before applying?', questionZH: '申请前可以了解校园吗？', answerEN: 'When open events are available, the school will share registration details through official channels.', answerZH: '如有开放活动，学校会通过官方渠道发布报名信息。' }
         ]
     },
     render: ({ titleEN, titleZH, items }) => <FAQAccordion titleEN={titleEN} titleZH={titleZH} items={items}/>

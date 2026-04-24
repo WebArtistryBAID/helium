@@ -40,9 +40,9 @@ const CTAButtonConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        textEN: 'Learn More',
-        textZH: '了解更多',
-        link: '#',
+        textEN: 'Explore This Section',
+        textZH: '继续了解',
+        link: '/admissions',
         style: 'primary'
     },
     render: ({ textEN, textZH, link, style }) => <CTAButton textEN={textEN} textZH={textZH} link={link} style={style}/>

@@ -51,12 +51,12 @@ const QuoteBlockConfig: ComponentConfig = {
         avatarUrl: { label: '头像链接（可选）', type: 'text' }
     },
     defaultProps: {
-        quoteEN: '',
-        quoteZH: '',
-        authorEN: '',
-        authorZH: '',
-        titleEN: '',
-        titleZH: '',
+        quoteEN: 'At BAID, students are encouraged to ask better questions, work with others, and turn learning into meaningful action.',
+        quoteZH: '在北京中学国际部，学生被鼓励提出更好的问题，与他人协作，并把学习转化为有意义的行动。',
+        authorEN: 'BAID Faculty',
+        authorZH: '北京中学国际部教师',
+        titleEN: 'Teacher perspective',
+        titleZH: '教师视角',
         avatarUrl: ''
     },
     render: ({ quoteEN, quoteZH, authorEN, authorZH, titleEN, titleZH, avatarUrl }) =>

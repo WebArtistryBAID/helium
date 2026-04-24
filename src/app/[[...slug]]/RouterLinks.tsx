@@ -4,12 +4,14 @@ import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { buildLocalizedPath, getCurrentSlugFromPathname, isSectionActive } from '@/app/[[...slug]]/route-utils'
 
 export default function RouterLinks({ pages }: {
-    pages: { id: number, titleEN: string, titleZH: string, slug: string }[]
+    pages: { id: number, titleEN: string, titleZH: string, slug: string, subPages?: { slug: string }[] }[]
 }) {
     const language = useLanguage()
-    const path = usePathname().split('/').slice(1).join('/')
+    const pathname = usePathname()
+    const path = getCurrentSlugFromPathname(pathname)
     const [ showBlock, setShowBlock ] = useState(false)
     const [ blockLeft, setBlockLeft ] = useState(0)
 
@@ -23,9 +25,11 @@ export default function RouterLinks({ pages }: {
         {pages.map((page, index) => <div key={index} className="h-full text-lg" tabIndex={0}
                                          onBlur={() => setShowBlock(false)} onClick={() => updateBlock(index)}
                                          onFocus={() => updateBlock(index)} onMouseOver={() => updateBlock(index)}>
-            <Link href={page.slug === '/' ? '/' : `/${page.slug}`}
+            <Link href={buildLocalizedPath(language, page.slug)}
                   className={`inline-block w-30 h-full decoration-none opacity-50 transition-colors text-inherit hover:opacity-100 active:opacity-60 
-                  ${(path === '' ? '/' : path) === page.slug ? ((path === 'life' || path === 'projects') ? 'opacity-100' : 'opacity-100 text-red-900') : ''}`}>
+                  ${isSectionActive(path, page.slug, page.subPages?.map(subPage => subPage.slug) ?? [])
+        ? (path === 'life' || path === 'projects' ? 'opacity-100' : 'opacity-100 text-red-900')
+        : ''}`}>
                 <div className="flex items-center justify-center w-full h-full">
                     {language === 'zh' ? page.titleZH : page.titleEN}
                 </div>

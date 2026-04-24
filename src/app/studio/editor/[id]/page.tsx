@@ -28,8 +28,10 @@ export default async function StudioContentEntityEditor({ params, searchParams }
         return token
     }
 
-    return <div className="p-16">
-        <ContentEntityEditor init={entity} user={user}
-                             lockToken={token} uploadPrefix={process.env.UPLOAD_SERVE_PATH!}/>
-    </div>
+    return <ContentEntityEditor
+        init={entity}
+        user={user}
+        lockToken={token}
+        uploadPrefix={process.env.UPLOAD_SERVE_PATH!}
+    />
 }

@@ -59,11 +59,11 @@ const VideoEmbedConfig: ComponentConfig = {
         captionZH: { label: '说明（中文）', type: 'text' }
     },
     defaultProps: {
-        titleEN: 'Video',
-        titleZH: '视频',
+        titleEN: 'Campus Video',
+        titleZH: '校园视频',
         url: '',
-        captionEN: '',
-        captionZH: ''
+        captionEN: 'Use this space for a campus tour, student story, event recap, or program introduction.',
+        captionZH: '可用于校园参观、学生故事、活动回顾或项目介绍。'
     },
     render: ({ titleEN, titleZH, url, captionEN, captionZH }) =>
         <VideoEmbed titleEN={titleEN} titleZH={titleZH} url={url} captionEN={captionEN} captionZH={captionZH}/>

@@ -6,6 +6,7 @@ import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import SchoolLogo from '@/app/[[...slug]]/SchoolLogo'
 import RouterLinks from '@/app/[[...slug]]/RouterLinks'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
+import { switchLocalePath } from '@/app/[[...slug]]/route-utils'
 
 const locales = {
     en: {
@@ -208,8 +209,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                         onClick={() => {
                             const newLang = language === 'zh' ? 'en' : 'zh'
                             document.cookie = `lang=${newLang}; path=/; max-age=${60 * 60 * 24 * 30}`
-                            const segments = pathname.split('/').splice(2)
-                            router.push(`/${newLang}/${segments.join('/')}`)
+                            router.push(switchLocalePath(pathname, newLang))
                         }}
                         aria-label={locales[language].language}
                         className="decoration-none transition-colors duration-100 opacity-50 hover:opacity-100 active:opacity-80"

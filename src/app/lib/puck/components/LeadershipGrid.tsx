@@ -70,9 +70,12 @@ const LeadershipGridConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Leadership',
-        titleZH: '社团负责人',
-        items: [{ name: 'Kevin Li', roleEN: 'President', roleZH: '社长', period: '2013 - 2026' }]
+        titleEN: 'Student Leadership',
+        titleZH: '学生负责人',
+        items: [
+            { name: 'Student Leader', roleEN: 'President', roleZH: '负责人', period: 'Current year' },
+            { name: 'Faculty Advisor', roleEN: 'Advisor', roleZH: '指导教师', period: 'Ongoing' }
+        ]
     },
     render: ({ titleEN, titleZH, items }) => <LeadershipGrid titleEN={titleEN} titleZH={titleZH} items={items}/>
 }

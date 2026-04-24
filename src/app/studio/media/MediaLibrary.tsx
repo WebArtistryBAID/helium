@@ -14,7 +14,7 @@ import {
     TextInput
 } from 'flowbite-react'
 import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
-import { useEffect, useRef, useState, useMemo, memo } from 'react'
+import { useCallback, useEffect, useRef, useState, memo } from 'react'
 import { Image, Role, User } from '@/generated/prisma/browser'
 import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
@@ -34,13 +34,15 @@ const ImageItem = memo(({ image, isSelected, uploadServePath, onClick }: {
     image: Image
     isSelected: boolean
     uploadServePath: string
-    onClick: () => void
+    onClick: (image: Image) => void
 }) => (
     <button key={image.sha1} className={`w-full h-full rounded ${isSelected ? 'ring-4 ring-blue-500' : ''}`}
-            onClick={onClick}>
+            onClick={() => onClick(image)}>
         <img className="w-full aspect-square object-cover"
              alt={`图片: ${image.name}`}
-             src={`${uploadServePath}/${image.sha1}_thumb.webp`}/>
+             src={`${uploadServePath}/${image.sha1}_thumb.webp`}
+             loading="lazy"
+             decoding="async"/>
     </button>
 ))
 
@@ -64,6 +66,11 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
 
     const tabsRef = useRef<TabsRef>(null)
 
+    const handleImageClick = useCallback((image: Image) => {
+        setDeleteConfirm(false)
+        setSelectedImage(prev => prev?.id === image.id ? null : image)
+    }, [])
+
     useEffect(() => {
         (async () => {
             setUser((await getMyUser())!)
@@ -72,12 +79,27 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     }, [])
 
     useEffect(() => {
-        (async () => {
-            if (page.page !== currentPage) {
-                setPage(await getImages(currentPage))
+        setPage(init)
+        setCurrentPage(init.page)
+    }, [ init ])
+
+    useEffect(() => {
+        if (currentPage === page.page) return
+
+        let cancelled = false
+        const loadPage = async () => {
+            const nextPage = await getImages(currentPage)
+            if (!cancelled) {
+                setPage(nextPage)
             }
-        })()
+        }
+        void loadPage()
+        return () => {
+            cancelled = true
+        }
     }, [ currentPage, page.page ])
+
+    const canRenderImages = uploadServePath !== ''
 
     return <>
         <Modal show={showUploadForm} size="md" popup onClose={() => setShowUploadForm(false)}>
@@ -102,19 +124,22 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                    required/>
                     </div>
 
-                    <img width={500} height={200} src={uploadServePath + '/' + imageHash + '.webp'} alt="已上传文件"
-                         className="rounded-xl w-full lg:max-w-sm object-cover mb-3"/>
+                    <If condition={canRenderImages && imageHash !== ''}>
+                        <img width={500} height={200} src={uploadServePath + '/' + imageHash + '.webp'} alt="已上传文件"
+                             className="rounded-xl w-full lg:max-w-sm object-cover mb-3"/>
+                    </If>
                 </div>
             </ModalBody>
             <ModalFooter>
                 <Button pill color="blue" disabled={loading} onClick={async () => {
                     if (!imageName || !imageAlt) return
                     setLoading(true)
-                    setSelectedImage(await createImage({
+                    const createdImage = await createImage({
                         name: imageName,
                         altText: imageAlt,
                         sha1: imageHash
-                    }))
+                    })
+                    setSelectedImage(createdImage)
                     setLoading(false)
                     setCurrentPage(0)
                     setPage(await getImages(0))
@@ -151,20 +176,14 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                             <div className="w-2/3">
                                 <div className="grid grid-cols-6 gap-4 mb-3">
                                     {page.items.map(image =>
-                                        <ImageItem
-                                            key={image.sha1}
-                                            image={image}
-                                            isSelected={selectedImage?.id === image.id}
-                                            uploadServePath={uploadServePath}
-                                            onClick={() => {
-                                                setDeleteConfirm(false)
-                                                if (selectedImage?.id === image.id) {
-                                                    setSelectedImage(null)
-                                                } else {
-                                                    setSelectedImage(image)
-                                                }
-                                            }}
-                                        />
+                                        <If key={image.sha1} condition={canRenderImages}>
+                                            <ImageItem
+                                                image={image}
+                                                isSelected={selectedImage?.id === image.id}
+                                                uploadServePath={uploadServePath}
+                                                onClick={handleImageClick}
+                                            />
+                                        </If>
                                     )}
                                 </div>
                                 <Pagination currentPage={currentPage + 1} onPageChange={p => setCurrentPage(p - 1)}
@@ -184,10 +203,12 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                     <div>
                                         <p className="font-bold mb-3 text-xl secondary">图片详情</p>
                                         <div className="flex gap-3 mb-3 items-center">
-                                            <a target="_blank" href={`${uploadServePath}/${selectedImage?.sha1}.webp`}>
-                                                <img className="h-24" alt={`图片: ${selectedImage?.name}`}
-                                                     src={`${uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
-                                            </a>
+                                            <If condition={canRenderImages}>
+                                                <a target="_blank" href={`${uploadServePath}/${selectedImage?.sha1}.webp`}>
+                                                    <img className="h-24" alt={`图片: ${selectedImage?.name}`}
+                                                         src={`${uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
+                                                </a>
+                                            </If>
                                             <div>
                                                 <p className="font-bold">{selectedImage?.name}</p>
                                                 <p className="secondary">{selectedImage?.width} × {selectedImage?.height}</p>

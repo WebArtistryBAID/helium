@@ -20,7 +20,7 @@ model User {
   createdAt DateTime       @default(now())
   updatedAt DateTime       @updatedAt
 
-  feishuOpenId String?       @unique
+  feishuOpenId String? @unique
 
   ownedEntities ContentEntity[]
   ownedImages   Image[]
@@ -107,6 +107,7 @@ model ContentEntity {
   createdAt               DateTime     @default(now())
   updatedAt               DateTime     @updatedAt
   locks                   EntityLock[]
+  siteStructureItem       SiteStructureItem?
 }
 
 model Image {
@@ -159,12 +160,33 @@ model EntityLock {
 
 model FeishuMessage {
   id          String    @id @default(cuid())
-  type        String
-  recipient   String
-  recipientId String
+  type        String // 'approval_request', 'approval_approved', etc.
+  recipient   String // 用户名
+  recipientId String // 飞书 open_id
   content     String
-  status      String    @default("pending")
+  status      String    @default("pending") // 'pending', 'sent', 'failed'
   createdAt   DateTime  @default(now())
   sentAt      DateTime?
   error       String?
+}
+
+model SiteStructureItem {
+  id           Int                 @id @default(autoincrement())
+  titleEN      String
+  titleZH      String
+  slug         String
+  jumpLabelEN  String?
+  jumpLabelZH  String?
+  jumpDescriptionEN String?
+  jumpDescriptionZH String?
+  parentId     Int?
+  parent       SiteStructureItem?  @relation("SiteStructureChildren", fields: [parentId], references: [id], onDelete: SetNull)
+  children     SiteStructureItem[] @relation("SiteStructureChildren")
+  position     Int                 @default(0)
+  pageEntityId Int?                @unique
+  pageEntity   ContentEntity?      @relation(fields: [pageEntityId], references: [id], onDelete: SetNull)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  @@index([parentId, position])
 }

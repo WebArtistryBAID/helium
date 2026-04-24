@@ -53,12 +53,12 @@ const StatBlockConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Statistics',
-        titleZH: '统计数据',
+        titleEN: 'At a Glance',
+        titleZH: '一览',
         items: [
-            { value: '100', labelEN: 'Students', labelZH: '学生' },
-            { value: '20', labelEN: 'Teachers', labelZH: '教师' },
-            { value: '50', labelEN: 'Clubs', labelZH: '社团' }
+            { value: '6', labelEN: 'Learning areas', labelZH: '学习领域' },
+            { value: '40+', labelEN: 'Student clubs', labelZH: '学生社团' },
+            { value: '1:1', labelEN: 'Advisory support', labelZH: '个性化支持' }
         ]
     },
     render: ({ titleEN, titleZH, items }) => <StatBlock titleEN={titleEN} titleZH={titleZH} items={items}/>

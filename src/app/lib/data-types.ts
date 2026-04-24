@@ -13,6 +13,7 @@ export interface SimplifiedUser {
     roles: Role[]
     type: UserType
     gender: Gender
+    feishuOpenId: string | null
     createdAt: Date | string
     updatedAt: Date | string
 }
@@ -49,6 +50,7 @@ export const SIMPLIFIED_USER_SELECT = {
     roles: true,
     type: true,
     gender: true,
+    feishuOpenId: true,
     createdAt: true,
     updatedAt: true
 }

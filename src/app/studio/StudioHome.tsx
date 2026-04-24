@@ -25,11 +25,11 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     href={post.type === EntityType.page ? `/studio/pages/${post.id}/approval` : `/studio/editor/${post.id}#approval`}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
-                    <If condition={post.coverImageDraft != null}>
+                    <If condition={!!uploadServePath && post.coverImageDraft != null && !!post.coverImageDraft.sha1}>
                         <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
                     </If>
-                    <If condition={post.coverImageDraft == null}>
+                    <If condition={!uploadServePath || post.coverImageDraft == null || !post.coverImageDraft.sha1}>
                         <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>
                     </If>
 
@@ -48,11 +48,11 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     href={post.type === EntityType.page ? `/studio/pages/${post.id}/editor` : `/studio/editor/${post.id}`}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
-                    <If condition={post.coverImageDraft != null}>
+                    <If condition={!!uploadServePath && post.coverImageDraft != null && !!post.coverImageDraft.sha1}>
                         <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
                     </If>
-                    <If condition={post.coverImageDraft == null}>
+                    <If condition={!uploadServePath || post.coverImageDraft == null || !post.coverImageDraft.sha1}>
                         <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>
                     </If>
 
@@ -71,11 +71,11 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     href={post.type === EntityType.page ? `/studio/pages/${post.id}/editor` : `/studio/editor/${post.id}`}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
-                    <If condition={post.coverImageDraft != null}>
+                    <If condition={!!uploadServePath && post.coverImageDraft != null && !!post.coverImageDraft.sha1}>
                         <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
                     </If>
-                    <If condition={post.coverImageDraft == null}>
+                    <If condition={!uploadServePath || post.coverImageDraft == null || !post.coverImageDraft.sha1}>
                         <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>
                     </If>
 

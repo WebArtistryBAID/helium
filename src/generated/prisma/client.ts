@@ -79,3 +79,8 @@ export type EntityLock = Prisma.EntityLockModel
  * 
  */
 export type FeishuMessage = Prisma.FeishuMessageModel
+/**
+ * Model SiteStructureItem
+ * 
+ */
+export type SiteStructureItem = Prisma.SiteStructureItemModel

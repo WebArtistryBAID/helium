@@ -36,20 +36,34 @@ function ActivityBlock({ name, description, createdAt, slug, image, background, 
 }) {
     const language = useLanguage()
 
+    const imageSrc = image?.sha1 ? `${uploadPrefix}/${image.sha1}.webp` : null
+
     return <Link href={prefixLink(language, getContentEntityURI(createdAt, slug))}>
-        <section aria-label="`Activity: ${name}`" role="region">
+        <section aria-label={name} role="region">
             <div className="hidden sm:grid grid-cols-2">
                 {textAlign === 'left' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
-                <img alt={image?.altText} src={`${uploadPrefix}/${image?.sha1}.webp`}
-                     className="w-full h-80 object-cover object-center"/>
+                {imageSrc ? (
+                    <img alt={image?.altText} src={imageSrc}
+                         className="w-full h-80 object-cover object-center"/>
+                ) : (
+                    <div className="flex h-80 items-end bg-[linear-gradient(135deg,rgba(16,35,63,0.92),rgba(122,31,28,0.76))] p-8 text-white">
+                        <p className="text-2xl font-bold leading-tight">{name}</p>
+                    </div>
+                )}
                 {textAlign === 'right' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
             </div>
 
             <div className="block sm:hidden">
-                <img alt={image?.altText} src={`${uploadPrefix}/${image?.sha1}.webp`}
-                     className="w-full h-48 object-cover object-center"/>
+                {imageSrc ? (
+                    <img alt={image?.altText} src={imageSrc}
+                         className="w-full h-48 object-cover object-center"/>
+                ) : (
+                    <div className="flex h-48 items-end bg-[linear-gradient(135deg,rgba(16,35,63,0.92),rgba(122,31,28,0.76))] p-6 text-white">
+                        <p className="text-xl font-bold leading-tight">{name}</p>
+                    </div>
+                )}
                 <ActivityTextBlock background={background} description={description} light={light} name={name}/>
             </div>
         </section>

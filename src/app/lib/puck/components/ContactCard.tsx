@@ -87,9 +87,13 @@ const ContactCardConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Contact',
-        titleZH: '联系方式',
-        items: [{ icon: 'email', labelEN: 'Email', labelZH: '邮箱', value: 'example@school.edu' }]
+        titleEN: 'Admissions Contact',
+        titleZH: '招生咨询方式',
+        items: [
+            { icon: 'email', labelEN: 'Email', labelZH: '邮箱', value: 'admissions@beijing.academy' },
+            { icon: 'website', labelEN: 'Online inquiry', labelZH: '线上咨询', value: 'Submit an inquiry through the admissions page', link: '/admissions' },
+            { icon: 'location', labelEN: 'Campus', labelZH: '校园地址', value: 'Beijing Academy International Division' }
+        ]
     },
     render: ({ titleEN, titleZH, items }) => <ContactCard titleEN={titleEN} titleZH={titleZH} items={items}/>
 }

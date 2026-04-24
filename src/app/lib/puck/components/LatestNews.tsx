@@ -42,19 +42,36 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
 
         <section aria-labelledby="news-heading" className="section !mb-24 container">
             <div className="w-full flex flex-col md:flex-row gap-8">
-                {resolvedPosts.length > 0 ?
-                    <Link
-                        href={prefixLink(language, getContentEntityURI(resolvedPosts[0].createdAt, resolvedPosts[0].slug))}
-                          className="w-full md:w-2/3 group block">
-                    <div className="w-full h-64 md:h-96 overflow-hidden rounded-3xl mb-3">
-                        <img alt={resolvedPosts[0].coverImagePublished?.altText}
-                             src={`${uploadPrefix}/${resolvedPosts[0].coverImagePublished?.sha1}.webp`}
-                             className="object-cover w-full h-full rounded-t-3xl transform transition-transform duration-300 ease-in-out group-hover:scale-105"/>
-                    </div>
-                    <p className="text-3xl font-serif fancy-link">
-                        {language === 'en' ? resolvedPosts[0].titlePublishedEN : resolvedPosts[0].titlePublishedZH}
-                    </p>
-                </Link> : null}
+                {resolvedPosts.length > 0 ? (() => {
+                    const featuredPost = resolvedPosts[0]
+                    const featuredImage = featuredPost.coverImagePublished
+                        ? `${uploadPrefix}/${featuredPost.coverImagePublished.sha1}.webp`
+                        : null
+
+                    return <Link
+                        href={prefixLink(language, getContentEntityURI(featuredPost.createdAt, featuredPost.slug))}
+                        className="w-full md:w-2/3 group block"
+                    >
+                        <div className="w-full h-64 md:h-96 overflow-hidden rounded-3xl mb-3 bg-gradient-to-br from-[#d9e6f7] via-[#f3ede4] to-[#ecd5c9]">
+                            {featuredImage ? (
+                                <img
+                                    alt={featuredPost.coverImagePublished?.altText ?? (language === 'en' ? featuredPost.titlePublishedEN ?? '' : featuredPost.titlePublishedZH ?? '')}
+                                    src={featuredImage}
+                                    className="object-cover w-full h-full rounded-t-3xl transform transition-transform duration-300 ease-in-out group-hover:scale-105"
+                                />
+                            ) : (
+                                <div className="flex h-full w-full items-end bg-[linear-gradient(135deg,rgba(16,35,63,0.9),rgba(122,31,28,0.75))] p-8">
+                                    <p className="max-w-xl text-3xl font-bold text-white md:text-4xl">
+                                        {language === 'en' ? featuredPost.titlePublishedEN : featuredPost.titlePublishedZH}
+                                    </p>
+                                </div>
+                            )}
+                        </div>
+                        <p className="text-3xl font-serif fancy-link">
+                            {language === 'en' ? featuredPost.titlePublishedEN : featuredPost.titlePublishedZH}
+                        </p>
+                    </Link>
+                })() : null}
                 <div className="w-full md:w-1/3">
                     {resolvedPosts.length > 1 ? resolvedPosts.slice(1, 4).map(news => <div
                         className="pb-3 border-b border-black mb-5"

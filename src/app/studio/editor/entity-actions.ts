@@ -20,9 +20,110 @@ import { pkgUp } from 'pkg-up'
 import { prisma } from '@/app/lib/prisma'
 import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
+import { LibraryLandingBlock } from '@/app/studio/editor/library-types'
 import { sendApprovalProgressNotification } from '@/app/lib/feishu-approval'
 
 const PAGE_SIZE = 24
+
+async function syncContentEntitySequence() {
+    await prisma.$queryRaw`
+        SELECT setval(
+            pg_get_serial_sequence('"ContentEntity"', 'id'),
+            GREATEST(COALESCE((SELECT MAX(id) FROM "ContentEntity"), 1), 1),
+            (SELECT COUNT(*) > 0 FROM "ContentEntity")
+        )
+    `
+}
+
+type PuckComponentNode = {
+    type?: string
+    props?: Record<string, any>
+}
+
+type PuckDataShape = {
+    content?: PuckComponentNode[]
+    root?: Record<string, unknown>
+    zones?: Record<string, unknown>
+}
+
+function parsePuckContent(raw: string | null | undefined): PuckDataShape | null {
+    if (!raw) {
+        return null
+    }
+
+    try {
+        const parsed = JSON.parse(raw)
+        if (parsed && typeof parsed === 'object') {
+            return parsed as PuckDataShape
+        }
+    } catch {
+    }
+
+    return null
+}
+
+function normalizeSelectedEntityIds(value: unknown): number[] {
+    if (!Array.isArray(value)) {
+        return []
+    }
+
+    return value
+        .map(item => {
+            if (typeof item === 'number' || typeof item === 'string') {
+                return Number(item)
+            }
+
+            if (item && typeof item === 'object' && 'value' in item) {
+                return Number((item as { value?: unknown }).value)
+            }
+
+            if (item && typeof item === 'object' && 'id' in item) {
+                return Number((item as { id?: unknown }).id)
+            }
+
+            return NaN
+        })
+        .filter(item => Number.isFinite(item))
+}
+
+function getLibraryBlocksFromContent(page: {
+    id: number
+    slug: string
+    titleDraftZH: string
+    contentDraftZH: string
+}, entityType: EntityType): LibraryLandingBlock[] {
+    const data = parsePuckContent(page.contentDraftZH)
+    const components = Array.isArray(data?.content) ? data!.content! : []
+
+    return components
+        .filter(component =>
+            (component.type === 'EntityShowcaseConfig' || component.type === 'EntityFilterWallConfig') &&
+            component.props?.entityType === entityType
+        )
+        .map((component, index) => {
+            const componentType = component.type as 'EntityShowcaseConfig' | 'EntityFilterWallConfig'
+            const selectedEntityIds = normalizeSelectedEntityIds(component.props?.selectedEntityIds)
+            const fallbackEntityIds = selectedEntityIds.length > 0
+                ? selectedEntityIds
+                : normalizeSelectedEntityIds(component.props?.resolvedItems)
+
+            return {
+                pageId: page.id,
+                pageSlug: page.slug,
+                pageTitle: page.titleDraftZH,
+                pageEditorPath: `/studio/pages/${page.id}/editor`,
+                pagePublicPath: page.slug === '/' ? '/zh' : `/zh/${page.slug}`,
+                componentId: String(component.props?.id ?? `${page.id}-${index}`),
+                componentType,
+                title: String(component.props?.title ?? '未命名栏目区块'),
+                eyebrow: String(component.props?.eyebrow ?? ''),
+                entityType,
+                manualEntityIds: fallbackEntityIds,
+                categoryEN: String(component.props?.categoryEN ?? ''),
+                categoryZH: String(component.props?.categoryZH ?? '')
+            } satisfies LibraryLandingBlock
+        })
+}
 
 function getDefaultContent(type: EntityType, titleEN: string, titleZH: string) {
     return JSON.stringify({ content: [], root: { props: { title: titleEN } }, zones: {} })
@@ -31,7 +132,6 @@ function getDefaultContent(type: EntityType, titleEN: string, titleZH: string) {
 function getDefaultContentZH(type: EntityType, titleZH: string) {
     return JSON.stringify({ content: [], root: { props: { title: titleZH } }, zones: {} })
 }
-
 
 function getStudioReviewUrls(entityType: EntityType, entityId: number) {
     const baseUrl = process.env.HOST || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
@@ -120,6 +220,20 @@ export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[
     return prisma.contentEntity.findMany({
         where: {
             type: EntityType.course
+        },
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+    })
+}
+
+export async function getAllPageEntities(): Promise<SimplifiedContentEntity[]> {
+    await requireUser()
+
+    return prisma.contentEntity.findMany({
+        where: {
+            type: EntityType.page
+        },
+        orderBy: {
+            titleDraftZH: 'asc'
         },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT
     })
@@ -224,6 +338,44 @@ export async function getAllPublishedContentEntities(): Promise<SimplifiedConten
         },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT
     })
+}
+
+export async function getRelatedPublishedContentEntities(entity: {
+    id: number
+    type: EntityType
+    categoryEN?: string | null
+    categoryZH?: string | null
+}, take = 3): Promise<SimplifiedContentEntity[]> {
+    const related = await prisma.contentEntity.findMany({
+        where: {
+            contentPublishedEN: { not: null },
+            id: { not: entity.id },
+            OR: [
+                {
+                    type: entity.type,
+                    categoryEN: entity.categoryEN ?? undefined
+                },
+                {
+                    type: entity.type,
+                    categoryZH: entity.categoryZH ?? undefined
+                },
+                {
+                    type: entity.type
+                }
+            ]
+        },
+        orderBy: [
+            { updatedAt: 'desc' }
+        ],
+        take: take + 4,
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+    })
+
+    const deduped = related.filter((item, index, arr) =>
+        arr.findIndex(candidate => candidate.id === item.id) === index
+    )
+
+    return deduped.slice(0, take)
 }
 
 export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
@@ -337,6 +489,118 @@ export async function getContentEntities(page: number, type: EntityType, query: 
     }
 }
 
+export async function getLibraryLandingBlocks(type: EntityType, pageSlugs: string[]): Promise<LibraryLandingBlock[]> {
+    await requireUser()
+
+    if (pageSlugs.length < 1) {
+        return []
+    }
+
+    const pages = await prisma.contentEntity.findMany({
+        where: {
+            type: EntityType.page,
+            slug: {
+                in: pageSlugs
+            }
+        },
+        orderBy: {
+            id: 'asc'
+        },
+        select: {
+            id: true,
+            slug: true,
+            titleDraftZH: true,
+            contentDraftZH: true
+        }
+    })
+
+    return pages.flatMap(page => getLibraryBlocksFromContent(page, type))
+}
+
+export async function updateLibraryLandingBlock(data: {
+    pageId: number
+    componentId: string
+    entityType: EntityType
+    selectedEntityIds?: number[]
+    categoryEN?: string | null
+    categoryZH?: string | null
+}): Promise<void> {
+    await requireUserWithRole(Role.writer)
+
+    const page = await prisma.contentEntity.findUnique({
+        where: {
+            id: data.pageId
+        },
+        select: {
+            id: true,
+            titleDraftEN: true,
+            titleDraftZH: true,
+            slug: true,
+            contentDraftEN: true,
+            contentDraftZH: true
+        }
+    })
+
+    if (page == null) {
+        throw new Error('找不到对应的栏目页')
+    }
+
+    const pageTitleEN = page.titleDraftEN
+    const pageTitleZH = page.titleDraftZH
+    const draftContentEN = page.contentDraftEN
+    const draftContentZH = page.contentDraftZH
+
+    function patchContent(raw: string, language: 'en' | 'zh') {
+        const parsed = parsePuckContent(raw)
+        if (parsed == null || !Array.isArray(parsed.content)) {
+            return raw
+        }
+
+        let matched = false
+        const nextContent = parsed.content.map(component => {
+            if (component.props?.id !== data.componentId || component.props?.entityType !== data.entityType) {
+                return component
+            }
+
+            matched = true
+            return {
+                ...component,
+                props: {
+                    ...component.props,
+                    selectedEntityIds: (data.selectedEntityIds ?? []).map(id => ({ value: id })),
+                    ...(component.type === 'EntityFilterWallConfig'
+                        ? {
+                            categoryEN: data.categoryEN ?? '',
+                            categoryZH: data.categoryZH ?? ''
+                        }
+                        : {})
+                }
+            }
+        })
+
+        if (!matched) {
+            throw new Error('栏目页中没有找到对应的展示区块')
+        }
+
+        return JSON.stringify({
+            ...parsed,
+            content: nextContent,
+            root: parsed.root ?? { props: { title: language === 'zh' ? pageTitleZH : pageTitleEN } },
+            zones: parsed.zones ?? {}
+        })
+    }
+
+    await prisma.contentEntity.update({
+        where: {
+            id: data.pageId
+        },
+        data: {
+            contentDraftZH: patchContent(draftContentZH, 'zh'),
+            contentDraftEN: patchContent(draftContentEN, 'en')
+        }
+    })
+}
+
 export async function getContentEntity(id: number): Promise<HydratedContentEntity | null> {
     return prisma.contentEntity.findUnique({
         where: { id },
@@ -441,6 +705,7 @@ export async function deleteContentEntity(id: number): Promise<void> {
 // = CREATING AND EDITING
 export async function createContentEntity(type: EntityType, titleEN: string, titleZH: string): Promise<SimplifiedContentEntity> {
     const user = await requireUserWithRole(Role.writer)
+    await syncContentEntitySequence()
     const post = await prisma.contentEntity.create({
         data: {
             type,
@@ -512,6 +777,37 @@ export async function updateContentEntity(data: {
     return post
 }
 
+export async function updateLibraryEntityMeta(data: {
+    id: number
+    categoryEN?: string | null
+    categoryZH?: string | null
+    shortContentDraftEN?: string | null
+    shortContentDraftZH?: string | null
+}): Promise<SimplifiedContentEntity> {
+    await requireUserWithRole(Role.writer)
+
+    const post = await prisma.contentEntity.update({
+        where: {
+            id: data.id
+        },
+        data: {
+            categoryEN: data.categoryEN,
+            categoryZH: data.categoryZH,
+            shortContentDraftEN: data.shortContentDraftEN,
+            shortContentDraftZH: data.shortContentDraftZH
+        },
+        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+    })
+
+    await prisma.approval.deleteMany({
+        where: {
+            entityId: data.id
+        }
+    })
+
+    return post
+}
+
 // = WeChat crawling
 let wechatWorkerRunning = WeChatWorkerStatus.idle
 
@@ -548,6 +844,7 @@ export async function createPostFromWeChat(url: string, coverImageId: number | n
         return
     }
     const user = await requireUserWithRole(Role.writer)
+    await syncContentEntitySequence()
     const post = await prisma.contentEntity.create({
         data: {
             type: EntityType.post,

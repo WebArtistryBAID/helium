@@ -62,9 +62,13 @@ const TimelineConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Timeline',
-        titleZH: '时间线',
-        items: []
+        titleEN: 'Application and Learning Timeline',
+        titleZH: '申请与学习时间线',
+        items: [
+            { dateEN: 'September', dateZH: '九月', titleEN: 'Information released', titleZH: '信息发布', descriptionEN: 'Families can review program introductions, admissions notes, and key dates.', descriptionZH: '家长可查看项目介绍、招生说明与重要时间节点。' },
+            { dateEN: 'October - December', dateZH: '十月至十二月', titleEN: 'Campus events and consultation', titleZH: '校园活动与咨询', descriptionEN: 'Students and families learn more through open events, conversations, and school visits.', descriptionZH: '学生和家庭可通过开放活动、沟通咨询与校园参观进一步了解学校。' },
+            { dateEN: 'Spring', dateZH: '春季', titleEN: 'Application preparation', titleZH: '申请准备', descriptionEN: 'Applicants prepare materials and follow the official admissions arrangement.', descriptionZH: '申请家庭根据当年官方安排准备相关材料。' }
+        ]
     },
     render: ({ titleEN, titleZH, items }) => <Timeline titleEN={titleEN} titleZH={titleZH} items={items}/>
 }

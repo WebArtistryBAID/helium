@@ -45,7 +45,7 @@ function Quote({ text, source, image, uploadPrefix }: {
                 fill="none"
                 height="53"
                 viewBox="0 0 56.55765920826161 53"
-                width="56.55765920826161"
+                width="57"
             >
                 <defs>
                     <rect
@@ -100,7 +100,7 @@ function Quote({ text, source, image, uploadPrefix }: {
                 fill="none"
                 height="53"
                 viewBox="0 0 56.55765920826161 53"
-                width="56.55765920826161"
+                width="57"
             >
                 <defs>
                     <rect

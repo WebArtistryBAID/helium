@@ -61,12 +61,12 @@ const LocationCardConfig: ComponentConfig = {
         mapUrl: { label: '地图链接（可选）', type: 'text' }
     },
     defaultProps: {
-        titleEN: 'Location',
-        titleZH: '地点',
-        venueEN: 'Campus',
-        venueZH: '校园',
-        addressEN: '',
-        addressZH: '',
+        titleEN: 'Campus Location',
+        titleZH: '校园地点',
+        venueEN: 'Beijing Academy International Division',
+        venueZH: '北京中学国际部',
+        addressEN: 'Please refer to official school notices for event-specific venues.',
+        addressZH: '具体活动地点请以学校官方通知为准。',
         mapUrl: ''
     },
     render: ({ titleEN, titleZH, venueEN, venueZH, addressEN, addressZH, mapUrl }) =>

@@ -89,7 +89,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                 </If>
             </If>
         </button>
-        <If condition={done}>
+        <If condition={done && uploadPrefix !== '' && path !== ''}>
             <img width={500} height={200} src={uploadPrefix + '/' + path} alt="已上传文件"
                  className="mt-3 rounded-xl w-full lg:max-w-sm object-cover"/>
         </If>

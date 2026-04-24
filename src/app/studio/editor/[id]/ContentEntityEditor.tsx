@@ -16,7 +16,7 @@ import {
 } from 'flowbite-react'
 import { HiNewspaper, HiPencil } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
@@ -33,11 +33,77 @@ import { alignContentEntity,
 } from '@/app/studio/editor/entity-actions'
 import { Role, User } from '@/generated/prisma/browser'
 import { requestContentReview } from '@/app/lib/approval/approval-actions'
-import { Puck } from '@measured/puck'
+import { Data, Puck } from '@measured/puck'
 import { Render } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import '@measured/puck/puck.css'
 import '@/app/studio/pages/[id]/editor/editor-theme.css'
+
+type PuckDraftData = Data
+
+function createEmptyPuckData(): PuckDraftData {
+    return {
+        content: [],
+        root: { props: {} },
+        zones: {}
+    }
+}
+
+function parsePuckData(raw: string): PuckDraftData {
+    try {
+        const parsed = JSON.parse(raw)
+        if (parsed && typeof parsed === 'object') {
+            return parsed as PuckDraftData
+        }
+    } catch {
+    }
+
+    return createEmptyPuckData()
+}
+
+function formatDateLabel(value: Date | string) {
+    const date = typeof value === 'string' ? new Date(value) : value
+    return date.toLocaleDateString('zh-CN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric'
+    })
+}
+
+function formatDateTimeLabel(value: Date | string) {
+    const date = typeof value === 'string' ? new Date(value) : value
+    return date.toLocaleString('zh-CN')
+}
+
+function SidebarEditButton({ label, onClick }: {
+    label: string
+    onClick: () => void
+}) {
+    return <button
+        className="flex h-9 w-9 items-center justify-center rounded-full bg-blue-500 text-white shadow-sm transition-colors hover:bg-blue-600"
+        aria-label={label}
+        onClick={onClick}
+        type="button"
+    >
+        <HiPencil className="text-sm"/>
+    </button>
+}
+
+function SidebarBlock({ label, children, action }: {
+    label: string
+    children: React.ReactNode
+    action?: React.ReactNode
+}) {
+    return <section className="rounded-2xl border border-gray-100 bg-gray-50/80 p-4">
+        <div className="mb-3 flex items-start justify-between gap-3">
+            <p className="text-sm font-bold secondary">{label}</p>
+            {action}
+        </div>
+        <div className="space-y-1">
+            {children}
+        </div>
+    </section>
+}
 
 export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
     init: HydratedContentEntity,
@@ -56,19 +122,41 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ requestConfirm, setRequestConfirm ] = useState(false)
+    const [ showInfoSidebar, setShowInfoSidebar ] = useState(true)
     const [ inEnglish, setInEnglish ] = useState(false)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [ _, setActiveTab ] = useState(0)
     const tabsRef = useRef<TabsRef>(null)
     const router = useRouter()
 
     useEffect(() => {
-        if (location.hash === '#approval') {
-            setActiveTab(2)
-        } else if (location.hash === '#preview') {
-            setActiveTab(1)
+        function syncTabWithHash() {
+            if (location.hash === '#approval') {
+                tabsRef.current?.setActiveTab(2)
+                return
+            }
+            if (location.hash === '#preview') {
+                tabsRef.current?.setActiveTab(1)
+                return
+            }
+            tabsRef.current?.setActiveTab(0)
+        }
+
+        syncTabWithHash()
+        window.addEventListener('hashchange', syncTabWithHash)
+        return () => {
+            window.removeEventListener('hashchange', syncTabWithHash)
         }
     }, [])
+
+    function updateTabHash(tab: number) {
+        const url = new URL(window.location.href)
+        url.hash = tab === 1 ? 'preview' : tab === 2 ? 'approval' : ''
+        window.history.replaceState(null, '', url.toString())
+    }
+
+    function activateTab(tab: number) {
+        tabsRef.current?.setActiveTab(tab)
+        updateTabHash(tab)
+    }
 
     // = Switch language
     function switchLanguage() {
@@ -115,6 +203,23 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         ]
     })
     useSaveShortcut(true, save)
+
+    const contentDraftENRef = useRef(post.contentDraftEN)
+    const contentDraftZHRef = useRef(post.contentDraftZH)
+    const [ contentDraftENData, setContentDraftENData ] = useState<PuckDraftData>(() => parsePuckData(init.contentDraftEN))
+    const [ contentDraftZHData, setContentDraftZHData ] = useState<PuckDraftData>(() => parsePuckData(init.contentDraftZH))
+
+    useEffect(() => {
+        if (post.contentDraftEN === contentDraftENRef.current) return
+        contentDraftENRef.current = post.contentDraftEN
+        setContentDraftENData(parsePuckData(post.contentDraftEN))
+    }, [ post.contentDraftEN ])
+
+    useEffect(() => {
+        if (post.contentDraftZH === contentDraftZHRef.current) return
+        contentDraftZHRef.current = post.contentDraftZH
+        setContentDraftZHData(parsePuckData(post.contentDraftZH))
+    }, [ post.contentDraftZH ])
 
     // = Locking
     useEntityLock({
@@ -313,193 +418,220 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         }}/>
 
         <Tabs aria-label="文章编辑器选项卡" variant="default" ref={tabsRef}
-              onActiveTabChange={(tab) => setActiveTab(tab)}>
+              onActiveTabChange={tab => updateTabHash(tab)}>
             <TabItem active title="内容" icon={HiNewspaper}>
-                <div className="w-full flex gap-8">
+                <div className="flex min-h-screen w-full items-start gap-6 px-6 py-6 xl:gap-8">
                     <div className="flex-1 min-w-0">
                         <Puck
                             key={inEnglish ? 'en' : 'zh'}
-                            config={useMemo(() => PUCK_CONFIG, [])}
-                            data={(() => {
-                                const raw = inEnglish ? post.contentDraftEN : post.contentDraftZH
-                                try { return JSON.parse(raw) } catch { return { content: [], root: { props: {} }, zones: {} } }
-                            })()}
+                            config={PUCK_CONFIG}
+                            data={inEnglish ? contentDraftENData : contentDraftZHData}
                             onChange={data => {
+                                const nextContent = JSON.stringify(data)
                                 if (inEnglish) {
-                                    setPost(prev => ({ ...prev, contentDraftEN: JSON.stringify(data) }))
+                                    contentDraftENRef.current = nextContent
+                                    setContentDraftENData(data as PuckDraftData)
+                                    setPost(prev => ({ ...prev, contentDraftEN: nextContent }))
                                 } else {
-                                    setPost(prev => ({ ...prev, contentDraftZH: JSON.stringify(data) }))
+                                    contentDraftZHRef.current = nextContent
+                                    setContentDraftZHData(data as PuckDraftData)
+                                    setPost(prev => ({ ...prev, contentDraftZH: nextContent }))
                                 }
                             }}
                             overrides={{
-                                headerActions: () => <>
-                                    <Button pill color="alternative" onClick={switchLanguage}>
+                                headerActions: () => <div className="puck-editor-actions flex min-w-max items-center justify-end gap-2 whitespace-nowrap">
+                                    <Button
+                                        pill
+                                        color="alternative"
+                                        className="shrink-0 whitespace-nowrap"
+                                        onClick={() => setShowInfoSidebar(prev => !prev)}
+                                    >
+                                        {showInfoSidebar ? '隐藏信息栏' : '显示信息栏'}
+                                    </Button>
+                                    <Button
+                                        pill
+                                        color="alternative"
+                                        className="shrink-0 whitespace-nowrap"
+                                        onClick={switchLanguage}
+                                    >
                                         切换到{inEnglish ? '中文' : '英文'}
                                     </Button>
-                                    <Button pill color="alternative"
-                                            onClick={() => router.push(`/studio/pages/${post.id}/approval`)}>审核与发布</Button>
-                                    <Button pill className="bg-red-600 hover:bg-red-700 text-white"
-                                            disabled={loading} onClick={save}>保存更改</Button>
-                                </>
+                                    <Button
+                                        pill
+                                        color="alternative"
+                                        className="shrink-0 whitespace-nowrap"
+                                        onClick={() => activateTab(2)}
+                                    >
+                                        审核与发布
+                                    </Button>
+                                    <Button
+                                        pill
+                                        className="shrink-0 whitespace-nowrap bg-red-600 text-white hover:bg-red-700"
+                                        disabled={loading}
+                                        onClick={save}
+                                    >
+                                        保存更改
+                                    </Button>
+                                </div>
                             }}
                         />
                     </div>
-                    <div className="w-64 xl:w-72 space-y-6">
-                        <Button pill color="blue"
-                                disabled={loadingAdditional || !user.roles.includes(Role.writer)}
-                                onClick={async () => {
-                                    if (!requestConfirm) {
-                                        setRequestConfirm(true)
-                                        return
-                                    }
+                    <If condition={showInfoSidebar}>
+                    <div className="w-72 shrink-0 xl:w-80">
+                        <div className="sticky top-6 space-y-4 rounded-[2rem] border border-gray-200 bg-white p-5 shadow-sm">
+                            <div className="flex items-start justify-between gap-3">
+                                <div>
+                                    <h3 className="text-xl font-bold">内容信息</h3>
+                                    <p className="mt-1 text-sm secondary">快速修改元信息和发布状态。</p>
+                                </div>
+                                <button
+                                    type="button"
+                                    className="rounded-full px-3 py-1 text-sm font-semibold text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900"
+                                    onClick={() => setShowInfoSidebar(false)}
+                                    aria-label="隐藏内容信息栏"
+                                >
+                                    隐藏
+                                </button>
+                            </div>
+
+                            <Button pill color="blue" className="w-full"
+                                    disabled={loadingAdditional || !user.roles.includes(Role.writer)}
+                                    onClick={async () => {
+                                        if (!requestConfirm) {
+                                            setRequestConfirm(true)
+                                            return
+                                        }
+                                        setLoadingAdditional(true)
+                                        await requestContentReview({ entityType: init.type, entityId: post.id })
+                                        setLoadingAdditional(false)
+                                        setRequestConfirm(false)
+                                        await refresh()
+                                        router.refresh()
+                                    }}>{requestConfirm ? '确认请求审核？' : '请求审核'}</Button>
+
+                            <SidebarBlock
+                                label="标题"
+                                action={<SidebarEditButton label="编辑标题" onClick={() => setShowTitleForm(true)}/>}
+                            >
+                                <p className="text-2xl font-bold leading-tight">{post.titleDraftZH}</p>
+                                <p className="text-base secondary">{post.titleDraftEN}</p>
+                            </SidebarBlock>
+
+                            <SidebarBlock
+                                label="链接位置"
+                                action={<SidebarEditButton label="编辑链接位置" onClick={() => setShowSlugForm(true)}/>}
+                            >
+                                <p className="break-all text-base font-medium">{post.slug}</p>
+                            </SidebarBlock>
+
+                            <SidebarBlock
+                                label="类别"
+                                action={<SidebarEditButton label="编辑类别" onClick={() => setShowCategoryForm(true)}/>}
+                            >
+                                <p className="text-base font-medium">{post.categoryZH || '暂未设置'}</p>
+                                <p className="text-sm secondary">{post.categoryEN || 'Not set yet'}</p>
+                            </SidebarBlock>
+
+                            <SidebarBlock
+                                label="短内容"
+                                action={<SidebarEditButton label="编辑短内容" onClick={() => setShowShortContentForm(true)}/>}
+                            >
+                                <p className="text-sm leading-6 text-gray-700">
+                                    {post.shortContentDraftZH || post.shortContentDraftEN || '还没有填写短内容'}
+                                </p>
+                            </SidebarBlock>
+
+                            <SidebarBlock label="状态">
+                                <p className="text-base font-medium">
+                                    <If condition={post.contentPublishedEN === post.contentDraftEN && post.contentPublishedZH === post.contentDraftZH}>
+                                        已发布
+                                    </If>
+                                    <If condition={post.contentPublishedEN == null && post.contentPublishedZH == null}>
+                                        草稿
+                                    </If>
+                                    <If condition={(post.contentPublishedEN !== post.contentDraftEN || post.contentPublishedZH !== post.contentDraftZH) && post.contentPublishedEN != null && post.contentPublishedZH != null}>
+                                        有更新未发布
+                                    </If>
+                                </p>
+                            </SidebarBlock>
+
+                            <SidebarBlock
+                                label="显示日期"
+                                action={<SidebarEditButton label="编辑显示日期" onClick={() => setShowDateForm(true)}/>}
+                            >
+                                <p className="text-base font-medium">{formatDateLabel(post.createdAt)}</p>
+                            </SidebarBlock>
+
+                            <SidebarBlock label="最新更改">
+                                <p className="text-sm">{formatDateTimeLabel(post.updatedAt)}</p>
+                            </SidebarBlock>
+
+                            <SidebarBlock label="封面">
+                                <If condition={post.coverImageDraft != null}>
+                                    <button onClick={() => setShowMediaLibrary(true)} className="block cursor-pointer overflow-hidden rounded-2xl" type="button">
+                                        <img className="h-40 w-full object-cover" alt={post.coverImageDraft?.altText}
+                                             src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
+                                    </button>
+                                </If>
+                                <Button pill color="blue" className="w-full"
+                                        onClick={() => setShowMediaLibrary(true)}>
+                                    {post.coverImageDraft == null ? '设置封面' : '更换封面'}
+                                </Button>
+                            </SidebarBlock>
+
+                            <SidebarBlock label="创建用户">
+                                <p className="text-base font-medium">{post.creator.name}</p>
+                            </SidebarBlock>
+
+                            <div className="space-y-2 pt-1">
+                                <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
+                                    <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red" className="w-full" onClick={async () => {
+                                        if (!unpublishConfirm) { setUnpublishConfirm(true); return }
+                                        setLoadingAdditional(true)
+                                        await unpublishContentEntity(post.id)
+                                        setLoadingAdditional(false)
+                                        await refresh()
+                                        router.refresh()
+                                    }}>{unpublishConfirm ? '确认撤回?' : '撤回发布'}</Button>
+                                </If>
+                                <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red" className="w-full" onClick={async () => {
+                                    if (!deleteConfirm) { setDeleteConfirm(true); return }
                                     setLoadingAdditional(true)
-                                    await requestContentReview({ entityType: init.type, entityId: post.id })
+                                    await deleteContentEntity(post.id)
                                     setLoadingAdditional(false)
-                                    setRequestConfirm(false)
-                                    await refresh()
-                                    router.refresh()
-                                }}>{requestConfirm ? '确认请求审核？' : '请求审核'}</Button>
-
-                        <div>
-                            <p className="font-bold text-sm secondary">标题</p>
-                            <div className="flex items-center gap-2">
-                                <p className="font-bold text-lg">{post.titleDraftZH}</p>
-                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
-                                        aria-label="编辑标题" onClick={() => setShowTitleForm(true)}>
-                                    <HiPencil className="text-white text-xs"/>
-                                </button>
+                                    router.push('/studio')
+                                }}>{deleteConfirm ? '确认删除?' : '删除'}</Button>
                             </div>
-                            <p className="text-sm secondary">{post.titleDraftEN}</p>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">链接位置</p>
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm truncate flex-1">{post.slug}</p>
-                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
-                                        aria-label="编辑链接位置" onClick={() => setShowSlugForm(true)}>
-                                    <HiPencil className="text-white text-xs"/>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">类别</p>
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm truncate flex-1">{post.categoryZH} / {post.categoryEN}</p>
-                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
-                                        aria-label="编辑类别" onClick={() => setShowCategoryForm(true)}>
-                                    <HiPencil className="text-white text-xs"/>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">短内容</p>
-                            <div className="flex items-center gap-2">
-                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
-                                        aria-label="编辑短内容" onClick={() => setShowShortContentForm(true)}>
-                                    <HiPencil className="text-white text-xs"/>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">状态</p>
-                            <p className="text-sm">
-                                <If condition={post.contentPublishedEN === post.contentDraftEN && post.contentPublishedZH === post.contentDraftZH}>
-                                    已发布
-                                </If>
-                                <If condition={post.contentPublishedEN == null && post.contentPublishedZH == null}>
-                                    草稿
-                                </If>
-                                <If condition={(post.contentPublishedEN !== post.contentDraftEN || post.contentPublishedZH !== post.contentDraftZH) && post.contentPublishedEN != null && post.contentPublishedZH != null}>
-                                    有更新未发布
-                                </If>
-                            </p>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">显示日期</p>
-                            <div className="flex items-center gap-2">
-                                <p className="text-sm">{(typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt).toDateString()}</p>
-                                <button className="p-1 !h-6 !w-6 bg-blue-500 hover:bg-blue-600 transition-colors rounded-full flex items-center justify-center"
-                                        aria-label="编辑显示日期" onClick={() => setShowDateForm(true)}>
-                                    <HiPencil className="text-white text-xs"/>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">最新更改</p>
-                            <p className="text-sm">{post.updatedAt.toLocaleString()}</p>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">封面</p>
-                            <If condition={post.coverImageDraft != null}>
-                                <button onClick={() => setShowMediaLibrary(true)} className="cursor-pointer block">
-                                    <img className="mt-1 h-24 rounded" alt={post.coverImageDraft?.altText}
-                                         src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
-                                </button>
-                            </If>
-                            <If condition={post.coverImageDraft == null}>
-                                <Button pill color="blue" className="mt-1"
-                                        onClick={() => setShowMediaLibrary(true)}>设置封面</Button>
-                            </If>
-                        </div>
-
-                        <div>
-                            <p className="font-bold secondary text-sm">创建用户</p>
-                            <p className="text-sm">{post.creator.name}</p>
-                        </div>
-
-                        <div className="space-y-2">
-                            <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
-                                <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red" onClick={async () => {
-                                    if (!unpublishConfirm) { setUnpublishConfirm(true); return }
-                                    setLoadingAdditional(true)
-                                    await unpublishContentEntity(post.id)
-                                    setLoadingAdditional(false)
-                                    await refresh()
-                                    router.refresh()
-                                }}>{unpublishConfirm ? '确认撤回?' : '撤回发布'}</Button>
-                            </If>
-                            <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)} pill color="red" onClick={async () => {
-                                if (!deleteConfirm) { setDeleteConfirm(true); return }
-                                setLoadingAdditional(true)
-                                await deleteContentEntity(post.id)
-                                setLoadingAdditional(false)
-                                router.push('/studio')
-                            }}>{deleteConfirm ? '确认删除?' : '删除'}</Button>
                         </div>
                     </div>
+                    </If>
                 </div>
             </TabItem>
             <TabItem title="预览" icon={HiSearch}>
-                <Button pill color="alternative" className="mb-5" onClick={switchLanguage}>
-                    切换到{inEnglish ? '中文' : '英文'}
-                </Button>
-                <If condition={post.coverImageDraft != null}>
-                    <img className="mb-5 w-full h-64 object-cover" alt={post.coverImageDraft?.altText}
-                         src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
-                </If>
-                <article>
-                    <h1>{inEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
-                    <Render
-                        config={PUCK_CONFIG}
-                        data={(() => {
-                            const raw = inEnglish ? post.contentDraftEN : post.contentDraftZH
-                            try { return JSON.parse(raw) } catch { return { content: [], root: { props: {} }, zones: {} } }
-                        })()}
-                    />
-                </article>
+                <div className="px-8 py-8">
+                    <Button pill color="alternative" className="mb-5" onClick={switchLanguage}>
+                        切换到{inEnglish ? '中文' : '英文'}
+                    </Button>
+                    <If condition={post.coverImageDraft != null}>
+                        <img className="mb-5 h-64 w-full object-cover" alt={post.coverImageDraft?.altText}
+                             src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
+                    </If>
+                    <article>
+                        <h1>{inEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
+                        <Render
+                            config={PUCK_CONFIG}
+                            data={inEnglish ? contentDraftENData : contentDraftZHData}
+                        />
+                    </article>
+                </div>
             </TabItem>
             <TabItem title="审核与发布" icon={HiCloudUpload}>
-                <ApprovalProcess entityType={init.type} entityId={post.id} entity={post} doAlign={async () => {
-                    await alignContentEntity(post.id)
-                    await refresh()
-                }}/>
+                <div className="px-8 py-8">
+                    <ApprovalProcess entityType={init.type} entityId={post.id} entity={post} doAlign={async () => {
+                        await alignContentEntity(post.id)
+                        await refresh()
+                    }}/>
+                </div>
             </TabItem>
         </Tabs>
     </>

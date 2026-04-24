@@ -9,10 +9,10 @@ import {
 } from '@/app/studio/editor/entity-actions'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
-import { useState, useMemo } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
-import { Puck } from '@measured/puck'
+import { Data, Puck } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
@@ -20,6 +20,28 @@ import If from '@/app/lib/If'
 import '@measured/puck/puck.css'
 import './editor-theme.css'
 import { Role } from '@/generated/prisma/enums'
+
+type PuckDraftData = Data
+
+function createEmptyPuckData(): PuckDraftData {
+    return {
+        content: [],
+        root: { props: {} },
+        zones: {}
+    }
+}
+
+function parsePuckData(raw: string): PuckDraftData {
+    try {
+        const parsed = JSON.parse(raw)
+        if (parsed && typeof parsed === 'object') {
+            return parsed as PuckDraftData
+        }
+    } catch {
+    }
+
+    return createEmptyPuckData()
+}
 
 export default function PageEditor({ init, userId, lockToken }: {
     init: HydratedContentEntity,
@@ -75,6 +97,23 @@ export default function PageEditor({ init, userId, lockToken }: {
         ]
     })
     useSaveShortcut(true, save)
+
+    const contentDraftENRef = useRef(draft.contentDraftEN)
+    const contentDraftZHRef = useRef(draft.contentDraftZH)
+    const [ contentDraftENData, setContentDraftENData ] = useState<PuckDraftData>(() => parsePuckData(init.contentDraftEN))
+    const [ contentDraftZHData, setContentDraftZHData ] = useState<PuckDraftData>(() => parsePuckData(init.contentDraftZH))
+
+    useEffect(() => {
+        if (draft.contentDraftEN === contentDraftENRef.current) return
+        contentDraftENRef.current = draft.contentDraftEN
+        setContentDraftENData(parsePuckData(draft.contentDraftEN))
+    }, [ draft.contentDraftEN ])
+
+    useEffect(() => {
+        if (draft.contentDraftZH === contentDraftZHRef.current) return
+        contentDraftZHRef.current = draft.contentDraftZH
+        setContentDraftZHData(parsePuckData(draft.contentDraftZH))
+    }, [ draft.contentDraftZH ])
 
     // = Locking
     useEntityLock({
@@ -197,32 +236,63 @@ export default function PageEditor({ init, userId, lockToken }: {
 
         <Puck
             key={inEnglish ? 'en' : 'zh'}
-            config={useMemo(() => PUCK_CONFIG, [])}
-            data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)}
+            config={PUCK_CONFIG}
+            data={inEnglish ? contentDraftENData : contentDraftZHData}
             onChange={data => {
+                const nextContent = JSON.stringify(data)
                 if (inEnglish) {
+                    contentDraftENRef.current = nextContent
+                    setContentDraftENData(data as PuckDraftData)
                     setDraft(prev => ({
                         ...prev,
-                        contentDraftEN: JSON.stringify(data),
+                        contentDraftEN: nextContent,
                         titleDraftEN: data.root.props?.title ?? ''
                     }))
                 } else {
+                    contentDraftZHRef.current = nextContent
+                    setContentDraftZHData(data as PuckDraftData)
                     setDraft(prev => ({
                         ...prev,
-                        contentDraftZH: JSON.stringify(data),
+                        contentDraftZH: nextContent,
                         titleDraftZH: data.root.props?.title ?? ''
                     }))
                 }
             }}
             overrides={{
-                headerActions: () => <>
-                    <Button pill color="alternative"
-                            onClick={switchLanguage}>切换到{inEnglish ? '中文' : '英文'}</Button>
-                    <Button pill color="alternative" onClick={() => setShowMetadata(true)}>页面信息</Button>
-                    <Button pill color="alternative"
-                            onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
-                    <Button pill className="bg-red-600 hover:bg-red-700 text-white" disabled={loading} onClick={save}>保存更改</Button>
-                </>
+                headerActions: () => <div className="puck-editor-actions flex min-w-max items-center justify-end gap-2 whitespace-nowrap">
+                    <Button
+                        pill
+                        color="alternative"
+                        className="shrink-0 whitespace-nowrap"
+                        onClick={switchLanguage}
+                    >
+                        切换到{inEnglish ? '中文' : '英文'}
+                    </Button>
+                    <Button
+                        pill
+                        color="alternative"
+                        className="shrink-0 whitespace-nowrap"
+                        onClick={() => setShowMetadata(true)}
+                    >
+                        页面信息
+                    </Button>
+                    <Button
+                        pill
+                        color="alternative"
+                        className="shrink-0 whitespace-nowrap"
+                        onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}
+                    >
+                        审核与发布
+                    </Button>
+                    <Button
+                        pill
+                        className="shrink-0 whitespace-nowrap bg-red-600 text-white hover:bg-red-700"
+                        disabled={loading}
+                        onClick={save}
+                    >
+                        保存更改
+                    </Button>
+                </div>
             }}
         />
     </>

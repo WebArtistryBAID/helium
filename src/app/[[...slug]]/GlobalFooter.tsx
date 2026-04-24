@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
+import { buildLocalizedPath } from '@/app/[[...slug]]/route-utils'
 
 const locales = {
     en: {
@@ -39,14 +40,14 @@ export default function GlobalFooter({ pages }: {
                  className="lg:flex lg:justify-between lg:gap-3 space-y-3 mb-5">
                 {pages.map((page, index) =>
                     <div key={index}>
-                        <Link href={`/${page.slug}`} className="fancy-link link-white mb-2">
+                        <Link href={buildLocalizedPath(language, page.slug)} className="fancy-link link-white mb-2">
                             <h3 className="text-lg font-bold">
                                 {language === 'zh' ? page.titleZH : page.titleEN}
                             </h3>
                         </Link>
                         <div className="flex flex-col">
                             {page.subPages.map((subPage, subIndex) =>
-                                <Link href={`/${subPage.slug}`} className="link-white"
+                                <Link href={buildLocalizedPath(language, subPage.slug)} className="link-white"
                                       key={subIndex}>
                                     {language === 'zh' ? subPage.titleZH : subPage.titleEN}
                                 </Link>

@@ -391,7 +391,8 @@ export const ModelName = {
   Approval: 'Approval',
   ApprovalConfig: 'ApprovalConfig',
   EntityLock: 'EntityLock',
-  FeishuMessage: 'FeishuMessage'
+  FeishuMessage: 'FeishuMessage',
+  SiteStructureItem: 'SiteStructureItem'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -407,7 +408,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "userAuditLog" | "contentEntity" | "image" | "approval" | "approvalConfig" | "entityLock" | "feishuMessage"
+    modelProps: "user" | "userAuditLog" | "contentEntity" | "image" | "approval" | "approvalConfig" | "entityLock" | "feishuMessage" | "siteStructureItem"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -1003,6 +1004,80 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         }
       }
     }
+    SiteStructureItem: {
+      payload: Prisma.$SiteStructureItemPayload<ExtArgs>
+      fields: Prisma.SiteStructureItemFieldRefs
+      operations: {
+        findUnique: {
+          args: Prisma.SiteStructureItemFindUniqueArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload> | null
+        }
+        findUniqueOrThrow: {
+          args: Prisma.SiteStructureItemFindUniqueOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>
+        }
+        findFirst: {
+          args: Prisma.SiteStructureItemFindFirstArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload> | null
+        }
+        findFirstOrThrow: {
+          args: Prisma.SiteStructureItemFindFirstOrThrowArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>
+        }
+        findMany: {
+          args: Prisma.SiteStructureItemFindManyArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>[]
+        }
+        create: {
+          args: Prisma.SiteStructureItemCreateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>
+        }
+        createMany: {
+          args: Prisma.SiteStructureItemCreateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        createManyAndReturn: {
+          args: Prisma.SiteStructureItemCreateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>[]
+        }
+        delete: {
+          args: Prisma.SiteStructureItemDeleteArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>
+        }
+        update: {
+          args: Prisma.SiteStructureItemUpdateArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>
+        }
+        deleteMany: {
+          args: Prisma.SiteStructureItemDeleteManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateMany: {
+          args: Prisma.SiteStructureItemUpdateManyArgs<ExtArgs>
+          result: BatchPayload
+        }
+        updateManyAndReturn: {
+          args: Prisma.SiteStructureItemUpdateManyAndReturnArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>[]
+        }
+        upsert: {
+          args: Prisma.SiteStructureItemUpsertArgs<ExtArgs>
+          result: runtime.Types.Utils.PayloadToResult<Prisma.$SiteStructureItemPayload>
+        }
+        aggregate: {
+          args: Prisma.SiteStructureItemAggregateArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.AggregateSiteStructureItem>
+        }
+        groupBy: {
+          args: Prisma.SiteStructureItemGroupByArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteStructureItemGroupByOutputType>[]
+        }
+        count: {
+          args: Prisma.SiteStructureItemCountArgs<ExtArgs>
+          result: runtime.Types.Utils.Optional<Prisma.SiteStructureItemCountAggregateOutputType> | number
+        }
+      }
+    }
   }
 } & {
   other: {
@@ -1161,6 +1236,25 @@ export const FeishuMessageScalarFieldEnum = {
 export type FeishuMessageScalarFieldEnum = (typeof FeishuMessageScalarFieldEnum)[keyof typeof FeishuMessageScalarFieldEnum]
 
 
+export const SiteStructureItemScalarFieldEnum = {
+  id: 'id',
+  titleEN: 'titleEN',
+  titleZH: 'titleZH',
+  slug: 'slug',
+  jumpLabelEN: 'jumpLabelEN',
+  jumpLabelZH: 'jumpLabelZH',
+  jumpDescriptionEN: 'jumpDescriptionEN',
+  jumpDescriptionZH: 'jumpDescriptionZH',
+  parentId: 'parentId',
+  position: 'position',
+  pageEntityId: 'pageEntityId',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+} as const
+
+export type SiteStructureItemScalarFieldEnum = (typeof SiteStructureItemScalarFieldEnum)[keyof typeof SiteStructureItemScalarFieldEnum]
+
+
 export const SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -1250,6 +1344,19 @@ export const FeishuMessageOrderByRelevanceFieldEnum = {
 } as const
 
 export type FeishuMessageOrderByRelevanceFieldEnum = (typeof FeishuMessageOrderByRelevanceFieldEnum)[keyof typeof FeishuMessageOrderByRelevanceFieldEnum]
+
+
+export const SiteStructureItemOrderByRelevanceFieldEnum = {
+  titleEN: 'titleEN',
+  titleZH: 'titleZH',
+  slug: 'slug',
+  jumpLabelEN: 'jumpLabelEN',
+  jumpLabelZH: 'jumpLabelZH',
+  jumpDescriptionEN: 'jumpDescriptionEN',
+  jumpDescriptionZH: 'jumpDescriptionZH'
+} as const
+
+export type SiteStructureItemOrderByRelevanceFieldEnum = (typeof SiteStructureItemOrderByRelevanceFieldEnum)[keyof typeof SiteStructureItemOrderByRelevanceFieldEnum]
 
 
 
@@ -1486,6 +1593,7 @@ export type GlobalOmitConfig = {
   approvalConfig?: Prisma.ApprovalConfigOmit
   entityLock?: Prisma.EntityLockOmit
   feishuMessage?: Prisma.FeishuMessageOmit
+  siteStructureItem?: Prisma.SiteStructureItemOmit
 }
 
 /* Types for Logging */

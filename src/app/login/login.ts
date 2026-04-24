@@ -34,7 +34,8 @@ export async function me(): Promise<number | null> {
     } catch {
         return null
     }
-    return decodeJwt(token).id as number
+    const decoded = decodeJwt(token)
+    return (decoded.id ?? decoded.seiueId) as number
 }
 
 export async function isLoggedInWithPermission(permission: string): Promise<boolean> {

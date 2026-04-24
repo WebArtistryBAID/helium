@@ -44,7 +44,7 @@ export default function Courses({ title, courses }: {
     }, [ tabNames, selected ])
 
     return (
-        <section aria-labelledby="courses-heading" className="section !my-16 container">
+        <section id="courses-overview" aria-labelledby="courses-heading" className="section !my-16 container">
             <h2 id="courses-heading" className="text-4xl font-bold md:text-right mb-5">
                 {title}
             </h2>
@@ -91,8 +91,23 @@ export default function Courses({ title, courses }: {
                         <Link href={prefixLink(language, getContentEntityURI(item?.createdAt, item?.slug))}
                             key={item?.id ?? Math.random()}
                             role="listitem"
-                              className="block text-2xl border-l-4 border-red-800 pl-3 col-span-1 md:col-span-2">
-                            {language === 'en' ? (item?.titlePublishedEN ?? '') : (item?.titlePublishedZH ?? '')}
+                              className="group block rounded-[1.5rem] border border-gray-200 bg-white p-5 shadow-sm transition-all hover:-translate-y-1 hover:shadow-lg md:col-span-2">
+                            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#7a1f1c]">
+                                {language === 'en'
+                                    ? (item?.categoryEN ?? selected ?? '')
+                                    : (item?.categoryZH ?? selected ?? '')}
+                            </p>
+                            <h3 className="mt-3 text-2xl font-bold text-gray-900">
+                                {language === 'en' ? (item?.titlePublishedEN ?? '') : (item?.titlePublishedZH ?? '')}
+                            </h3>
+                            {(language === 'en' ? item?.shortContentPublishedEN : item?.shortContentPublishedZH) ? (
+                                <p className="mt-3 text-sm leading-7 text-gray-600">
+                                    {language === 'en' ? item?.shortContentPublishedEN : item?.shortContentPublishedZH}
+                                </p>
+                            ) : null}
+                            <div className="mt-4 inline-flex items-center rounded-full bg-[#7a1f1c] px-4 py-2 text-sm font-semibold text-white">
+                                {language === 'en' ? 'Open course' : '查看课程'}
+                            </div>
                         </Link>
                     ))}
                 </div>

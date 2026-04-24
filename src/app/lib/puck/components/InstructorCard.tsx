@@ -84,9 +84,12 @@ const InstructorCardConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Instructor',
-        titleZH: '任课教师',
-        items: [{ name: 'Kevin Li', titleEN: 'Professor', titleZH: '教授', subjectEN: '2013 - 2026', subjectZH: '2013 - 2026' }]
+        titleEN: 'Faculty and Advisors',
+        titleZH: '教师与指导者',
+        items: [
+            { name: 'Faculty Name', titleEN: 'Teacher', titleZH: '任课教师', subjectEN: 'Interdisciplinary Learning', subjectZH: '跨学科学习', bioEN: 'Supports students through inquiry, feedback, and reflection.', bioZH: '通过探究、反馈与反思支持学生成长。' },
+            { name: 'Advisor Name', titleEN: 'Advisor', titleZH: '指导教师', subjectEN: 'Student Development', subjectZH: '学生发展', bioEN: 'Helps students connect learning goals with personal growth.', bioZH: '帮助学生把学习目标与个人成长连接起来。' }
+        ]
     },
     render: ({ titleEN, titleZH, items }) => <InstructorCardBlock titleEN={titleEN} titleZH={titleZH} items={items}/>
 }

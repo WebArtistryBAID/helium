@@ -77,12 +77,12 @@ const SyllabusConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Syllabus',
-        titleZH: '课程大纲',
+        titleEN: 'Learning Pathway',
+        titleZH: '学习路径',
         items: [
-            { unitEN: 'Unit 1', unitZH: '第一单元', topicEN: 'Topic', topicZH: '主题' },
-            { unitEN: 'Unit 2', unitZH: '第二单元', topicEN: 'Topic', topicZH: '主题' },
-            { unitEN: 'Unit 3', unitZH: '第三单元', topicEN: 'Topic', topicZH: '主题' }
+            { unitEN: 'Stage 1', unitZH: '阶段一', topicEN: 'Foundations', topicZH: '基础建立', descriptionEN: 'Students build shared language, methods, and expectations.', descriptionZH: '学生建立共同的学习语言、方法与要求。' },
+            { unitEN: 'Stage 2', unitZH: '阶段二', topicEN: 'Inquiry and practice', topicZH: '探究与实践', descriptionEN: 'Students connect concepts with discussion, research, and hands-on work.', descriptionZH: '学生通过讨论、研究与实践连接概念和真实情境。' },
+            { unitEN: 'Stage 3', unitZH: '阶段三', topicEN: 'Reflection and presentation', topicZH: '反思与表达', descriptionEN: 'Students make learning visible through writing, presentation, or project outcomes.', descriptionZH: '学生通过写作、展示或项目成果呈现学习过程。' }
         ]
     },
     render: ({ titleEN, titleZH, items }) => <Syllabus titleEN={titleEN} titleZH={titleZH} items={items}/>

@@ -2,12 +2,17 @@ import { NextRequest, NextResponse } from 'next/server'
 import authMiddleware from '@/app/login/auth-middleware'
 
 export default async function proxy(req: NextRequest) {
-    const middlewares = [
-        await authMiddleware(req)
-    ]
-    for (const middleware of middlewares) {
-        if (middleware) return middleware
+    const authResponse = await authMiddleware(req)
+    if (authResponse != null) {
+        return authResponse
     }
-    return NextResponse.next()
-}
 
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('x-pathname', req.nextUrl.pathname)
+
+    return NextResponse.next({
+        request: {
+            headers: requestHeaders
+        }
+    })
+}

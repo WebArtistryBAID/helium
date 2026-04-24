@@ -19,20 +19,42 @@ export default function MediaPickerPuck({ name, onChange, value }:
     const [ uploadPrefix, setUploadPrefix ] = useState('')
 
     useEffect(() => {
-        (async () => {
-            setUploadPrefix(await getUploadServePath())
-        })()
+        let cancelled = false
+        const loadUploadPrefix = async () => {
+            const nextPrefix = await getUploadServePath()
+            if (!cancelled) {
+                setUploadPrefix(nextPrefix)
+            }
+        }
+        void loadUploadPrefix()
+        return () => {
+            cancelled = true
+        }
     }, [])
 
     useEffect(() => {
-        (async () => {
-            if (value != null) {
-                try {
-                    setFoundImage(await getImage(parseInt(value)))
-                } catch {
+        if (value == null) {
+            setFoundImage(null)
+            return
+        }
+
+        let cancelled = false
+        const loadImage = async () => {
+            try {
+                const image = await getImage(parseInt(value))
+                if (!cancelled) {
+                    setFoundImage(image)
+                }
+            } catch {
+                if (!cancelled) {
+                    setFoundImage(null)
                 }
             }
-        })()
+        }
+        void loadImage()
+        return () => {
+            cancelled = true
+        }
     }, [ value ])
 
     return <>
@@ -50,7 +72,7 @@ export default function MediaPickerPuck({ name, onChange, value }:
             <Button pill color="blue" onClick={() => setOpen(true)}>选择图片</Button>
         </If>
         <If condition={value != null}>
-            <button onClick={() => setOpen(true)} className="cursor-pointer">
+            <button onClick={() => setOpen(true)} className="cursor-pointer" disabled={!uploadPrefix || !foundImage?.sha1}>
                 <img className="mt-1 mb-3 h-24" alt={foundImage?.altText}
                      src={`${uploadPrefix}/${foundImage?.sha1}_thumb.webp`}/>
             </button>

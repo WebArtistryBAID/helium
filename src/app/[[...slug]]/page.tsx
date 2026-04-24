@@ -1,55 +1,30 @@
 import { cookies, headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { Render } from '@measured/puck'
+import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { getContentEntityBySlug, refreshPageData } from '@/app/studio/editor/entity-actions'
-import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
-import GlobalHeader from '@/app/[[...slug]]/GlobalHeader'
-import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
-import { retrieveMetadata } from '@/app/[[...slug]]/metadata-utils'
+import GlobalFooter from './GlobalFooter'
+import GlobalHeader from './GlobalHeader'
+import AnyContentEntityPage from './AnyContentEntityPage'
+import { retrieveMetadata } from './metadata-utils'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { Metadata } from 'next'
+import { getSiteStructureNavigation } from '@/app/lib/site-structure-actions'
 
-const PAGES = [
-    {
-        id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about', subPages: [
-            { id: -1, titleEN: 'Our Mission', titleZH: '我们的使命', slug: 'about' },
-            { id: -1, titleEN: 'Core Values', titleZH: '核心价值观', slug: 'about' },
-            { id: -1, titleEN: 'Accreditation', titleZH: '认证', slug: 'about' }
-        ]
-    },
-    {
-        id: 2, titleEN: 'Academics', titleZH: '学术', slug: 'academics',
-        subPages: [
-            { id: 7, titleEN: 'Middle School Program', titleZH: '初中项目', slug: 'academics/middle-school' },
-            { id: 8, titleEN: 'High School Program', titleZH: '高中项目', slug: 'academics/high-school' },
-            { id: 9, titleEN: 'Project-Based Learning', titleZH: '项目式学习', slug: 'academics/pbl' },
-            { id: 10, titleEN: 'College Counseling', titleZH: '大学升学指导', slug: 'academics/college-counseling' }
-        ]
-    },
-    {
-        id: 3, titleEN: 'Life', titleZH: '学生生活', slug: 'life', subPages: [
-            { id: 11, titleEN: 'Clubs', titleZH: '社团', slug: 'life/clubs' },
-            { id: 12, titleEN: 'Electives', titleZH: '选修课', slug: 'life/electives' },
-            { id: 13, titleEN: 'Dining', titleZH: '用餐', slug: 'life/dining' },
-            { id: 14, titleEN: 'Athletics', titleZH: '运动', slug: 'life/athletics' },
-            { id: 15, titleEN: 'Activities', titleZH: '校园活动', slug: 'life/activities' }
-        ]
-    },
-    {
-        id: 4, titleEN: 'Projects', titleZH: '自主项目', slug: 'projects', subPages: [
-            { id: -1, titleEN: 'Featured Projects', titleZH: '精选项目', slug: 'projects' },
-            { id: -1, titleEN: 'Gallery', titleZH: '项目展览', slug: 'projects' }
-        ]
-    },
-    {
-        id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions', subPages: [
-            { id: 16, titleEN: 'High School Admissions', titleZH: '高中项目招生', slug: 'admissions/baid' },
-            { id: 17, titleEN: 'Middle School Admissions', titleZH: '初中项目招生', slug: 'admissions/isba' }
-        ]
-    },
-    { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news', subPages: [] }
-]
+function isStaticAssetPath(route: string[]) {
+    if (route.length === 0) return false
+
+    const first = route[0]
+    const last = route[route.length - 1]
+
+    return first === 'uploads' ||
+        first === 'assets' ||
+        first === 'favicon.ico' ||
+        first === 'apple-touch-icon.png' ||
+        first === 'apple-touch-icon-precomposed.png' ||
+        /\.[a-z0-9]+$/i.test(last)
+}
 
 export async function generateMetadata({ params }: {
     params: Promise<{ slug: string[] | undefined }>
@@ -135,6 +110,10 @@ export async function generateMetadata({ params }: {
 export default async function RouteHandler({ params }: { params: Promise<{ slug: string[] | undefined }> }) {
     const route = (await params).slug ?? []
 
+    if (isStaticAssetPath(route)) {
+        notFound()
+    }
+
     // Determine locale
     let finalLocale: string
     if (route.length > 0 && (route[0] === 'en' || route[0] === 'zh')) {
@@ -175,12 +154,12 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         }
         return (
             <>
-                <GlobalHeader pages={PAGES}
+                <GlobalHeader pages={await getSiteStructureNavigation()}
                               headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
                 <div id="main-content">
                     <AnyContentEntityPage entity={entity} params={params}/>
                 </div>
-                <GlobalFooter pages={PAGES}/>
+                <GlobalFooter pages={await getSiteStructureNavigation()}/>
             </>
         )
     }
@@ -191,14 +170,19 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     }
     return (
         <>
-            <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
+            <GlobalHeader pages={await getSiteStructureNavigation()} headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
             <div id="main-content">
-                <Render config={PUCK_CONFIG}
-                        data={finalLocale === 'en'
+                <Render
+                    config={PUCK_CONFIG}
+                    data={await resolveAllData(
+                        finalLocale === 'en'
                             ? JSON.parse(entity.contentPublishedEN!)
-                            : JSON.parse(entity.contentPublishedZH!)}/>
+                            : JSON.parse(entity.contentPublishedZH!),
+                        PUCK_CONFIG
+                    )}
+                />
             </div>
-            <GlobalFooter pages={PAGES}/>
+            <GlobalFooter pages={await getSiteStructureNavigation()}/>
         </>
     )
 }

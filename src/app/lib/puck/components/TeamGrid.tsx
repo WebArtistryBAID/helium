@@ -69,11 +69,12 @@ const TeamGridConfig: ComponentConfig = {
         }
     },
     defaultProps: {
-        titleEN: 'Team Members',
-        titleZH: '团队成员',
+        titleEN: 'People Behind the Program',
+        titleZH: '项目中的人',
         items: [
-            { name: 'Kevin Li', roleEN: 'Lead', roleZH: '负责人', period: '2013 - 2026' },
-            { name: 'Kevin Li', roleEN: 'Member', roleZH: '成员', period: '2013 - 2026' }
+            { name: 'Student Representative', roleEN: 'Student voice', roleZH: '学生代表', period: 'Current year' },
+            { name: 'Faculty Advisor', roleEN: 'Program guide', roleZH: '项目指导', period: 'Ongoing' },
+            { name: 'Community Partner', roleEN: 'Collaborator', roleZH: '合作伙伴', period: 'Project-based' }
         ]
     },
     render: ({ titleEN, titleZH, items }) => <TeamGrid titleEN={titleEN} titleZH={titleZH} items={items}/>

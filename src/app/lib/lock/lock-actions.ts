@@ -26,6 +26,17 @@ export async function acquireLock(params: {
         return { token: updated.token, lockedAt: updated.lockedAt }
     }
 
+    // If the same user re-opens the editor without carrying the token forward,
+    // keep the edit session instead of forcing a misleading "someone else" prompt.
+    if (existing && existing.lockedBy === userId) {
+        const token = currentToken ?? existing.token
+        const updated = await prisma.entityLock.update({
+            where: { entityType_entityId: { entityType, entityId } },
+            data: { lockedAt: now, lockedBy: userId, token }
+        })
+        return { token: updated.token, lockedAt: updated.lockedAt }
+    }
+
     // Expired or no lock -> take it
     if (!existing || now.getTime() - existing.lockedAt.getTime() > FRESH_MS) {
         const token = crypto.randomBytes(16).toString('hex')

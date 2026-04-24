@@ -368,6 +368,7 @@ export type ContentEntityWhereInput = {
   coverImageDraft?: Prisma.XOR<Prisma.ImageNullableScalarRelationFilter, Prisma.ImageWhereInput> | null
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   locks?: Prisma.EntityLockListRelationFilter
+  siteStructureItem?: Prisma.XOR<Prisma.SiteStructureItemNullableScalarRelationFilter, Prisma.SiteStructureItemWhereInput> | null
 }
 
 export type ContentEntityOrderByWithRelationInput = {
@@ -397,6 +398,7 @@ export type ContentEntityOrderByWithRelationInput = {
   coverImageDraft?: Prisma.ImageOrderByWithRelationInput
   creator?: Prisma.UserOrderByWithRelationInput
   locks?: Prisma.EntityLockOrderByRelationAggregateInput
+  siteStructureItem?: Prisma.SiteStructureItemOrderByWithRelationInput
   _relevance?: Prisma.ContentEntityOrderByRelevanceInput
 }
 
@@ -430,6 +432,7 @@ export type ContentEntityWhereUniqueInput = Prisma.AtLeast<{
   coverImageDraft?: Prisma.XOR<Prisma.ImageNullableScalarRelationFilter, Prisma.ImageWhereInput> | null
   creator?: Prisma.XOR<Prisma.UserScalarRelationFilter, Prisma.UserWhereInput>
   locks?: Prisma.EntityLockListRelationFilter
+  siteStructureItem?: Prisma.XOR<Prisma.SiteStructureItemNullableScalarRelationFilter, Prisma.SiteStructureItemWhereInput> | null
 }, "id" | "slug">
 
 export type ContentEntityOrderByWithAggregationInput = {
@@ -513,6 +516,7 @@ export type ContentEntityCreateInput = {
   coverImageDraft?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesDraftInput
   creator: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput
   locks?: Prisma.EntityLockCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityUncheckedCreateInput = {
@@ -539,6 +543,7 @@ export type ContentEntityUncheckedCreateInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   locks?: Prisma.EntityLockUncheckedCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityUpdateInput = {
@@ -564,6 +569,7 @@ export type ContentEntityUpdateInput = {
   coverImageDraft?: Prisma.ImageUpdateOneWithoutLinkedEntitiesDraftNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutOwnedEntitiesNestedInput
   locks?: Prisma.EntityLockUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateInput = {
@@ -590,6 +596,7 @@ export type ContentEntityUncheckedUpdateInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   locks?: Prisma.EntityLockUncheckedUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityCreateManyInput = {
@@ -773,6 +780,11 @@ export type ContentEntityScalarRelationFilter = {
   isNot?: Prisma.ContentEntityWhereInput
 }
 
+export type ContentEntityNullableScalarRelationFilter = {
+  is?: Prisma.ContentEntityWhereInput | null
+  isNot?: Prisma.ContentEntityWhereInput | null
+}
+
 export type ContentEntityCreateNestedManyWithoutCreatorInput = {
   create?: Prisma.XOR<Prisma.ContentEntityCreateWithoutCreatorInput, Prisma.ContentEntityUncheckedCreateWithoutCreatorInput> | Prisma.ContentEntityCreateWithoutCreatorInput[] | Prisma.ContentEntityUncheckedCreateWithoutCreatorInput[]
   connectOrCreate?: Prisma.ContentEntityCreateOrConnectWithoutCreatorInput | Prisma.ContentEntityCreateOrConnectWithoutCreatorInput[]
@@ -917,6 +929,22 @@ export type ContentEntityUpdateOneRequiredWithoutLocksNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.ContentEntityUpdateToOneWithWhereWithoutLocksInput, Prisma.ContentEntityUpdateWithoutLocksInput>, Prisma.ContentEntityUncheckedUpdateWithoutLocksInput>
 }
 
+export type ContentEntityCreateNestedOneWithoutSiteStructureItemInput = {
+  create?: Prisma.XOR<Prisma.ContentEntityCreateWithoutSiteStructureItemInput, Prisma.ContentEntityUncheckedCreateWithoutSiteStructureItemInput>
+  connectOrCreate?: Prisma.ContentEntityCreateOrConnectWithoutSiteStructureItemInput
+  connect?: Prisma.ContentEntityWhereUniqueInput
+}
+
+export type ContentEntityUpdateOneWithoutSiteStructureItemNestedInput = {
+  create?: Prisma.XOR<Prisma.ContentEntityCreateWithoutSiteStructureItemInput, Prisma.ContentEntityUncheckedCreateWithoutSiteStructureItemInput>
+  connectOrCreate?: Prisma.ContentEntityCreateOrConnectWithoutSiteStructureItemInput
+  upsert?: Prisma.ContentEntityUpsertWithoutSiteStructureItemInput
+  disconnect?: Prisma.ContentEntityWhereInput | boolean
+  delete?: Prisma.ContentEntityWhereInput | boolean
+  connect?: Prisma.ContentEntityWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.ContentEntityUpdateToOneWithWhereWithoutSiteStructureItemInput, Prisma.ContentEntityUpdateWithoutSiteStructureItemInput>, Prisma.ContentEntityUncheckedUpdateWithoutSiteStructureItemInput>
+}
+
 export type ContentEntityCreateWithoutCreatorInput = {
   type: $Enums.EntityType
   titlePublishedEN?: string | null
@@ -939,6 +967,7 @@ export type ContentEntityCreateWithoutCreatorInput = {
   coverImagePublished?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesPubInput
   coverImageDraft?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesDraftInput
   locks?: Prisma.EntityLockCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityUncheckedCreateWithoutCreatorInput = {
@@ -964,6 +993,7 @@ export type ContentEntityUncheckedCreateWithoutCreatorInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   locks?: Prisma.EntityLockUncheckedCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityCreateOrConnectWithoutCreatorInput = {
@@ -1042,6 +1072,7 @@ export type ContentEntityCreateWithoutCoverImageDraftInput = {
   coverImagePublished?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesPubInput
   creator: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput
   locks?: Prisma.EntityLockCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityUncheckedCreateWithoutCoverImageDraftInput = {
@@ -1067,6 +1098,7 @@ export type ContentEntityUncheckedCreateWithoutCoverImageDraftInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   locks?: Prisma.EntityLockUncheckedCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityCreateOrConnectWithoutCoverImageDraftInput = {
@@ -1101,6 +1133,7 @@ export type ContentEntityCreateWithoutCoverImagePublishedInput = {
   coverImageDraft?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesDraftInput
   creator: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput
   locks?: Prisma.EntityLockCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityUncheckedCreateWithoutCoverImagePublishedInput = {
@@ -1126,6 +1159,7 @@ export type ContentEntityUncheckedCreateWithoutCoverImagePublishedInput = {
   createdAt?: Date | string
   updatedAt?: Date | string
   locks?: Prisma.EntityLockUncheckedCreateNestedManyWithoutEntityInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityCreateOrConnectWithoutCoverImagePublishedInput = {
@@ -1192,6 +1226,7 @@ export type ContentEntityCreateWithoutLocksInput = {
   coverImagePublished?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesPubInput
   coverImageDraft?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesDraftInput
   creator: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput
+  siteStructureItem?: Prisma.SiteStructureItemCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityUncheckedCreateWithoutLocksInput = {
@@ -1217,6 +1252,7 @@ export type ContentEntityUncheckedCreateWithoutLocksInput = {
   creatorId: number
   createdAt?: Date | string
   updatedAt?: Date | string
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedCreateNestedOneWithoutPageEntityInput
 }
 
 export type ContentEntityCreateOrConnectWithoutLocksInput = {
@@ -1257,6 +1293,7 @@ export type ContentEntityUpdateWithoutLocksInput = {
   coverImagePublished?: Prisma.ImageUpdateOneWithoutLinkedEntitiesPubNestedInput
   coverImageDraft?: Prisma.ImageUpdateOneWithoutLinkedEntitiesDraftNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutOwnedEntitiesNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateWithoutLocksInput = {
@@ -1282,6 +1319,125 @@ export type ContentEntityUncheckedUpdateWithoutLocksInput = {
   creatorId?: Prisma.IntFieldUpdateOperationsInput | number
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedUpdateOneWithoutPageEntityNestedInput
+}
+
+export type ContentEntityCreateWithoutSiteStructureItemInput = {
+  type: $Enums.EntityType
+  titlePublishedEN?: string | null
+  titlePublishedZH?: string | null
+  titleDraftEN: string
+  titleDraftZH: string
+  slug: string
+  categoryEN?: string | null
+  categoryZH?: string | null
+  shortContentPublishedEN?: string | null
+  shortContentPublishedZH?: string | null
+  shortContentDraftEN?: string | null
+  shortContentDraftZH?: string | null
+  contentPublishedEN?: string | null
+  contentPublishedZH?: string | null
+  contentDraftEN: string
+  contentDraftZH: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  coverImagePublished?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesPubInput
+  coverImageDraft?: Prisma.ImageCreateNestedOneWithoutLinkedEntitiesDraftInput
+  creator: Prisma.UserCreateNestedOneWithoutOwnedEntitiesInput
+  locks?: Prisma.EntityLockCreateNestedManyWithoutEntityInput
+}
+
+export type ContentEntityUncheckedCreateWithoutSiteStructureItemInput = {
+  id?: number
+  type: $Enums.EntityType
+  titlePublishedEN?: string | null
+  titlePublishedZH?: string | null
+  titleDraftEN: string
+  titleDraftZH: string
+  slug: string
+  categoryEN?: string | null
+  categoryZH?: string | null
+  shortContentPublishedEN?: string | null
+  shortContentPublishedZH?: string | null
+  shortContentDraftEN?: string | null
+  shortContentDraftZH?: string | null
+  contentPublishedEN?: string | null
+  contentPublishedZH?: string | null
+  contentDraftEN: string
+  contentDraftZH: string
+  coverImagePublishedId?: number | null
+  coverImageDraftId?: number | null
+  creatorId: number
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  locks?: Prisma.EntityLockUncheckedCreateNestedManyWithoutEntityInput
+}
+
+export type ContentEntityCreateOrConnectWithoutSiteStructureItemInput = {
+  where: Prisma.ContentEntityWhereUniqueInput
+  create: Prisma.XOR<Prisma.ContentEntityCreateWithoutSiteStructureItemInput, Prisma.ContentEntityUncheckedCreateWithoutSiteStructureItemInput>
+}
+
+export type ContentEntityUpsertWithoutSiteStructureItemInput = {
+  update: Prisma.XOR<Prisma.ContentEntityUpdateWithoutSiteStructureItemInput, Prisma.ContentEntityUncheckedUpdateWithoutSiteStructureItemInput>
+  create: Prisma.XOR<Prisma.ContentEntityCreateWithoutSiteStructureItemInput, Prisma.ContentEntityUncheckedCreateWithoutSiteStructureItemInput>
+  where?: Prisma.ContentEntityWhereInput
+}
+
+export type ContentEntityUpdateToOneWithWhereWithoutSiteStructureItemInput = {
+  where?: Prisma.ContentEntityWhereInput
+  data: Prisma.XOR<Prisma.ContentEntityUpdateWithoutSiteStructureItemInput, Prisma.ContentEntityUncheckedUpdateWithoutSiteStructureItemInput>
+}
+
+export type ContentEntityUpdateWithoutSiteStructureItemInput = {
+  type?: Prisma.EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+  titlePublishedEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  titlePublishedZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  titleDraftEN?: Prisma.StringFieldUpdateOperationsInput | string
+  titleDraftZH?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  categoryZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentPublishedEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentPublishedZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentDraftEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentDraftZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentPublishedEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentPublishedZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentDraftEN?: Prisma.StringFieldUpdateOperationsInput | string
+  contentDraftZH?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  coverImagePublished?: Prisma.ImageUpdateOneWithoutLinkedEntitiesPubNestedInput
+  coverImageDraft?: Prisma.ImageUpdateOneWithoutLinkedEntitiesDraftNestedInput
+  creator?: Prisma.UserUpdateOneRequiredWithoutOwnedEntitiesNestedInput
+  locks?: Prisma.EntityLockUpdateManyWithoutEntityNestedInput
+}
+
+export type ContentEntityUncheckedUpdateWithoutSiteStructureItemInput = {
+  id?: Prisma.IntFieldUpdateOperationsInput | number
+  type?: Prisma.EnumEntityTypeFieldUpdateOperationsInput | $Enums.EntityType
+  titlePublishedEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  titlePublishedZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  titleDraftEN?: Prisma.StringFieldUpdateOperationsInput | string
+  titleDraftZH?: Prisma.StringFieldUpdateOperationsInput | string
+  slug?: Prisma.StringFieldUpdateOperationsInput | string
+  categoryEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  categoryZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentPublishedEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentPublishedZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentDraftEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  shortContentDraftZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentPublishedEN?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentPublishedZH?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
+  contentDraftEN?: Prisma.StringFieldUpdateOperationsInput | string
+  contentDraftZH?: Prisma.StringFieldUpdateOperationsInput | string
+  coverImagePublishedId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  coverImageDraftId?: Prisma.NullableIntFieldUpdateOperationsInput | number | null
+  creatorId?: Prisma.IntFieldUpdateOperationsInput | number
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  locks?: Prisma.EntityLockUncheckedUpdateManyWithoutEntityNestedInput
 }
 
 export type ContentEntityCreateManyCreatorInput = {
@@ -1330,6 +1486,7 @@ export type ContentEntityUpdateWithoutCreatorInput = {
   coverImagePublished?: Prisma.ImageUpdateOneWithoutLinkedEntitiesPubNestedInput
   coverImageDraft?: Prisma.ImageUpdateOneWithoutLinkedEntitiesDraftNestedInput
   locks?: Prisma.EntityLockUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateWithoutCreatorInput = {
@@ -1355,6 +1512,7 @@ export type ContentEntityUncheckedUpdateWithoutCreatorInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   locks?: Prisma.EntityLockUncheckedUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateManyWithoutCreatorInput = {
@@ -1451,6 +1609,7 @@ export type ContentEntityUpdateWithoutCoverImageDraftInput = {
   coverImagePublished?: Prisma.ImageUpdateOneWithoutLinkedEntitiesPubNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutOwnedEntitiesNestedInput
   locks?: Prisma.EntityLockUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateWithoutCoverImageDraftInput = {
@@ -1476,6 +1635,7 @@ export type ContentEntityUncheckedUpdateWithoutCoverImageDraftInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   locks?: Prisma.EntityLockUncheckedUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateManyWithoutCoverImageDraftInput = {
@@ -1524,6 +1684,7 @@ export type ContentEntityUpdateWithoutCoverImagePublishedInput = {
   coverImageDraft?: Prisma.ImageUpdateOneWithoutLinkedEntitiesDraftNestedInput
   creator?: Prisma.UserUpdateOneRequiredWithoutOwnedEntitiesNestedInput
   locks?: Prisma.EntityLockUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateWithoutCoverImagePublishedInput = {
@@ -1549,6 +1710,7 @@ export type ContentEntityUncheckedUpdateWithoutCoverImagePublishedInput = {
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   locks?: Prisma.EntityLockUncheckedUpdateManyWithoutEntityNestedInput
+  siteStructureItem?: Prisma.SiteStructureItemUncheckedUpdateOneWithoutPageEntityNestedInput
 }
 
 export type ContentEntityUncheckedUpdateManyWithoutCoverImagePublishedInput = {
@@ -1633,6 +1795,7 @@ export type ContentEntitySelect<ExtArgs extends runtime.Types.Extensions.Interna
   coverImageDraft?: boolean | Prisma.ContentEntity$coverImageDraftArgs<ExtArgs>
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   locks?: boolean | Prisma.ContentEntity$locksArgs<ExtArgs>
+  siteStructureItem?: boolean | Prisma.ContentEntity$siteStructureItemArgs<ExtArgs>
   _count?: boolean | Prisma.ContentEntityCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["contentEntity"]>
 
@@ -1723,6 +1886,7 @@ export type ContentEntityInclude<ExtArgs extends runtime.Types.Extensions.Intern
   coverImageDraft?: boolean | Prisma.ContentEntity$coverImageDraftArgs<ExtArgs>
   creator?: boolean | Prisma.UserDefaultArgs<ExtArgs>
   locks?: boolean | Prisma.ContentEntity$locksArgs<ExtArgs>
+  siteStructureItem?: boolean | Prisma.ContentEntity$siteStructureItemArgs<ExtArgs>
   _count?: boolean | Prisma.ContentEntityCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type ContentEntityIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -1743,6 +1907,7 @@ export type $ContentEntityPayload<ExtArgs extends runtime.Types.Extensions.Inter
     coverImageDraft: Prisma.$ImagePayload<ExtArgs> | null
     creator: Prisma.$UserPayload<ExtArgs>
     locks: Prisma.$EntityLockPayload<ExtArgs>[]
+    siteStructureItem: Prisma.$SiteStructureItemPayload<ExtArgs> | null
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: number
@@ -2165,6 +2330,7 @@ export interface Prisma__ContentEntityClient<T, Null = never, ExtArgs extends ru
   coverImageDraft<T extends Prisma.ContentEntity$coverImageDraftArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContentEntity$coverImageDraftArgs<ExtArgs>>): Prisma.Prisma__ImageClient<runtime.Types.Result.GetResult<Prisma.$ImagePayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   creator<T extends Prisma.UserDefaultArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.UserDefaultArgs<ExtArgs>>): Prisma.Prisma__UserClient<runtime.Types.Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | Null, Null, ExtArgs, GlobalOmitOptions>
   locks<T extends Prisma.ContentEntity$locksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContentEntity$locksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$EntityLockPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  siteStructureItem<T extends Prisma.ContentEntity$siteStructureItemArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.ContentEntity$siteStructureItemArgs<ExtArgs>>): Prisma.Prisma__SiteStructureItemClient<runtime.Types.Result.GetResult<Prisma.$SiteStructureItemPayload<ExtArgs>, T, "findUniqueOrThrow", GlobalOmitOptions> | null, null, ExtArgs, GlobalOmitOptions>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2671,6 +2837,25 @@ export type ContentEntity$locksArgs<ExtArgs extends runtime.Types.Extensions.Int
   take?: number
   skip?: number
   distinct?: Prisma.EntityLockScalarFieldEnum | Prisma.EntityLockScalarFieldEnum[]
+}
+
+/**
+ * ContentEntity.siteStructureItem
+ */
+export type ContentEntity$siteStructureItemArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the SiteStructureItem
+   */
+  select?: Prisma.SiteStructureItemSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the SiteStructureItem
+   */
+  omit?: Prisma.SiteStructureItemOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.SiteStructureItemInclude<ExtArgs> | null
+  where?: Prisma.SiteStructureItemWhereInput
 }
 
 /**

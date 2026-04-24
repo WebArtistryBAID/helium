@@ -17,18 +17,25 @@ export default function MediaPicker({ open, onClose, allowUnpick, onPick }: Prop
     const [ content, setContent ] = useState<Paginated<Image>>({ items: [], page: 0, pages: 0 })
 
     useEffect(() => {
-        if (!open) return;
-        (async () => {
-            setContent(await getImages(0))
-        })()
+        if (!open) return
+
+        let cancelled = false
+        const loadContent = async () => {
+            const nextContent = await getImages(0)
+            if (!cancelled) {
+                setContent(nextContent)
+            }
+        }
+        void loadContent()
+        return () => {
+            cancelled = true
+        }
     }, [ open ])
 
     return (
         <Modal show={open} size="5xl" onClose={onClose} className="relative">
             <ModalHeader className="border-none absolute z-50 right-0"/>
             <MediaLibrary
-                // Force reload when reopening
-                key={content.items.length ? `page-${content.page}-count-${content.items.length}` : 'empty'}
                 init={content}
                 pickMode={true}
                 allowUnpick={allowUnpick}

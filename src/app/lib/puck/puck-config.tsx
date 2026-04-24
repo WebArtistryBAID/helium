@@ -45,6 +45,21 @@ import VideoEmbedConfig from '@/app/lib/puck/components/VideoEmbed'
 import ImageGalleryBlockConfig from '@/app/lib/puck/components/ImageGalleryBlock'
 import QuoteBlockConfig from '@/app/lib/puck/components/QuoteBlock'
 import CTAButtonConfig from '@/app/lib/puck/components/CTAButton'
+import SectionIntroConfig from '@/app/lib/puck/components/SectionIntro'
+import EntityShowcaseConfig from '@/app/lib/puck/components/EntityShowcase'
+import SectionHeroConfig from '@/app/lib/puck/components/SectionHero'
+import KeyPointsGridConfig from '@/app/lib/puck/components/KeyPointsGrid'
+import EntityFilterWallConfig from '@/app/lib/puck/components/EntityFilterWall'
+import PathwayStepsConfig from '@/app/lib/puck/components/PathwaySteps'
+import PeopleSpotlightConfig from '@/app/lib/puck/components/PeopleSpotlight'
+import ChildPageLinksConfig from '@/app/lib/puck/components/ChildPageLinks'
+import ProgramComparisonConfig from '@/app/lib/puck/components/ProgramComparison'
+import AdmissionsArchiveConfig from '@/app/lib/puck/components/AdmissionsArchive'
+import ResourceDownloadsConfig from '@/app/lib/puck/components/ResourceDownloads'
+import MilestoneCalendarConfig from '@/app/lib/puck/components/MilestoneCalendar'
+import OutcomeShowcaseConfig from '@/app/lib/puck/components/OutcomeShowcase'
+import NoticeBandConfig from '@/app/lib/puck/components/NoticeBand'
+import FeatureSplitConfig from '@/app/lib/puck/components/FeatureSplit'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -94,7 +109,22 @@ export const PUCK_CONFIG: Config = {
         VideoEmbedConfig,
         ImageGalleryBlockConfig,
         QuoteBlockConfig,
-        CTAButtonConfig
+        CTAButtonConfig,
+        SectionIntroConfig,
+        EntityShowcaseConfig,
+        SectionHeroConfig,
+        KeyPointsGridConfig,
+        EntityFilterWallConfig,
+        PathwayStepsConfig,
+        PeopleSpotlightConfig,
+        ChildPageLinksConfig,
+        ProgramComparisonConfig,
+        AdmissionsArchiveConfig,
+        ResourceDownloadsConfig,
+        MilestoneCalendarConfig,
+        OutcomeShowcaseConfig,
+        NoticeBandConfig,
+        FeatureSplitConfig
     },
     categories: {
         foundational: {
@@ -153,7 +183,60 @@ export const PUCK_CONFIG: Config = {
                 'SyllabusConfig', 'InstructorCardConfig', 'LocationCardConfig',
                 'TeamGridConfig', 'StatBlockConfig', 'FAQAccordionConfig',
                 'VideoEmbedConfig', 'ImageGalleryBlockConfig', 'QuoteBlockConfig',
-                'CTAButtonConfig'
+                'CTAButtonConfig', 'SectionIntroConfig', 'EntityShowcaseConfig'
+            ]
+        },
+        sectionLanding: {
+            title: '栏目入口',
+            components: [
+                'SectionHeroConfig', 'SectionIntroConfig', 'KeyPointsGridConfig',
+                'EntityShowcaseConfig', 'EntityFilterWallConfig', 'PathwayStepsConfig',
+                'PeopleSpotlightConfig', 'ChildPageLinksConfig'
+            ]
+        },
+        practicalBlocks: {
+            title: '实用模块',
+            components: [
+                'TimelineConfig',
+                'FAQAccordionConfig',
+                'StatBlockConfig',
+                'ContactCardConfig',
+                'TeamGridConfig',
+                'LeadershipGridConfig',
+                'InstructorCardConfig',
+                'LocationCardConfig',
+                'QuoteBlockConfig',
+                'VideoEmbedConfig',
+                'ImageGalleryBlockConfig',
+                'CTAButtonConfig',
+                'SyllabusConfig',
+                'ProgramComparisonConfig',
+                'AdmissionsArchiveConfig',
+                'ResourceDownloadsConfig',
+                'MilestoneCalendarConfig',
+                'OutcomeShowcaseConfig',
+                'NoticeBandConfig',
+                'FeatureSplitConfig'
+            ]
+        },
+        schoolWebsite: {
+            title: '学校官网模块',
+            components: [
+                'ProgramComparisonConfig',
+                'AdmissionsArchiveConfig',
+                'ResourceDownloadsConfig',
+                'MilestoneCalendarConfig',
+                'OutcomeShowcaseConfig',
+                'NoticeBandConfig',
+                'FeatureSplitConfig',
+                'SectionHeroConfig',
+                'SectionIntroConfig',
+                'KeyPointsGridConfig',
+                'PathwayStepsConfig',
+                'EntityShowcaseConfig',
+                'EntityFilterWallConfig',
+                'PeopleSpotlightConfig',
+                'ChildPageLinksConfig'
             ]
         }
     }

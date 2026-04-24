@@ -1,7 +1,12 @@
+'use client'
+
 import Link from 'next/link'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 export default function SchoolLogo({ color }: { color: string }) {
-    return <Link href="/">
+    const language = useLanguage()
+
+    return <Link href={`/${language}`}>
         <div style={{ color }} className="flex items-center">
             <img src="/assets/icon.png" alt="Beijing Academy Logo" className="w-10 h-10 mr-3"/>
             <div className="flex flex-col justify-center transition-colors">
