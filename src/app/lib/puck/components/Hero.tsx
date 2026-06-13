@@ -27,6 +27,6 @@ export default function Hero({ title, lightText, image, backgroundColor, uploadP
             </motion.h1>
         </section>
 
-        <img src={`${uploadPrefix}/${image?.sha1}.webp`} alt={image?.altText} aria-hidden className="w-full"/>
+        <img src={`${uploadPrefix}/${image?.sha1}.webp`} alt="" aria-hidden="true" className="w-full"/>
     </>
 }

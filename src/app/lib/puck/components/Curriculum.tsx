@@ -89,6 +89,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
                                 aria-selected={isActive}
                                 tabIndex={isActive ? 0 : -1}
                                 role="tab"
+                                type="button"
                                 className={`desktop-section-title cursor-pointer mb-5 block text-left ${isActive ? 'active' : ''}`}
                                 onClick={() => setActiveDesktopItem(index)}
                                 onKeyDown={(e) => handleTabKey(e, index)}
@@ -143,6 +144,10 @@ export default function Curriculum({ title, curricula }: { title: string, curric
 
                 .desktop-section-title.active {
                     border-left-color: oklch(50.5% 0.213 27.518);
+                    color: black;
+                }
+
+                .desktop-section-title:focus-visible {
                     color: black;
                 }
             `}</style>

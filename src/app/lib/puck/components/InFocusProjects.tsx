@@ -55,7 +55,7 @@ export default function InFocusProjects({
             backgroundSize: 'cover',
             height: '105vh'
         }}
-                 className="w-screen flex flex-col bg-cover bg-center justify-center relative"
+                 className="w-full flex flex-col bg-cover bg-center justify-center relative"
                  aria-labelledby="hero-heading"
                  role="banner">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
@@ -104,7 +104,7 @@ export default function InFocusProjects({
                             <div
                                 className="hidden md:block px-8 py-16 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from">
                                 <img src={`${uploadPrefix}/${projects[0].project?.coverImagePublished?.sha1}.webp`}
-                                     alt={projects[0].project?.coverImagePublished?.altText}
+                                     alt={projects[0].project?.coverImagePublished?.altText ?? ''}
                                      className="rounded-3xl w-full h-80 object-cover"/>
                             </div>
                             <div
@@ -153,7 +153,7 @@ export default function InFocusProjects({
                         <div
                             className="hidden md:block px-8 py-16 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from">
                             <img src={`${uploadPrefix}/${projects[1].project?.coverImagePublished?.sha1}.webp`}
-                                 alt={projects[1].project?.coverImagePublished?.altText}
+                                 alt={projects[1].project?.coverImagePublished?.altText ?? ''}
                                  className="rounded-3xl w-full h-80 object-cover"/>
                         </div>
                     </>}
@@ -162,7 +162,7 @@ export default function InFocusProjects({
                         <div
                             className="hidden md:block px-8 py-16 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from">
                             <img src={`${uploadPrefix}/${projects[2].project?.coverImagePublished?.sha1}.webp`}
-                                 alt={projects[2].project?.coverImagePublished?.altText}
+                                 alt={projects[2].project?.coverImagePublished?.altText ?? ''}
                                  className="rounded-3xl w-full h-80 object-cover"/>
                         </div>
                         <div
@@ -198,7 +198,7 @@ export default function InFocusProjects({
                                     <div className="rounded-3xl overflow-hidden mb-5 w-full h-60">
                                         <img
                                             src={`${uploadPrefix}/${projects[3].project?.coverImagePublished?.sha1}.webp`}
-                                            alt={projects[3].project?.coverImagePublished?.altText}
+                                            alt={projects[3].project?.coverImagePublished?.altText ?? ''}
                                             className="rounded-3xl group-hover-scale w-full h-full object-cover"
                                         />
                                     </div>
@@ -217,7 +217,7 @@ export default function InFocusProjects({
                                     <div className="rounded-3xl overflow-hidden mb-5 w-full h-60">
                                         <img
                                             src={`${uploadPrefix}/${projects[4].project?.coverImagePublished?.sha1}.webp`}
-                                            alt={projects[4].project?.coverImagePublished?.altText}
+                                            alt={projects[4].project?.coverImagePublished?.altText ?? ''}
                                             className="rounded-3xl group-hover-scale w-full h-full object-cover"
                                         />
                                     </div>
@@ -236,7 +236,7 @@ export default function InFocusProjects({
                                     <div className="rounded-3xl overflow-hidden mb-5 w-full h-60">
                                         <img
                                             src={`${uploadPrefix}/${projects[5].project?.coverImagePublished?.sha1}.webp`}
-                                            alt={projects[5].project?.coverImagePublished?.altText}
+                                            alt={projects[5].project?.coverImagePublished?.altText ?? ''}
                                             className="rounded-3xl group-hover-scale w-full h-full object-cover"
                                         />
                                     </div>
@@ -250,7 +250,7 @@ export default function InFocusProjects({
 
                     <div
                         className="col-span-1 md:col-span-2 flex flex-col items-center justify-center text-center px-8 py-32 sm:px-16 md:px-32">
-                        <p className="text-lg uppercase tracking-wider text-gray-400 !mb-3">
+                        <p className="text-lg uppercase tracking-wider text-gray-600 !mb-3">
                             {startTopText}
                         </p>
                         <h2 className="text-4xl">{startMainText}</h2>

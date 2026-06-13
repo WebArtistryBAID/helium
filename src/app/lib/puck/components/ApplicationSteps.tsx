@@ -40,7 +40,7 @@ export default function ApplicationSteps({ title, steps }: { title: string, step
 
             <div aria-label="Application steps" className="grid grid-cols-1 md:grid-cols-2 gap-x-5 gap-y-8" role="list">
                 {list.map((step, idx) =>
-                    <div key={idx} className="flex items-center gap-8" role="listitem" tabIndex={0}>
+                    <div key={idx} className="flex items-center gap-8" role="listitem">
                         <div
                             className={`${dotClass(idx)} rounded-full w-16 h-16 flex-shrink-0 flex justify-center items-center text-white text-2xl`}>
                             {idx + 1}

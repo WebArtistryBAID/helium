@@ -48,8 +48,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
         xhr.send(formData)
     }
 
-    return <div aria-label="上传块"
-                onClick={() => inputRef.current?.click()}
+    return <div aria-label="图片上传"
                 onDragOver={e => e.preventDefault()}
                 onDrop={e => {
                     e.preventDefault()
@@ -60,15 +59,19 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                 className="bg-blue-50 hover:bg-blue-100
         rounded-3xl flex flex-col justify-center items-center text-center p-5 min-w-96
         transition-colors duration-100">
-        <input type="file" disabled={loading} accept="image/*"
+        <input type="file" disabled={loading} accept="image/*" aria-label="选择要上传的图片"
                className="hidden" ref={inputRef} onChange={e => {
             if (e.currentTarget.files != null && e.currentTarget.files.length > 0) {
                 void upload(e.currentTarget.files[0])
             }
         }}/>
-        <HiUpload className="text-blue-400 dark:text-blue-300 text-4xl mb-3"/>
-        <p className="text-xl font-bold" aria-hidden>上传</p>
-        <button aria-live="polite" disabled={loading} className="text-sm" onClick={() => inputRef.current?.click()}>
+        <HiUpload aria-hidden="true" className="text-blue-400 dark:text-blue-300 text-4xl mb-3"/>
+        <p className="text-xl font-bold">上传</p>
+        <button type="button" disabled={loading} className="text-sm underline-offset-4 hover:underline"
+                onClick={() => inputRef.current?.click()}>
+            选择图片
+        </button>
+        <div aria-live="polite" className="mt-1 text-sm">
             <If condition={loading}>
                 上传进度: {progress}%
             </If>
@@ -85,10 +88,14 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                     上传完毕
                 </If>
                 <If condition={!error && !done}>
-                    拖拽图片或点击此处上传
+                    也可以将图片拖拽到此处
                 </If>
             </If>
-        </button>
+        </div>
+        <If condition={loading}>
+            <div className="sr-only" role="progressbar" aria-label="上传进度"
+                 aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}/>
+        </If>
         <If condition={done}>
             <img width={500} height={200} src={uploadPrefix + '/' + path} alt="已上传文件"
                  className="mt-3 rounded-xl w-full lg:max-w-sm object-cover"/>

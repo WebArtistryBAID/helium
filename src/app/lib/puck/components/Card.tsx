@@ -13,12 +13,11 @@ export default function Card({ href, image, title, shortContent, uploadPrefix }:
     shortContent: string | null | undefined,
     uploadPrefix: string | null | undefined
 }) {
-    return <Link href={href ?? '#'}
-                 className="block bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group cursor-pointer w-full h-full">
+    const content = <>
         <div className="overflow-hidden h-48 w-full">
             <If condition={image != null}>
                 <img src={`${uploadPrefix}/${image?.sha1}_thumb.webp`}
-                     alt={image?.altText}
+                     alt={image?.altText ?? ''}
                      className="object-cover h-full w-full group-hover-scale"/>
             </If>
             <If condition={image == null}>
@@ -31,7 +30,12 @@ export default function Card({ href, image, title, shortContent, uploadPrefix }:
             <p className="text-xl font-bold mb-1 fancy-link">{title}</p>
             <p className="text-sm secondary">{shortContent}</p>
         </div>
-    </Link>
+    </>
+    const className = 'block bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100 group w-full h-full'
+
+    return href
+        ? <Link href={href} className={`${className} cursor-pointer`}>{content}</Link>
+        : <div className={className}>{content}</div>
 }
 
 export const CardConfig: ComponentConfig = {

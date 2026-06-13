@@ -24,7 +24,7 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <body className="antialiased">
         <NextTopLoader showSpinner={false}/>
         {children}
-        <p aria-hidden className="fixed bottom-2 right-2 secondary text-xs"><a
+        <p className="fixed bottom-2 right-2 secondary text-xs"><a
             href="https://beian.miit.gov.cn">{process.env.BOTTOM_TEXT}</a></p>
         </body>
         </html>

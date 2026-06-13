@@ -18,13 +18,17 @@ export default function RouterLinks({ pages }: {
         setBlockLeft(7.5 * index)
     }
 
-    return <nav className="flex p-0 relative h-full m-0 links" aria-label="Main navigation" role="navigation"
+    return <div className="flex p-0 relative h-full m-0 links"
+                onBlur={event => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) setShowBlock(false)
+                }}
                 onMouseLeave={() => setShowBlock(false)}>
-        {pages.map((page, index) => <div key={index} className="h-full text-lg" tabIndex={0}
-                                         onBlur={() => setShowBlock(false)} onClick={() => updateBlock(index)}
-                                         onFocus={() => updateBlock(index)} onMouseOver={() => updateBlock(index)}>
+        {pages.map((page, index) => <div key={index} className="h-full text-lg">
             <Link href={page.slug === '/' ? '/' : `/${page.slug}`}
-                  className={`inline-block w-30 h-full decoration-none opacity-50 transition-colors text-inherit hover:opacity-100 active:opacity-60 
+                  aria-current={(path === '' ? '/' : path) === page.slug ? 'page' : undefined}
+                  onFocus={() => updateBlock(index)}
+                  onMouseOver={() => updateBlock(index)}
+                  className={`inline-block w-30 h-full decoration-none opacity-80 transition-colors text-inherit hover:opacity-100 active:opacity-70
                   ${(path === '' ? '/' : path) === page.slug ? ((path === 'life' || path === 'projects') ? 'opacity-100' : 'opacity-100 text-red-900') : ''}`}>
                 <div className="flex items-center justify-center w-full h-full">
                     {language === 'zh' ? page.titleZH : page.titleEN}
@@ -35,6 +39,6 @@ export default function RouterLinks({ pages }: {
         <div
             className={`${showBlock ? 'opacity-10' : 'opacity-0'} absolute w-30 h-full bg-black opacity-0 z-10 pointer-events-none transition-all duration-300`}
             style={{ left: blockLeft + 'rem' }}/>
-    </nav>
+    </div>
 
 }

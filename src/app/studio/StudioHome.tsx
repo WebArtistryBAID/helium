@@ -27,7 +27,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
                         <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
-                             alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
+                             alt={post.coverImageDraft?.altText ?? ''}
+                             className="object-cover w-full rounded-3xl h-48"/>
                     </If>
                     <If condition={post.coverImageDraft == null}>
                         <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>
@@ -50,7 +51,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
                         <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
-                             alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
+                             alt={post.coverImageDraft?.altText ?? ''}
+                             className="object-cover w-full rounded-3xl h-48"/>
                     </If>
                     <If condition={post.coverImageDraft == null}>
                         <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>
@@ -73,7 +75,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
                         <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
-                             alt={post.coverImageDraft?.altText} className="object-cover w-full rounded-3xl h-48"/>
+                             alt={post.coverImageDraft?.altText ?? ''}
+                             className="object-cover w-full rounded-3xl h-48"/>
                     </If>
                     <If condition={post.coverImageDraft == null}>
                         <div className="w-full h-32 rounded-3xl from-blue-300 to-blue-500 bg-gradient-to-tr"/>

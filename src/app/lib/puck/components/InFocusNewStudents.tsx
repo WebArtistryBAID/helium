@@ -69,7 +69,7 @@ export default function InFocusNewStudents({
             backgroundSize: 'cover',
             height: '105vh'
         }}
-                 className="w-screen flex flex-col bg-cover bg-center justify-center relative"
+                 className="w-full flex flex-col bg-cover bg-center justify-center relative"
                  aria-labelledby="hero-heading"
                  role="banner">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
@@ -135,7 +135,7 @@ export default function InFocusNewStudents({
                         {resourcesDescription}
                     </p>
 
-                    <img src={`${uploadPrefix}/${resourcesImage?.sha1}.webp`} alt={resourcesImage?.altText}
+                    <img src={`${uploadPrefix}/${resourcesImage?.sha1}.webp`} alt={resourcesImage?.altText ?? ''}
                          className="w-full"/>
                 </motion.div>
 
@@ -173,7 +173,7 @@ export default function InFocusNewStudents({
                             </div>
                             <div className="border-t border-gray-300 p-8 flex justify-end">
                                 <img src={`${uploadPrefix}/${p.project?.coverImagePublished?.sha1}.webp`}
-                                     alt={p.project?.coverImagePublished?.altText}
+                                     alt={p.project?.coverImagePublished?.altText ?? ''}
                                      className="w-24 h-24 object-cover"/>
                             </div>
                         </React.Fragment>

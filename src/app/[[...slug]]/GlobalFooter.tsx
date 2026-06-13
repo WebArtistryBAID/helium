@@ -57,8 +57,8 @@ export default function GlobalFooter({ pages }: {
             </nav>
 
             <address className="mb-5">
-                <p>+86 159 1052 4064 {locales[language].wechat}</p>
-                <p>baid<span className="at"/>bjacademy.com.cn</p>
+                <p><a href="tel:+8615910524064">+86 159 1052 4064</a> {locales[language].wechat}</p>
+                <p><a href="mailto:baid@bjacademy.com.cn">baid@bjacademy.com.cn</a></p>
             </address>
 
             <p>{locales[language].copyright}</p>

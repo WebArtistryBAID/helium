@@ -41,7 +41,9 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
     }, [])
 
     return <>
+        <a className="sr-only" href="#main-content">跳至主内容</a>
         <div
+            role="status"
             className="sm:hidden absolute w-screen h-screen z-50 top-0 left-0 bg-white dark:bg-gray-700 p-5 flex justify-center items-center flex-col">
             <p className="text-center">请在大屏幕设备上使用 Helium Studio。</p>
         </div>
@@ -133,9 +135,10 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                     </Sidebar>
                 </div>
             </If>
-            <div className="flex-grow h-screen max-h-screen overflow-y-auto" style={{ overflowY: 'auto' }}>
+            <main id="main-content" tabIndex={-1}
+                  className="flex-grow h-screen max-h-screen overflow-y-auto" style={{ overflowY: 'auto' }}>
                 {children}
-            </div>
+            </main>
         </div>
     </>
 }

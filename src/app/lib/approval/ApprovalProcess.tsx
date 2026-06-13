@@ -88,7 +88,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                                 setRequestConfirm(false)
                                 await refresh()
                                 router.refresh()
-                            }}>{requestConfirm ? '确认请求审核？' : '请求审核'}</Button>
+                            }}>{requestConfirm ? '确认发送?' : '发送飞书审核通知'}</Button>
                         </div>
                     </If>
                 </TimelineContent>

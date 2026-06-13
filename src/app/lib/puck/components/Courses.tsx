@@ -65,6 +65,7 @@ export default function Courses({ title, courses }: {
                             aria-selected={isSelected}
                             tabIndex={isSelected ? 0 : -1}
                             role="tab"
+                            type="button"
                             className={[
                                 'w-full h-full p-3 rounded-md transition-colors duration-300 cursor-pointer',
                                 isSelected ? 'bg-red-900 text-white' : ''

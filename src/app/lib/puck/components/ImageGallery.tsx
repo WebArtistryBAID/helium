@@ -23,7 +23,7 @@ export default function ImageGallery({ title, slides, uploadPrefix }: {
         return null
     }
 
-    return <section aria-label={title} className="w-screen overflow-hidden">
+    return <section aria-label={title} className="w-full overflow-hidden">
         <h2 className="sr-only">{title}</h2>
 
         <Swiper aria-live="polite" spaceBetween={0} slidesPerView={1}
@@ -31,7 +31,7 @@ export default function ImageGallery({ title, slides, uploadPrefix }: {
             {resolvedSlides.map((slide, index) =>
                 <SwiperSlide key={index}>
                     <div className="relative h-[70vh] min-h-120 w-full md:h-screen">
-                        <img src={`${uploadPrefix}/${slide.image?.sha1}.webp`} alt={slide.image?.altText}
+                        <img src={`${uploadPrefix}/${slide.image?.sha1}.webp`} alt={slide.image?.altText ?? ''}
                              className="h-full w-full object-cover"/>
                         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent"/>
                         <div

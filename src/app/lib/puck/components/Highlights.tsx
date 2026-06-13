@@ -32,10 +32,9 @@ function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | nu
         >
             {highlights?.map((highlight, index) => <div key={index}
                                                         className="w-full md:w-1/3 md:border-r border-gray-200 last:md:border-r-0 p-6 md:p-12 bg-white group block"
-                                                        role="listitem"
-                                                        tabIndex={0}>
+                                                        role="listitem">
                 <div className="flex justify-center items-center w-full h-48 overflow-hidden rounded-3xl mb-5">
-                    <img alt={highlight.image?.altText} src={`${uploadPrefix}/${highlight.image?.sha1}.webp`}
+                    <img alt={highlight.image?.altText ?? ''} src={`${uploadPrefix}/${highlight.image?.sha1}.webp`}
                          className="w-full h-full object-cover group-hover-scale"/>
                 </div>
                 <p className="fancy-link text-3xl mb-1 font-serif font-bold">
@@ -125,4 +124,3 @@ const HighlightsConfig: ComponentConfig = {
 }
 
 export default HighlightsConfig
-

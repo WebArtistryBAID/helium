@@ -50,8 +50,9 @@ export default function MediaPickerPuck({ name, onChange, value }:
             <Button pill color="blue" onClick={() => setOpen(true)}>选择图片</Button>
         </If>
         <If condition={value != null}>
-            <button onClick={() => setOpen(true)} className="cursor-pointer">
-                <img className="mt-1 mb-3 h-24" alt={foundImage?.altText}
+            <button type="button" aria-label={`更换图片：${foundImage?.altText || foundImage?.name || '当前图片'}`}
+                    onClick={() => setOpen(true)} className="cursor-pointer">
+                <img className="mt-1 mb-3 h-24" alt={foundImage?.altText ?? ''}
                      src={`${uploadPrefix}/${foundImage?.sha1}_thumb.webp`}/>
             </button>
         </If>

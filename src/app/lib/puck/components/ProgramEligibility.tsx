@@ -493,9 +493,9 @@ export default function EligibilityWizard() {
         if (q.type === 'single') {
             const v = typeof answers[q.id] === 'string' ? (answers[q.id] as string) : ''
             return (
-                <div className="space-y-3">
-                    <div className="text-base font-semibold">{title}</div>
-                    {helper ? <div className="text-sm opacity-80">{helper}</div> : null}
+                <fieldset className="space-y-3" aria-describedby={helper ? `${q.id}-helper` : undefined}>
+                    <legend className="text-base font-semibold">{title}</legend>
+                    {helper ? <div id={`${q.id}-helper`} className="text-sm opacity-80">{helper}</div> : null}
                     <div className="space-y-2">
                         {q.options.map((opt) => {
                             const checked = v === opt.value
@@ -518,16 +518,16 @@ export default function EligibilityWizard() {
                             )
                         })}
                     </div>
-                </div>
+                </fieldset>
             )
         }
 
         if (q.type === 'multi') {
             const v = Array.isArray(answers[q.id]) ? (answers[q.id] as string[]) : []
             return (
-                <div className="space-y-3">
-                    <div className="text-base font-semibold">{title}</div>
-                    {helper ? <div className="text-sm opacity-80">{helper}</div> : null}
+                <fieldset className="space-y-3" aria-describedby={helper ? `${q.id}-helper` : undefined}>
+                    <legend className="text-base font-semibold">{title}</legend>
+                    {helper ? <div id={`${q.id}-helper`} className="text-sm opacity-80">{helper}</div> : null}
                     <div className="space-y-2">
                         {q.options.map((opt) => {
                             const checked = v.includes(opt.value)
@@ -552,7 +552,7 @@ export default function EligibilityWizard() {
                             )
                         })}
                     </div>
-                </div>
+                </fieldset>
             )
         }
 
@@ -560,10 +560,12 @@ export default function EligibilityWizard() {
         const v = typeof answers[q.id] === 'string' ? (answers[q.id] as string) : ''
         return (
             <div className="space-y-3">
-                <div className="text-base font-semibold">{title}</div>
-                {helper ? <div className="text-sm opacity-80">{helper}</div> : null}
+                <label htmlFor={q.id} className="block text-base font-semibold">{title}</label>
+                {helper ? <div id={`${q.id}-helper`} className="text-sm opacity-80">{helper}</div> : null}
                 <input
+                    id={q.id}
                     type="date"
+                    aria-describedby={helper ? `${q.id}-helper` : undefined}
                     value={v}
                     onChange={(e) => updateAnswer(q.id, e.target.value)}
                     className="w-full rounded-xl border border-neutral-700/40 bg-transparent p-3 text-sm"
@@ -578,9 +580,9 @@ export default function EligibilityWizard() {
         <div className="w-full max-w-3xl mx-auto p-4">
             <div className="rounded-2xl border border-neutral-700/40 p-5 space-y-4">
                 <div className="space-y-2">
-                    <div className="text-xl font-semibold">
+                    <h2 className="text-xl font-semibold">
                         {lang === 'zh' ? '招生资格' : 'Eligibility Wizard'}
-                    </div>
+                    </h2>
                     <div className="text-sm opacity-85">
                         {lang === 'zh'
                             ? '回答一些问题即可了解学生可申请的招生项目。'
@@ -589,7 +591,7 @@ export default function EligibilityWizard() {
                 </div>
 
                 <div className="flex items-center justify-between text-sm opacity-80">
-                    <div>
+                    <div role="status" aria-live="polite">
                         {lang === 'zh'
                             ? `进度: ${Math.min(step + 1, visibleQuestions.length)}/${visibleQuestions.length}`
                             : `Progress: ${Math.min(step + 1, visibleQuestions.length)}/${visibleQuestions.length}`}
@@ -610,7 +612,8 @@ export default function EligibilityWizard() {
                     </button>
                 </div>
 
-                <div className="rounded-2xl border border-neutral-700/40 p-4">
+                <div className="rounded-2xl border border-neutral-700/40 p-4"
+                     aria-live="polite" aria-atomic="true">
                     {current ? renderQuestion(current) : null}
                 </div>
 
@@ -658,8 +661,11 @@ export default function EligibilityWizard() {
             </div>
 
             {showResults ? (
-                <div className="mt-4 rounded-2xl border border-neutral-700/40 p-5 space-y-3">
-                    <div className="text-lg font-semibold">{lang === 'zh' ? '结果' : 'Results'}</div>
+                <div className="mt-4 rounded-2xl border border-neutral-700/40 p-5 space-y-3"
+                     role="region" aria-live="polite" aria-labelledby="eligibility-results-heading">
+                    <h2 id="eligibility-results-heading" className="text-lg font-semibold">
+                        {lang === 'zh' ? '结果' : 'Results'}
+                    </h2>
 
                     {programResults.none ? (
                         <div className="space-y-2">

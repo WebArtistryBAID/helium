@@ -49,7 +49,8 @@ export default function FeishuSettings({ isLinked, result }: {
             </div>
 
             {feedback ? (
-                <p className={feedback.success ? 'text-green-600' : 'text-red-600'}>
+                <p role={feedback.success ? 'status' : 'alert'}
+                   className={feedback.success ? 'text-green-600' : 'text-red-600'}>
                     {feedback.message}
                 </p>
             ) : null}
@@ -67,12 +68,17 @@ export default function FeishuSettings({ isLinked, result }: {
                 ) : (
                     <div>
                         <p className="text-xl mb-3">未绑定</p>
-                        <a href={authUrl} aria-disabled={!authUrl}>
-                            <Button pill color="blue" disabled={!authUrl}>
+                        {authUrl ? (
+                            <Button as="a" href={authUrl} pill color="blue">
                                 <HiLink className="mr-2"/>
                                 绑定飞书账号
                             </Button>
-                        </a>
+                        ) : (
+                            <Button pill color="blue" disabled>
+                                <HiLink className="mr-2"/>
+                                正在准备绑定...
+                            </Button>
+                        )}
                     </div>
                 )}
             </div>

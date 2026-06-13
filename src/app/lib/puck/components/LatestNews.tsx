@@ -47,7 +47,7 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
                         href={prefixLink(language, getContentEntityURI(resolvedPosts[0].createdAt, resolvedPosts[0].slug))}
                           className="w-full md:w-2/3 group block">
                     <div className="w-full h-64 md:h-96 overflow-hidden rounded-3xl mb-3">
-                        <img alt={resolvedPosts[0].coverImagePublished?.altText}
+                        <img alt={resolvedPosts[0].coverImagePublished?.altText ?? ''}
                              src={`${uploadPrefix}/${resolvedPosts[0].coverImagePublished?.sha1}.webp`}
                              className="object-cover w-full h-full rounded-t-3xl transform transition-transform duration-300 ease-in-out group-hover:scale-105"/>
                     </div>
@@ -61,7 +61,7 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
                         key={news.id}>
                         <p
                             aria-hidden="true"
-                            className="uppercase text-gray-400 !mb-2 text-sm"
+                            className="uppercase text-gray-600 !mb-2 text-sm"
                         >
                             {otherNewsText}
                         </p>

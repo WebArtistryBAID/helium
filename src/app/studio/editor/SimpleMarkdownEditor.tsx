@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useId, useState } from 'react'
 import Editor from 'react-simple-code-editor'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-markdown'
@@ -29,6 +29,7 @@ export default function SimpleMarkdownEditor({
         pages: 0,
         uploadServePath: ''
     })
+    const editorId = useId()
 
     // Get media library data
     useEffect(() => {
@@ -96,11 +97,11 @@ export default function SimpleMarkdownEditor({
     }, [ handleChange, value, readOnly ])
 
     const container =
-        'rounded-2xl shadow p-0 border border-gray-200 overflow-hidden  bg-white ' +
+        'rounded-2xl shadow p-0 border border-gray-200 overflow-hidden bg-white focus-within:ring-2 focus-within:ring-blue-500 ' +
         className
     const editorBox =
-        'font-mono text-sm leading-6 outline-none p-4 whitespace-pre-wrap ' +
-        'caret-black selection:bg-black/10 focus:outline-none ' +
+        'font-mono text-sm leading-6 p-4 whitespace-pre-wrap ' +
+        'caret-black selection:bg-black/10 ' +
         editorClassName
 
     return <>
@@ -116,6 +117,7 @@ export default function SimpleMarkdownEditor({
         </Modal>
 
         <div className={container} style={{ height: '32rem' }}>
+            <label className="sr-only" htmlFor={editorId}>Markdown 正文编辑器</label>
             <Editor
                 value={value}
                 onValueChange={handleChange}
@@ -123,7 +125,7 @@ export default function SimpleMarkdownEditor({
                 padding={16}
                 tabSize={2}
                 readOnly={readOnly}
-                textareaId="markdown-code-editor"
+                textareaId={editorId}
                 textareaClassName={editorBox}
                 placeholder={placeholder}
                 autoFocus={autoFocus}
@@ -133,7 +135,7 @@ export default function SimpleMarkdownEditor({
             />
             <div className="px-4 py-2 text-xs text-gray-500 flex">
                 <p className="flex-grow mr-auto">{value.length} 字符 · Markdown</p>
-                {!readOnly && <button className="text-blue-600 hover:underline"
+                {!readOnly && <button type="button" className="text-blue-600 hover:underline"
                                       onClick={() => setShowMediaLibrary(true)}>插入图片</button>}
             </div>
         </div>

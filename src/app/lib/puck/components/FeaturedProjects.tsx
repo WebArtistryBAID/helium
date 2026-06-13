@@ -2,7 +2,7 @@
 
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { A11y, Autoplay, Pagination } from 'swiper/modules'
+import { A11y, Pagination } from 'swiper/modules'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 
 export interface FeaturedProject {
@@ -20,15 +20,16 @@ export default function FeaturedProjects({ title, projects, uploadPrefix }: {
 }) {
     projects = projects?.filter((alum): alum is FeaturedProject => alum !== undefined) ?? []
     return <section aria-label="Featured Projects" className="section container !my-24">
-        <Swiper aria-live="polite" spaceBetween={10} autoplay={true} slidesPerView={1}
-                modules={[ A11y, Autoplay, Pagination ]}>
+        <Swiper aria-live="polite" spaceBetween={10} slidesPerView={1}
+                modules={[ A11y, Pagination ]}>
             {projects.map((project, index) =>
                 <SwiperSlide key={index}>
                     <div aria-roledescription="carousel"
                          className="flex flex-col md:flex-row items-center gap-8 md:mb-5" role="region">
                         <div className="w-full md:w-1/3 flex pl-8 items-center">
                             <div className="project-big-pic-box h-72 md:h-auto">
-                                <img src={`${uploadPrefix}/${project?.image?.sha1}.webp`} alt={project?.image?.altText}
+                                <img src={`${uploadPrefix}/${project?.image?.sha1}.webp`}
+                                     alt={project?.image?.altText ?? ''}
                                      className="w-full h-full object-cover aspect-3/4 transition-all duration-300 block project-big-pic"/>
                             </div>
                         </div>

@@ -8,7 +8,7 @@ function GridText({ title, texts }: { title: string | undefined, texts: (string 
         </h2>
         <div className="w-full grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 !text-2xl md:!text-xl lg:!text-2xl"
              role="list" style={{ lineHeight: '3rem' }}>
-            {texts.map((text, index) => <p key={index} role="listitem" tabIndex={0}>{text}</p>)}
+            {texts.map((text, index) => <p key={index} role="listitem">{text}</p>)}
         </div>
     </section>
 }

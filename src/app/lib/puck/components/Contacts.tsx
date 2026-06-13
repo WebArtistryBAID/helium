@@ -38,7 +38,7 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
                     {emailText ? <p className="font-bold">{emailText}</p> : null}
                     <ul aria-label="Contact emails" className="list-inside list-disc mb-2" role="list">
                         {(emails ?? []).map((email) => (
-                            <li key={email!.text} role="listitem" tabIndex={0}>
+                            <li key={email!.text} role="listitem">
                                 {email!.text}
                             </li>
                         ))}
@@ -47,7 +47,7 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
                     {phoneText ? <p className="font-bold">{phoneText}</p> : null}
                     <ul aria-label="Contact phone numbers" className="list-inside list-disc" role="list">
                         {(phones ?? []).map((phone) => (
-                            <li key={phone!.text} role="listitem" tabIndex={0}>
+                            <li key={phone!.text} role="listitem">
                                 {phone!.text}
                             </li>
                         ))}

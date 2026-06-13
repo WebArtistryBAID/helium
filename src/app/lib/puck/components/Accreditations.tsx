@@ -2,7 +2,7 @@
 
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { A11y, Autoplay, Pagination } from 'swiper/modules'
+import { A11y, Pagination } from 'swiper/modules'
 
 export interface Accreditation {
     image: Image | undefined
@@ -26,13 +26,13 @@ export default function Accreditations({ title, text, accreditations, uploadPref
                 aria-roledescription="carousel"
                 className="w-full md:w-1/2"
                 role="region">
-                <Swiper aria-live="polite" spaceBetween={10} autoplay={true} slidesPerView={1}
-                        modules={[ A11y, Autoplay, Pagination ]}>
+                <Swiper aria-live="polite" spaceBetween={10} slidesPerView={1}
+                        modules={[ A11y, Pagination ]}>
                     {accreditations?.map((acc, index) =>
                         <SwiperSlide key={index}>
                             <div
                                 className="rounded-lg mx-4 md:mx-8 h-56 md:h-72 my-8 md:my-12 bg-white flex flex-col justify-center items-center">
-                                <img src={`${uploadPrefix}/${acc?.image?.sha1}.webp`} alt={acc?.image?.altText}
+                                <img src={`${uploadPrefix}/${acc?.image?.sha1}.webp`} alt={acc?.image?.altText ?? ''}
                                      className="h-16 md:h-24 mb-3 md:mb-5"/>
                                 <p className="!font-sans text-black text-sm md:text-base">
                                     {acc?.name}

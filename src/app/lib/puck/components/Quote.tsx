@@ -24,8 +24,7 @@ function Quote({ text, source, image, uploadPrefix }: {
                 className="!text-3xl !mb-3"
                 aria-label="Quote"
                 role="region"
-                style={{ lineHeight: '4rem' }}
-                tabIndex={0}>{text}</p>
+                style={{ lineHeight: '4rem' }}>{text}</p>
             <p className="w-full text-right font-sans text-xl">
                 — {source}
             </p>
@@ -33,7 +32,7 @@ function Quote({ text, source, image, uploadPrefix }: {
         <div className="w-full md:w-1/2 flex justify-center items-center">
             <img
                 src={`${uploadPrefix}/${image?.sha1}.webp`}
-                alt={image?.altText}
+                alt={image?.altText ?? ''}
                 className="object-contain w-64 rounded-3xl"/>
         </div>
 

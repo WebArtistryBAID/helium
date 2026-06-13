@@ -40,7 +40,7 @@ export default function Specialties({ items, uploadPrefix }: {
                     <img
                         className={`w-full h-64 object-cover transition-opacity duration-300 ${transition ? 'opacity-60' : ''}`}
                         src={`${uploadPrefix}/${active?.image?.sha1}.webp`}
-                        alt={active?.image?.altText}
+                        alt={active?.image?.altText ?? ''}
                     />
                     <div
                         className={`absolute bottom-0 left-0 right-0 p-5 text-white special-bg transition-opacity duration-300 ${transition ? 'opacity-0' : ''}`}
@@ -57,16 +57,19 @@ export default function Specialties({ items, uploadPrefix }: {
                 >
                     {list.map((method, index) => (
                         <div key={method?.name ?? index} className="flex-shrink-0">
-                            <img
-                                alt={`Learning Experience: ${method?.name ?? ''}`}
-                                className={`w-32 h-32 object-cover block opacity-60 transition-all cursor-pointer ${current === index ? '!opacity-100' : (!transition ? 'hover:opacity-100 active:brightness-90' : '')}`}
-                                src={`${uploadPrefix}/${method?.image?.sha1}.webp`}
-                                role="button"
+                            <button
+                                type="button"
                                 aria-label={`Show specialty ${method?.name ?? ''}`}
                                 aria-pressed={current === index}
-                                tabIndex={0}
+                                className="block"
                                 onClick={() => change(index)}
-                            />
+                            >
+                                <img
+                                    alt=""
+                                    className={`w-32 h-32 object-cover block opacity-60 transition-all cursor-pointer ${current === index ? '!opacity-100' : (!transition ? 'hover:opacity-100 active:brightness-90' : '')}`}
+                                    src={`${uploadPrefix}/${method?.image?.sha1}.webp`}
+                                />
+                            </button>
                         </div>
                     ))}
                 </div>
@@ -96,16 +99,19 @@ export default function Specialties({ items, uploadPrefix }: {
                 >
                     {list.map((method, index) => (
                         <div key={method?.name ?? index}>
-                            <img
-                                className={`w-full h-full object-cover block opacity-60 transition-all cursor-pointer ${current === index ? '!opacity-100' : (!transition ? 'hover:opacity-100 active:brightness-90' : '')}`}
-                                src={`${uploadPrefix}/${method?.image?.sha1}.webp`}
-                                alt={`Learning Experience: ${method?.name ?? ''}`}
-                                role="button"
+                            <button
+                                type="button"
                                 aria-label={`Show specialty ${method?.name ?? ''}`}
                                 aria-pressed={current === index}
-                                tabIndex={0}
+                                className="block h-full w-full"
                                 onClick={() => change(index)}
-                            />
+                            >
+                                <img
+                                    className={`w-full h-full object-cover block opacity-60 transition-all cursor-pointer ${current === index ? '!opacity-100' : (!transition ? 'hover:opacity-100 active:brightness-90' : '')}`}
+                                    src={`${uploadPrefix}/${method?.image?.sha1}.webp`}
+                                    alt=""
+                                />
+                            </button>
                         </div>
                     ))}
                 </div>

@@ -83,16 +83,22 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
     // ----- Mobile menu state / a11y -----
     const [ mobileOpen, setMobileOpen ] = useState(false)
     const closeButtonRef = useRef<HTMLButtonElement | null>(null)
+    const menuButtonRef = useRef<HTMLButtonElement | null>(null)
+    const mobileMenuRef = useRef<HTMLDivElement | null>(null)
 
     const [ useBlackText, setUseBlackText ] = useState(true)
 
     useEffect(() => {
         if (mobileOpen) {
             const prev = document.body.style.overflow
+            const main = document.getElementById('main-content')
             document.body.style.overflow = 'hidden'
+            if (main) main.inert = true
             requestAnimationFrame(() => closeButtonRef.current?.focus())
             return () => {
                 document.body.style.overflow = prev
+                if (main) main.inert = false
+                menuButtonRef.current?.focus()
             }
         } else {
             document.body.style.overflow = ''
@@ -101,7 +107,26 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
 
     useEffect(() => {
         const onKeyDown = (e: KeyboardEvent) => {
-            if (e.key === 'Escape' && mobileOpen) setMobileOpen(false)
+            if (!mobileOpen) return
+            if (e.key === 'Escape') {
+                setMobileOpen(false)
+                return
+            }
+            if (e.key !== 'Tab' || !mobileMenuRef.current) return
+
+            const focusable = Array.from(mobileMenuRef.current.querySelectorAll<HTMLElement>(
+                'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])'
+            ))
+            if (focusable.length === 0) return
+            const first = focusable[0]
+            const last = focusable[focusable.length - 1]
+            if (e.shiftKey && document.activeElement === first) {
+                e.preventDefault()
+                last.focus()
+            } else if (!e.shiftKey && document.activeElement === last) {
+                e.preventDefault()
+                first.focus()
+            }
         }
         window.addEventListener('keydown', onKeyDown)
         return () => window.removeEventListener('keydown', onKeyDown)
@@ -155,8 +180,9 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
 
             <header
                 role="banner"
+                onFocus={() => setHeaderVisible(true)}
                 className={[
-                    'fixed top-0 left-0 w-screen px-4 sm:px-8 gap-3 flex z-50 transform transition-all duration-300',
+                    'fixed top-0 left-0 w-full px-4 sm:px-8 gap-3 flex z-50 transform transition-all duration-300',
                     headerVisible ? 'translate-y-0' : '-translate-y-full',
                     backgroundClass
                 ].join(' ')}>
@@ -182,7 +208,9 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
 
                 <div className="h-18 w-24 flex items-center justify-center gap-2">
                     <button
-                        className="lg:hidden transition-colors duration-100 opacity-50 hover:opacity-100 active:opacity-80 pt-1.5"
+                        type="button"
+                        ref={menuButtonRef}
+                        className="lg:hidden transition-colors duration-100 opacity-80 hover:opacity-100 active:opacity-90 pt-1.5"
                         aria-expanded={mobileOpen}
                         aria-controls="mobile-menu"
                         aria-haspopup="true"
@@ -205,6 +233,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                     </button>
 
                     <button
+                        type="button"
                         onClick={() => {
                             const newLang = language === 'zh' ? 'en' : 'zh'
                             document.cookie = `lang=${newLang}; path=/; max-age=${60 * 60 * 24 * 30}`
@@ -212,10 +241,10 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                             router.push(`/${newLang}/${segments.join('/')}`)
                         }}
                         aria-label={locales[language].language}
-                        className="decoration-none transition-colors duration-100 opacity-50 hover:opacity-100 active:opacity-80"
+                        className="decoration-none transition-colors duration-100 opacity-80 hover:opacity-100 active:opacity-90"
                         style={{ color: useBlackText ? 'black' : 'white' }}>
                         <svg className="w-6 h-10" height="32" viewBox="0 0 24 18" width="32"
-                             aria-label={locales[language].language}>
+                             aria-hidden="true">
                             <path
                                 d="m12.87 15.07l-2.54-2.51l.03-.03A17.52 17.52 0 0 0 14.07 6H17V4h-7V2H8v2H1v2h11.17C11.5 7.92 10.44 9.75 9 11.35C8.07 10.32 7.3 9.19 6.69 8h-2c.73 1.63 1.73 3.17 2.98 4.56l-5.09 5.02L4 19l5-5l3.11 3.11l.76-2.04M18.5 10h-2L12 22h2l1.12-3h4.75L21 22h2l-4.5-12m-2.62 7l1.62-4.33L19.12 17h-3.24Z"
                                 fill="currentColor"/>
@@ -225,15 +254,17 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
 
                 {mobileOpen && (
                     <div
+                        ref={mobileMenuRef}
                         id="mobile-menu"
                         aria-label={locales[language].menu}
                         aria-modal="true"
                         role="dialog"
                         className="fixed inset-0 bg-red-900 h-screen overflow-y-auto z-50">
                         <button
+                            type="button"
                             ref={closeButtonRef}
                             aria-label={locales[language].close}
-                            className="lg:hidden transition-colors text-white duration-100 opacity-50 hover:opacity-100 active:opacity-80 absolute top-4 right-4"
+                            className="lg:hidden transition-colors text-white duration-100 opacity-80 hover:opacity-100 active:opacity-90 absolute top-4 right-4"
                             onClick={() => setMobileOpen(false)}>
                             <svg aria-hidden="true" height="24" stroke="currentColor" strokeLinecap="round"
                                  strokeLinejoin="round" strokeWidth="2" viewBox="0 0 24 24" width="24">

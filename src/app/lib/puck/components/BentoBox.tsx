@@ -29,7 +29,7 @@ function BentoBox({
     lifeText: string | null,
     diversityText: string | null
 }) {
-    return <div className="w-full p-3">
+    return <div className="w-full min-w-0 p-3">
         <h2
             className="uppercase text-center tracking-widest mb-8 text-3xl"
             role="heading">{title}</h2>
@@ -54,24 +54,24 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-5 row-span-4 lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 from-yellow-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8">
-                <div>
+                className="col-span-1 min-w-0 md:col-span-5 row-span-4 lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 from-yellow-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8 overflow-hidden">
+                <div className="min-w-0 md:w-1/2">
                     <h3
                         className="text-2xl leading-tight mb-3 font-bold"
                         role="heading">{admissionsTitle}</h3>
                     <p className="opacity-80 text-sm">{admissionsText}</p>
                 </div>
-                <div>
+                <div className="min-w-0 w-full md:w-1/2">
                     <img
                         src="/assets/components/bento/stanford.webp"
                         alt="Campus of Stanford University, where students from BAID have been admitted"
                         loading="lazy"
-                        className="rounded-3xl w-2xl"/>
+                        className="block h-auto w-full max-w-full rounded-3xl object-cover"/>
                 </div>
             </div>
 
             <div
-                className="col-span-1 md:col-span-3 row-span-1 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1 from-orange-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-5 flex items-center">
+                className="col-span-1 min-w-0 md:col-span-3 row-span-1 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1 from-orange-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-5 flex items-center overflow-hidden">
                 <h3
                     className="text-lg"
                     role="heading">
@@ -80,7 +80,7 @@ function BentoBox({
                 </h3>
                 <div
                     aria-hidden="true"
-                    className="relative flex justify-center items-end">
+                    className="relative flex min-w-0 justify-center items-end">
                     <img
                         src="/assets/components/bento/lj.jpg"
                         alt=""
@@ -100,7 +100,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex items-center gap-3 overflow-hidden">
+                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex items-center gap-3 overflow-hidden">
                 <img
                     src="/assets/components/bento/countries.png"
                     alt="Hong Kong SAR China, Australia, Japan, United States, Canada, and United Kingdom"

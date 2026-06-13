@@ -15,11 +15,11 @@ function ActivityTextBlock({ name, description, background, light }: {
         style={{
             background: background,
             color: light ? 'white' : 'black'
-        }} className="w-full h-80 p-8" aria-labelledby="activity-heading" role="region">
-        <h3 id="activity-heading" className="text-xl mb-3 font-bold">
+        }} className="w-full h-80 p-8">
+        <h3 className="text-xl mb-3 font-bold">
             {name}
         </h3>
-        <p className="no-size text-sm" tabIndex={0}>{description}</p>
+        <p className="no-size text-sm">{description}</p>
     </section>
 }
 
@@ -37,18 +37,18 @@ function ActivityBlock({ name, description, createdAt, slug, image, background, 
     const language = useLanguage()
 
     return <Link href={prefixLink(language, getContentEntityURI(createdAt, slug))}>
-        <section aria-label="`Activity: ${name}`" role="region">
+        <section aria-label={`Activity: ${name}`}>
             <div className="hidden sm:grid grid-cols-2">
                 {textAlign === 'left' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
-                <img alt={image?.altText} src={`${uploadPrefix}/${image?.sha1}.webp`}
+                <img alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
                      className="w-full h-80 object-cover object-center"/>
                 {textAlign === 'right' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
             </div>
 
             <div className="block sm:hidden">
-                <img alt={image?.altText} src={`${uploadPrefix}/${image?.sha1}.webp`}
+                <img alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
                      className="w-full h-48 object-cover object-center"/>
                 <ActivityTextBlock background={background} description={description} light={light} name={name}/>
             </div>

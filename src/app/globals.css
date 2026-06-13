@@ -47,6 +47,22 @@
     @apply scroll-smooth font-sans;
 }
 
+*:focus-visible {
+    outline: 3px solid #2563eb;
+    outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+}
+
 :root {
     --standard-blue: #103c74;
     --standard-red: oklch(39.6% 0.141 25.723);
@@ -152,6 +168,89 @@ article h6 {
 
 article img {
     @apply rounded-lg text-center max-w-96 mx-auto mb-3;
+}
+
+.content-entity-article {
+    color: var(--color-gray-800);
+    font-size: 1.05rem;
+    line-height: 2rem;
+}
+
+.content-entity-article p {
+    @apply mb-6;
+}
+
+.content-entity-article h1 {
+    @apply text-4xl leading-tight tracking-tight;
+}
+
+.content-entity-article h2 {
+    @apply mb-4 mt-12 text-3xl leading-tight;
+}
+
+.content-entity-article h3 {
+    @apply mb-3 mt-10 text-2xl leading-snug;
+}
+
+.content-entity-article h4,
+.content-entity-article h5,
+.content-entity-article h6 {
+    @apply mb-3 mt-8 leading-snug;
+}
+
+.content-entity-article h1 + .content-entity-gallery,
+.content-entity-article h2 + .content-entity-gallery,
+.content-entity-article h3 + .content-entity-gallery,
+.content-entity-article h4 + .content-entity-gallery,
+.content-entity-article h5 + .content-entity-gallery,
+.content-entity-article h6 + .content-entity-gallery {
+    @apply mt-6;
+}
+
+.content-entity-article ul,
+.content-entity-article ol {
+    @apply mb-6 list-outside space-y-2 pl-6;
+}
+
+.content-entity-article img {
+    max-height: 36rem;
+    @apply my-8 max-w-full rounded-xl object-contain;
+}
+
+.content-entity-article blockquote {
+    @apply my-8 border-l-4 border-gray-300 pl-5 text-gray-600;
+}
+
+.content-entity-gallery {
+    @apply my-8 grid grid-cols-1 gap-4;
+}
+
+.content-entity-gallery img {
+    max-height: 28rem;
+    @apply m-0 h-full w-full rounded-xl object-cover;
+}
+
+.content-entity-gallery-single {
+    @apply grid-cols-1;
+}
+
+.content-entity-gallery-single img {
+    max-height: 36rem;
+    @apply h-auto object-contain;
+}
+
+@media (min-width: 40rem) {
+    .content-entity-article h1 {
+        @apply text-5xl;
+    }
+
+    .content-entity-gallery {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .content-entity-gallery-single {
+        grid-template-columns: minmax(0, 1fr);
+    }
 }
 
 .alumni-big-pic-box {

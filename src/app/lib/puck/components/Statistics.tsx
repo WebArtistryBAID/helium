@@ -25,8 +25,7 @@ function Statistics({ title, content }: {
                     key={index}
                     className="flex items-center"
                     aria-label={`${stat?.name}: ${stat?.value}`}
-                    role="listitem"
-                    tabIndex={0}>
+                    role="listitem">
                     <div>
                         <p aria-hidden className="text-5xl md:text-7xl text-red-900">
                             {stat?.value}

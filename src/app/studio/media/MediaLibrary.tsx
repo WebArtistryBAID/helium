@@ -136,7 +136,10 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                             <div className="w-2/3">
                                 <div className="grid grid-cols-6 gap-4 mb-3">
                                     {page.items.map(image =>
-                                        <button key={image.sha1} className={`w-full h-full rounded
+                                        <button type="button" key={image.sha1}
+                                                aria-label={`${selectedImage?.id === image.id ? '取消选择' : '选择'}图片：${image.altText || image.name}`}
+                                                aria-pressed={selectedImage?.id === image.id}
+                                                className={`w-full h-full rounded
                                      ${selectedImage?.id === image.id ? 'ring-4 ring-blue-500' : ''}`}
                                                 onClick={() => {
                                                     setDeleteConfirm(false)
@@ -172,7 +175,8 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                     <div>
                                         <p className="font-bold mb-3 text-xl secondary">图片详情</p>
                                         <div className="flex gap-3 mb-3 items-center">
-                                            <a target="_blank"
+                                            <a target="_blank" rel="noreferrer"
+                                               aria-label={`在新窗口查看原图：${selectedImage?.altText || selectedImage?.name}`}
                                                href={`${page.uploadServePath}/${selectedImage?.sha1}.webp`}>
                                                 <img className="h-24" alt={`图片: ${selectedImage?.name}`}
                                                      src={`${page.uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
