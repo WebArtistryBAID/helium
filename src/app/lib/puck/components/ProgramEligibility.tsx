@@ -671,7 +671,7 @@ export default function EligibilityWizard() {
                         <div className="space-y-2">
                             <div className="text-sm">
                                 {lang === 'zh'
-                                    ? '当前条件不符合任何招生项目。请注意，本资格向导并未覆盖北京中学国际部的所有招生项目，也未覆盖转学入学。您可能可以通过其他方式或转学入学，详情请咨询招生办公室。'
+                                    ? '当前条件不符合任何招生项目。请注意，本资格向导并未覆盖北京中学教育集团的所有国际化招生项目，也未覆盖转学入学。您可能可以通过其他方式或转学入学，详情请咨询招生办公室。'
                                     : 'Based on the current answers, the student is not eligible for any programs. Please note that this eligibility wizard has not covered all admission programs at BAID. You may be eligible for alternative admission programs or transfer admissions. Please contact the Admissions Office for details.'}
                             </div>
                         </div>

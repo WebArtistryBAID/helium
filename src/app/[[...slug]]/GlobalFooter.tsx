@@ -6,14 +6,14 @@ import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 const locales = {
     en: {
         wechat: '(add on WeChat)',
-        copyright: '© 2026 Beijing Academy International Division. All rights reserved.',
-        chn: 'Tap here to learn more about Beijing Academy\'s Chinese education programs.',
+        copyright: '© 2026 Beijing Academy Education Group. All rights reserved.',
+        chn: 'Learn more about Beijing Academy Education Group\'s other programs.',
         nav: 'Footer Navigation'
     },
     zh: {
         wechat: '(在微信上添加)',
-        copyright: '© 2026 北京中学国际部 / 保留所有权利',
-        chn: '点击这里了解北京中学的中国教育项目。',
+        copyright: '© 2026 北京中学教育集团 / 保留所有权利',
+        chn: '了解北京中学教育集团的其他教育项目。',
         nav: '页脚导航'
     }
 }
