@@ -21,8 +21,8 @@ const PAGES = [
     {
         id: 2, titleEN: 'Academics', titleZH: '学术', slug: 'academics',
         subPages: [
-            { id: 7, titleEN: 'Middle School Program', titleZH: '初中项目', slug: 'academics/middle-school' },
-            { id: 8, titleEN: 'High School Program', titleZH: '高中项目', slug: 'academics/high-school' },
+            { id: 7, titleEN: 'ISBA Program', titleZH: 'ISBA 项目', slug: 'academics/isba' },
+            { id: 8, titleEN: 'BAID Program', titleZH: 'BAID 项目', slug: 'academics/baid' },
             { id: 9, titleEN: 'Project-Based Learning', titleZH: '项目式学习', slug: 'academics/pbl' },
             { id: 10, titleEN: 'College Counseling', titleZH: '大学升学指导', slug: 'academics/college-counseling' }
         ]
@@ -44,8 +44,8 @@ const PAGES = [
     },
     {
         id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions', subPages: [
-            { id: 16, titleEN: 'High School Admissions', titleZH: '高中项目招生', slug: 'admissions/baid' },
-            { id: 17, titleEN: 'Middle School Admissions', titleZH: '初中项目招生', slug: 'admissions/isba' }
+            { id: 16, titleEN: 'BAID Admissions', titleZH: 'BAID 招生', slug: 'admissions/baid' },
+            { id: 17, titleEN: 'ISBA Admissions', titleZH: 'ISBA 招生', slug: 'admissions/isba' }
         ]
     },
     { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news', subPages: [] }
