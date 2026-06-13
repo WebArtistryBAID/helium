@@ -24,7 +24,7 @@ export * as $Enums from './enums'
 export * from "./enums"
 /**
  * ## Prisma Client
- * 
+ *
  * Type-safe database client for TypeScript
  * @example
  * ```
@@ -74,3 +74,8 @@ export type ApprovalConfig = Prisma.ApprovalConfigModel
  * 
  */
 export type EntityLock = Prisma.EntityLockModel
+/**
+ * Model FeishuMessage
+ *
+ */
+export type FeishuMessage = Prisma.FeishuMessageModel

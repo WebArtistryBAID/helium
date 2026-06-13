@@ -10,6 +10,10 @@ import { prisma } from '@/app/lib/prisma'
 
 const PAGE_SIZE = 24
 
+export type ImagePage = Paginated<Image> & {
+    uploadServePath: string
+}
+
 export async function getUploadServePath(): Promise<string> {
     return process.env.UPLOAD_SERVE_PATH!
 }
@@ -20,46 +24,46 @@ export async function getImage(id: number): Promise<Image | null> {
     })
 }
 
-export async function getImages(page: number): Promise<Paginated<Image>> {
+export async function getImages(page: number): Promise<ImagePage> {
     await requireUser()
-    const pages = Math.ceil(await prisma.image.count() / PAGE_SIZE)
-    const images = await prisma.image.findMany({
-        orderBy: { createdAt: 'desc' },
-        skip: page * PAGE_SIZE,
-        take: PAGE_SIZE
-    })
+    const [ count, images ] = await Promise.all([
+        prisma.image.count(),
+        prisma.image.findMany({
+            orderBy: { createdAt: 'desc' },
+            skip: page * PAGE_SIZE,
+            take: PAGE_SIZE
+        })
+    ])
     return {
         items: images,
         page,
-        pages
+        pages: Math.ceil(count / PAGE_SIZE),
+        uploadServePath: process.env.UPLOAD_SERVE_PATH!
     }
 }
 
-export async function searchImages(query: string, page: number): Promise<Paginated<Image>> {
+export async function searchImages(query: string, page: number): Promise<ImagePage> {
     await requireUser()
-    const pages = Math.ceil(await prisma.image.count({
-        where: {
-            name: {
-                contains: query,
-                mode: 'insensitive'
-            }
+    const where = {
+        name: {
+            contains: query,
+            mode: 'insensitive' as const
         }
-    }) / PAGE_SIZE)
-    const images = await prisma.image.findMany({
-        where: {
-            name: {
-                contains: query,
-                mode: 'insensitive'
-            }
-        },
-        orderBy: { createdAt: 'desc' },
-        skip: page * PAGE_SIZE,
-        take: PAGE_SIZE
-    })
+    }
+    const [ count, images ] = await Promise.all([
+        prisma.image.count({ where }),
+        prisma.image.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            skip: page * PAGE_SIZE,
+            take: PAGE_SIZE
+        })
+    ])
     return {
         items: images,
         page,
-        pages
+        pages: Math.ceil(count / PAGE_SIZE),
+        uploadServePath: process.env.UPLOAD_SERVE_PATH!
     }
 }
 

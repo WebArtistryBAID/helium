@@ -16,10 +16,10 @@ import {
 import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
 import { Image, Role, User } from '@/generated/prisma/browser'
-import { createImage, deleteImage, getImages, getUploadServePath } from '@/app/studio/media/media-actions'
+import { createImage, deleteImage, getImages } from '@/app/studio/media/media-actions'
+import type { ImagePage } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
-import { Paginated } from '@/app/lib/data-types'
 import { getMyUser } from '@/app/login/login-actions'
 
 function formatSize(kb: number): string {
@@ -31,17 +31,16 @@ function formatSize(kb: number): string {
 }
 
 export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
-    init: Paginated<Image>,
+    init: ImagePage,
     pickMode?: boolean,
     allowUnpick?: boolean,
     onPick?: (image: Image | null) => void
 }) {
     const [ user, setUser ] = useState<User>()
-    const [ page, setPage ] = useState<Paginated<Image>>(init)
+    const [ page, setPage ] = useState<ImagePage>(init)
     const [ loading, setLoading ] = useState(false)
     const [ selectedImage, setSelectedImage ] = useState<Image | null>(null)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
-    const [ uploadServePath, setUploadServePath ] = useState<string>('')
     const [ showUploadForm, setShowUploadForm ] = useState(false)
     const [ imageName, setImageName ] = useState('')
     const [ imageAlt, setImageAlt ] = useState('')
@@ -53,7 +52,6 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     useEffect(() => {
         (async () => {
             setUser((await getMyUser())!)
-            setUploadServePath(await getUploadServePath())
         })()
     }, [])
 
@@ -88,7 +86,8 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                    required/>
                     </div>
 
-                    <img width={500} height={200} src={uploadServePath + '/' + imageHash + '.webp'} alt="已上传文件"
+                    <img width={500} height={200} src={page.uploadServePath + '/' + imageHash + '.webp'}
+                         alt="已上传文件"
                          className="rounded-xl w-full lg:max-w-sm object-cover mb-3"/>
                 </div>
             </ModalBody>
@@ -148,8 +147,11 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                                     }
                                                 }}>
                                             <img className="w-full aspect-square object-cover"
+                                                 width={300}
+                                                 height={200}
+                                                 decoding="async"
                                                  alt={`图片: ${image.name}`}
-                                                 src={`${uploadServePath}/${image.sha1}_thumb.webp`}/>
+                                                 src={`${page.uploadServePath}/${image.sha1}_thumb.webp`}/>
                                         </button>
                                     )}
                                 </div>
@@ -170,9 +172,10 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                     <div>
                                         <p className="font-bold mb-3 text-xl secondary">图片详情</p>
                                         <div className="flex gap-3 mb-3 items-center">
-                                            <a target="_blank" href={`${uploadServePath}/${selectedImage?.sha1}.webp`}>
+                                            <a target="_blank"
+                                               href={`${page.uploadServePath}/${selectedImage?.sha1}.webp`}>
                                                 <img className="h-24" alt={`图片: ${selectedImage?.name}`}
-                                                     src={`${uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
+                                                     src={`${page.uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
                                             </a>
                                             <div>
                                                 <p className="font-bold">{selectedImage?.name}</p>
@@ -214,7 +217,7 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                 <TabItem title="上传" icon={HiArrowUpTray}>
                     <div className="flex flex-col justify-center items-center">
                         <div className="mb-3">
-                            <UploadAreaClient uploadPrefix={uploadServePath} onDone={hash => {
+                            <UploadAreaClient uploadPrefix={page.uploadServePath} onDone={hash => {
                                 setImageHash(hash)
                                 setImageName('')
                                 setImageAlt('')

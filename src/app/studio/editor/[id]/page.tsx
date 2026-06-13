@@ -14,18 +14,21 @@ export default async function StudioContentEntityEditor({ params, searchParams }
     if (entity == null) {
         redirect('/studio')
     }
+    const requestedToken = (await searchParams).token ?? undefined
     if (entity.type === 'page') {
-        redirect(`/studio/pages/${entity.id}/editor?token=${(await searchParams).token ?? ''}`)
+        redirect(`/studio/pages/${entity.id}/editor?token=${requestedToken ?? ''}`)
     }
 
     const token = await tryAcquireLock({
         entityType: entity.type,
         entityId: entity.id,
-        userId: user.id,
-        currentToken: (await searchParams).token ?? undefined
+        currentToken: requestedToken
     })
     if (typeof token !== 'string') {
         return token
+    }
+    if (requestedToken !== token) {
+        redirect(`/studio/editor/${entity.id}?token=${token}`)
     }
 
     return <div className="p-16">

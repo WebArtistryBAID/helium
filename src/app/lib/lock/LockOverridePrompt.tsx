@@ -6,10 +6,9 @@ import { useState } from 'react'
 import { overrideLock } from '@/app/lib/lock/lock-actions'
 import { EntityType } from '@/generated/prisma/browser'
 
-export default function LockOverridePrompt({ entityType, entityId, userId }: {
+export default function LockOverridePrompt({ entityType, entityId }: {
     entityType: EntityType,
-    entityId: number,
-    userId: number
+    entityId: number
 }) {
     const [ loading, setLoading ] = useState(false)
     const router = useRouter()
@@ -28,11 +27,10 @@ export default function LockOverridePrompt({ entityType, entityId, userId }: {
                 setLoading(true)
                 const lock = await overrideLock({
                     entityType,
-                    entityId,
-                    userId
+                    entityId
                 })
                 setLoading(false)
-                router.push(entityType === EntityType.page ? `/studio/pages/${entityId}/editor?token=${lock.token}` : `/studio/editor/${entityId}?token=${lock.token}`)
+                router.replace(entityType === EntityType.page ? `/studio/pages/${entityId}/editor?token=${lock.token}` : `/studio/editor/${entityId}?token=${lock.token}`)
             }}>覆盖并继续</Button>
             <Button disabled={loading} pill color="alternative" onClick={() => router.push('/studio')}>
                 取消

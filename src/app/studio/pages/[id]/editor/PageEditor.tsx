@@ -20,9 +20,8 @@ import If from '@/app/lib/If'
 import '@measured/puck/puck.css'
 import { Role } from '@/generated/prisma/enums'
 
-export default function PageEditor({ init, userId, lockToken }: {
+export default function PageEditor({ init, lockToken }: {
     init: HydratedContentEntity,
-    userId: number,
     lockToken: string
 }) {
     const [ showLockBroken, setShowLockBroken ] = useState(false)
@@ -79,8 +78,7 @@ export default function PageEditor({ init, userId, lockToken }: {
     useEntityLock({
         entityType: init.type,
         entityId: draft.id,
-        userId,
-        initialToken: lockToken,
+        token: lockToken,
         hasChanges,
         onLockLost: () => setShowLockBroken(true)
     })

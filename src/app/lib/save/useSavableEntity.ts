@@ -61,54 +61,90 @@ function deepClone<T>(v: T): T {
 export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavableEntityReturn<T> {
     const { initial, saveFn, refreshFn, compareKeys, equals } = opts
 
-    const [ draft, setDraft ] = useState<T>(deepClone(initial))
-    const [ previous, setPrevious ] = useState<T>(deepClone(initial))
+    const [ draft, setDraft ] = useState<T>(() => deepClone(initial))
+    const [ previous, setPrevious ] = useState<T>(() => deepClone(initial))
     const [ loading, setLoading ] = useState(false)
 
     const saveFnRef = useRef(saveFn)
     const refreshFnRef = useRef(refreshFn)
+    const draftRef = useRef(draft)
+    const previousRef = useRef(previous)
+    const initialRef = useRef(deepClone(initial))
+    const compareKeysRef = useRef(compareKeys)
+    const equalsRef = useRef(equals)
+    compareKeysRef.current = compareKeys
+    equalsRef.current = equals
+
+    const areEqual = useCallback((a: T, b: T) => {
+        if (equalsRef.current) return equalsRef.current(a, b)
+        if (compareKeysRef.current && compareKeysRef.current.length > 0) {
+            return compareByKeys(a, b, compareKeysRef.current)
+        }
+        try {
+            return JSON.stringify(a) === JSON.stringify(b)
+        } catch {
+            return a === b
+        }
+    }, [])
+
     useEffect(() => {
         saveFnRef.current = saveFn
     }, [ saveFn ])
     useEffect(() => {
         refreshFnRef.current = refreshFn
     }, [ refreshFn ])
+    useEffect(() => {
+        draftRef.current = draft
+    }, [ draft ])
+    useEffect(() => {
+        previousRef.current = previous
+    }, [ previous ])
 
     useEffect(() => {
-        // When the upstream provides a new initial object (e.g., refetched),
-        // re-seed both draft and previous to that snapshot.
-        setDraft(deepClone(initial))
-        setPrevious(deepClone(initial))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [ initial ])
+        const nextInitial = deepClone(initial)
+        if (areEqual(initialRef.current, nextInitial)) return
+
+        const hadLocalChanges = !areEqual(previousRef.current, draftRef.current)
+        initialRef.current = deepClone(nextInitial)
+        previousRef.current = nextInitial
+        setPrevious(nextInitial)
+
+        if (!hadLocalChanges) {
+            const nextDraft = deepClone(nextInitial)
+            draftRef.current = nextDraft
+            setDraft(nextDraft)
+        }
+    }, [ areEqual, initial ])
 
     const hasChanges = useMemo(() => {
-        if (equals) return !equals(previous, draft)
-        if (compareKeys && compareKeys.length > 0) return !compareByKeys(previous, draft, compareKeys)
-        try {
-            return JSON.stringify(previous) !== JSON.stringify(draft)
-        } catch {
-            return previous !== draft
-        }
-    }, [ draft, previous, equals, compareKeys ])
+        return !areEqual(previous, draft)
+    }, [ areEqual, draft, previous ])
 
     const mountedRef = useRef(true)
-    useEffect(() => () => {
-        mountedRef.current = false
+    useEffect(() => {
+        mountedRef.current = true
+
+        return () => {
+            mountedRef.current = false
+        }
     }, [])
 
     const save = useCallback(async () => {
         if (loading) return
         setLoading(true)
         try {
-            const updated = await saveFnRef.current(draft)
+            const updated = await saveFnRef.current(draftRef.current)
             if (!mountedRef.current) return
-            setDraft(updated)
-            setPrevious(deepClone(updated))
+            const nextDraft = deepClone(updated)
+            const nextPrevious = deepClone(updated)
+            draftRef.current = nextDraft
+            previousRef.current = nextPrevious
+            setDraft(nextDraft)
+            setPrevious(nextPrevious)
         } finally {
             if (mountedRef.current) setLoading(false)
         }
-    }, [ draft, loading ])
+    }, [ loading ])
 
     const refresh = useCallback(async () => {
         if (loading) return
@@ -116,8 +152,12 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
         try {
             const fresh = await refreshFnRef.current()
             if (!mountedRef.current) return
-            setDraft(fresh)
-            setPrevious(deepClone(fresh))
+            const nextDraft = deepClone(fresh)
+            const nextPrevious = deepClone(fresh)
+            draftRef.current = nextDraft
+            previousRef.current = nextPrevious
+            setDraft(nextDraft)
+            setPrevious(nextPrevious)
         } finally {
             if (mountedRef.current) setLoading(false)
         }

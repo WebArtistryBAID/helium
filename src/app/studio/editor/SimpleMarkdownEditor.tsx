@@ -5,11 +5,11 @@ import Editor from 'react-simple-code-editor'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-markdown'
 import 'prismjs/themes/prism.css'
-import { Paginated } from '@/app/lib/data-types'
 import { Image } from '@/generated/prisma/browser'
 import { Modal, ModalHeader } from 'flowbite-react'
 import MediaLibrary from '@/app/studio/media/MediaLibrary'
 import { getImages } from '@/app/studio/media/media-actions'
+import type { ImagePage } from '@/app/studio/media/media-actions'
 
 export default function SimpleMarkdownEditor({
                                                  value: controlled,
@@ -23,7 +23,12 @@ export default function SimpleMarkdownEditor({
                                              }: any) {
     const [ uncontrolled, setUncontrolled ] = useState('')
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
-    const [ mediaLibraryContent, setMediaLibraryContent ] = useState<Paginated<Image>>({ items: [], page: 0, pages: 0 })
+    const [ mediaLibraryContent, setMediaLibraryContent ] = useState<ImagePage>({
+        items: [],
+        page: 0,
+        pages: 0,
+        uploadServePath: ''
+    })
 
     // Get media library data
     useEffect(() => {
@@ -102,6 +107,9 @@ export default function SimpleMarkdownEditor({
         <Modal show={showMediaLibrary} size="5xl" onClose={() => setShowMediaLibrary(false)} className="relative">
             <ModalHeader className="border-none absolute z-50 right-0"/>
             <MediaLibrary init={mediaLibraryContent} pickMode={true} onPick={image => {
+                if (image == null) {
+                    return
+                }
                 setShowMediaLibrary(false)
                 handleChange(`${value}\n[IMAGE: ${image.id}]\n`)
             }}/>

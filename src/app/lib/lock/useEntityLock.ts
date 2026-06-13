@@ -1,143 +1,123 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 import { EntityType } from '@/generated/prisma/browser'
-import { acquireLock, isLockAlive, releaseLock } from '@/app/lib/lock/lock-actions'
+import { releaseLock, renewLock } from '@/app/lib/lock/lock-actions'
+
+const HEARTBEAT_INTERVAL_MS = 15_000
+const RETRY_INTERVAL_MS = 5_000
+const pendingReleases = new Map<string, ReturnType<typeof setTimeout>>()
 
 type UseEntityLockOpts = {
     entityType: EntityType
     entityId: number
-    userId: number
-    initialToken: string
-    /** Whether there are unsaved changes (to show browser "leave?" prompt) */
+    token: string
     hasChanges?: boolean
-    onLockLost?: () => void
-    keepAliveIntervalMs?: number
-    renewIntervalMs?: number
+    onLockLost: () => void
+}
+
+function lockSessionKey(entityType: EntityType, entityId: number, token: string) {
+    return `${entityType}:${entityId}:${token}`
 }
 
 export function useEntityLock({
                                   entityType,
                                   entityId,
-                                  userId,
-                                  initialToken,
+                                  token,
                                   hasChanges = false,
-                                  onLockLost,
-                                  keepAliveIntervalMs = 10_000,
-                                  renewIntervalMs = 55_000
+                                  onLockLost
                               }: UseEntityLockOpts) {
-    const [ token, setToken ] = useState(initialToken)
-    const [ lockBroken, setLockBroken ] = useState(false)
+    const latest = useRef({ hasChanges, onLockLost })
+    latest.current = { hasChanges, onLockLost }
 
-    // Track latest values without re-wiring timers
-    const refs = useRef({
-        entityType,
-        entityId,
-        userId,
-        token,
-        hasChanges,
-        onLockLost
-    })
-    refs.current = { ...refs.current, token, hasChanges, onLockLost }
-
-    // Check-alive loop
     useEffect(() => {
-        let cancelled = false
+        const sessionKey = lockSessionKey(entityType, entityId, token)
+        const pendingRelease = pendingReleases.get(sessionKey)
+        if (pendingRelease) {
+            clearTimeout(pendingRelease)
+            pendingReleases.delete(sessionKey)
+        }
 
-        const tick = async () => {
-            const alive = await isLockAlive({
-                entityType: refs.current.entityType,
-                entityId: refs.current.entityId,
-                userId: refs.current.userId
-            })
-            if (!alive && !cancelled) {
-                setLockBroken(true)
-                refs.current.onLockLost?.()
-                if (timer) clearInterval(timer)
+        let stopped = false
+        let running = false
+        let lost = false
+        let timer: ReturnType<typeof setTimeout> | undefined
+
+        const schedule = (delay: number) => {
+            if (!stopped && !lost) {
+                timer = setTimeout(() => void heartbeat(), delay)
             }
         }
 
-        // initial kick + interval
-        tick().catch(() => {/* ignore */
-        })
-        const timer = setInterval(() => void tick(), keepAliveIntervalMs)
+        const heartbeat = async () => {
+            if (stopped || lost || running) return
+            running = true
 
-        return () => {
-            cancelled = true
-            if (timer) clearInterval(timer)
-        }
-    }, [ entityType, entityId, userId, keepAliveIntervalMs ])
-
-    // Renew-lock loop
-    useEffect(() => {
-        let cancelled = false
-
-        const tick = async () => {
-            const newLock = await acquireLock({
-                entityType: refs.current.entityType,
-                entityId: refs.current.entityId,
-                userId: refs.current.userId,
-                currentToken: refs.current.token
-            })
-            if (!newLock && !cancelled) {
-                setLockBroken(true)
-                refs.current.onLockLost?.()
-                if (timer) clearInterval(timer)
-                return
-            }
-            if (!cancelled) setToken(newLock!.token)
-        }
-
-        // first renew after interval to avoid hammering on mount
-        const timer = setInterval(() => void tick(), renewIntervalMs)
-
-        return () => {
-            cancelled = true
-            if (timer) clearInterval(timer)
-        }
-    }, [ entityType, entityId, userId, renewIntervalMs ])
-
-    // Fast release on tab/browser close (production only to avoid StrictMode dup)
-    useEffect(() => {
-        if (process.env.NODE_ENV !== 'production') return
-
-        const handleBeforeUnload = (e: Event) => {
-            const { entityType, entityId, userId, token, hasChanges } = refs.current
             try {
-                navigator.sendBeacon(
-                    '/lib/lock/unlock',
-                    JSON.stringify({ entityType, entityId, userId, token })
-                )
-            } catch { /* ignore */
-            }
-            // Trigger native prompt only when there are unsaved changes
-            if (hasChanges && e instanceof BeforeUnloadEvent) {
-                e.preventDefault()
+                const stillOwned = await renewLock({ entityType, entityId, token })
+                if (stopped) return
+
+                if (!stillOwned) {
+                    lost = true
+                    latest.current.onLockLost()
+                    return
+                }
+                schedule(HEARTBEAT_INTERVAL_MS)
+            } catch {
+                // Connectivity problems are retried; only a token mismatch means takeover.
+                schedule(RETRY_INTERVAL_MS)
+            } finally {
+                running = false
             }
         }
 
-        // beforeunload for “close tab/window”; pagehide for iOS Safari SPA nav
+        const heartbeatNow = () => {
+            if (timer) clearTimeout(timer)
+            void heartbeat()
+        }
+
+        void heartbeat()
+        window.addEventListener('focus', heartbeatNow)
+        window.addEventListener('online', heartbeatNow)
+        window.addEventListener('pageshow', heartbeatNow)
+        document.addEventListener('visibilitychange', heartbeatNow)
+
+        return () => {
+            stopped = true
+            if (timer) clearTimeout(timer)
+            window.removeEventListener('focus', heartbeatNow)
+            window.removeEventListener('online', heartbeatNow)
+            window.removeEventListener('pageshow', heartbeatNow)
+            document.removeEventListener('visibilitychange', heartbeatNow)
+
+            const releaseTimer = setTimeout(() => {
+                pendingReleases.delete(sessionKey)
+                void releaseLock({ entityType, entityId, token })
+            }, 1_000)
+            pendingReleases.set(sessionKey, releaseTimer)
+        }
+    }, [ entityType, entityId, token ])
+
+    useEffect(() => {
+        const handleBeforeUnload = (event: BeforeUnloadEvent) => {
+            if (!latest.current.hasChanges) return
+            event.preventDefault()
+            event.returnValue = ''
+        }
+
+        const handlePageHide = (event: PageTransitionEvent) => {
+            if (event.persisted) return
+            navigator.sendBeacon(
+                '/lib/lock/unlock',
+                JSON.stringify({ entityType, entityId, token })
+            )
+        }
+
         window.addEventListener('beforeunload', handleBeforeUnload)
-        window.addEventListener('pagehide', handleBeforeUnload)
+        window.addEventListener('pagehide', handlePageHide)
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload)
-            window.removeEventListener('pagehide', handleBeforeUnload)
+            window.removeEventListener('pagehide', handlePageHide)
         }
-    }, [])
-
-    // Server-side release when component actually unmounts (prod only)
-    useEffect(() => {
-        return () => {
-            if (process.env.NODE_ENV === 'production') {
-                const { entityType, entityId, userId, token } = refs.current
-                void releaseLock({ entityType, entityId, userId, token })
-            }
-        }
-    }, [ entityType, entityId, userId ])
-
-    return {
-        token,                 // current lock token
-        lockBroken,            // true if someone else took the lock
-        acknowledgeLockBreak: () => setLockBroken(false) // optional helper
-    }
+    }, [ entityType, entityId, token ])
 }

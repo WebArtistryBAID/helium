@@ -7,7 +7,6 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
         await releaseLock({
             entityType: data.entityType,
             entityId: data.entityId,
-            userId: data.userId,
             token: data.token
         })
     } finally {

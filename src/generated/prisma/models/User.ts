@@ -43,6 +43,7 @@ export type UserMinAggregateOutputType = {
   gender: $Enums.Gender | null
   createdAt: Date | null
   updatedAt: Date | null
+    feishuOpenId: string | null
 }
 
 export type UserMaxAggregateOutputType = {
@@ -54,6 +55,7 @@ export type UserMaxAggregateOutputType = {
   gender: $Enums.Gender | null
   createdAt: Date | null
   updatedAt: Date | null
+    feishuOpenId: string | null
 }
 
 export type UserCountAggregateOutputType = {
@@ -66,6 +68,7 @@ export type UserCountAggregateOutputType = {
   gender: number
   createdAt: number
   updatedAt: number
+    feishuOpenId: number
   _all: number
 }
 
@@ -87,6 +90,7 @@ export type UserMinAggregateInputType = {
   gender?: true
   createdAt?: true
   updatedAt?: true
+    feishuOpenId?: true
 }
 
 export type UserMaxAggregateInputType = {
@@ -98,6 +102,7 @@ export type UserMaxAggregateInputType = {
   gender?: true
   createdAt?: true
   updatedAt?: true
+    feishuOpenId?: true
 }
 
 export type UserCountAggregateInputType = {
@@ -110,6 +115,7 @@ export type UserCountAggregateInputType = {
   gender?: true
   createdAt?: true
   updatedAt?: true
+    feishuOpenId?: true
   _all?: true
 }
 
@@ -209,6 +215,7 @@ export type UserGroupByOutputType = {
   gender: $Enums.Gender
   createdAt: Date
   updatedAt: Date
+    feishuOpenId: string | null
   _count: UserCountAggregateOutputType | null
   _avg: UserAvgAggregateOutputType | null
   _sum: UserSumAggregateOutputType | null
@@ -244,6 +251,7 @@ export type UserWhereInput = {
   gender?: Prisma.EnumGenderFilter<"User"> | $Enums.Gender
   createdAt?: Prisma.DateTimeFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeFilter<"User"> | Date | string
+    feishuOpenId?: Prisma.StringNullableFilter<'User'> | string | null
   logs?: Prisma.UserAuditLogListRelationFilter
   ownedEntities?: Prisma.ContentEntityListRelationFilter
   ownedImages?: Prisma.ImageListRelationFilter
@@ -259,6 +267,7 @@ export type UserOrderByWithRelationInput = {
   gender?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+    feishuOpenId?: Prisma.SortOrderInput | Prisma.SortOrder
   logs?: Prisma.UserAuditLogOrderByRelationAggregateInput
   ownedEntities?: Prisma.ContentEntityOrderByRelationAggregateInput
   ownedImages?: Prisma.ImageOrderByRelationAggregateInput
@@ -267,6 +276,7 @@ export type UserOrderByWithRelationInput = {
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
   id?: number
+    feishuOpenId?: string
   AND?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
   OR?: Prisma.UserWhereInput[]
   NOT?: Prisma.UserWhereInput | Prisma.UserWhereInput[]
@@ -281,7 +291,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   logs?: Prisma.UserAuditLogListRelationFilter
   ownedEntities?: Prisma.ContentEntityListRelationFilter
   ownedImages?: Prisma.ImageListRelationFilter
-}, "id">
+}, 'id' | 'feishuOpenId'>
 
 export type UserOrderByWithAggregationInput = {
   id?: Prisma.SortOrder
@@ -293,6 +303,7 @@ export type UserOrderByWithAggregationInput = {
   gender?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+    feishuOpenId?: Prisma.SortOrderInput | Prisma.SortOrder
   _count?: Prisma.UserCountOrderByAggregateInput
   _avg?: Prisma.UserAvgOrderByAggregateInput
   _max?: Prisma.UserMaxOrderByAggregateInput
@@ -313,6 +324,7 @@ export type UserScalarWhereWithAggregatesInput = {
   gender?: Prisma.EnumGenderWithAggregatesFilter<"User"> | $Enums.Gender
   createdAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
   updatedAt?: Prisma.DateTimeWithAggregatesFilter<"User"> | Date | string
+    feishuOpenId?: Prisma.StringNullableWithAggregatesFilter<'User'> | string | null
 }
 
 export type UserCreateInput = {
@@ -325,6 +337,7 @@ export type UserCreateInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   logs?: Prisma.UserAuditLogCreateNestedManyWithoutUserInput
   ownedEntities?: Prisma.ContentEntityCreateNestedManyWithoutCreatorInput
   ownedImages?: Prisma.ImageCreateNestedManyWithoutUploaderInput
@@ -340,6 +353,7 @@ export type UserUncheckedCreateInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   logs?: Prisma.UserAuditLogUncheckedCreateNestedManyWithoutUserInput
   ownedEntities?: Prisma.ContentEntityUncheckedCreateNestedManyWithoutCreatorInput
   ownedImages?: Prisma.ImageUncheckedCreateNestedManyWithoutUploaderInput
@@ -355,6 +369,7 @@ export type UserUpdateInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logs?: Prisma.UserAuditLogUpdateManyWithoutUserNestedInput
   ownedEntities?: Prisma.ContentEntityUpdateManyWithoutCreatorNestedInput
   ownedImages?: Prisma.ImageUpdateManyWithoutUploaderNestedInput
@@ -370,6 +385,7 @@ export type UserUncheckedUpdateInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logs?: Prisma.UserAuditLogUncheckedUpdateManyWithoutUserNestedInput
   ownedEntities?: Prisma.ContentEntityUncheckedUpdateManyWithoutCreatorNestedInput
   ownedImages?: Prisma.ImageUncheckedUpdateManyWithoutUploaderNestedInput
@@ -385,6 +401,7 @@ export type UserCreateManyInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
 }
 
 export type UserUpdateManyMutationInput = {
@@ -397,6 +414,7 @@ export type UserUpdateManyMutationInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type UserUncheckedUpdateManyInput = {
@@ -409,6 +427,7 @@ export type UserUncheckedUpdateManyInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
 }
 
 export type EnumRoleNullableListFilter<$PrismaModel = never> = {
@@ -435,6 +454,7 @@ export type UserCountOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+    feishuOpenId?: Prisma.SortOrder
 }
 
 export type UserAvgOrderByAggregateInput = {
@@ -450,6 +470,7 @@ export type UserMaxOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+    feishuOpenId?: Prisma.SortOrder
 }
 
 export type UserMinOrderByAggregateInput = {
@@ -461,6 +482,7 @@ export type UserMinOrderByAggregateInput = {
   gender?: Prisma.SortOrder
   createdAt?: Prisma.SortOrder
   updatedAt?: Prisma.SortOrder
+    feishuOpenId?: Prisma.SortOrder
 }
 
 export type UserSumOrderByAggregateInput = {
@@ -570,6 +592,7 @@ export type UserCreateWithoutLogsInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   ownedEntities?: Prisma.ContentEntityCreateNestedManyWithoutCreatorInput
   ownedImages?: Prisma.ImageCreateNestedManyWithoutUploaderInput
 }
@@ -584,6 +607,7 @@ export type UserUncheckedCreateWithoutLogsInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   ownedEntities?: Prisma.ContentEntityUncheckedCreateNestedManyWithoutCreatorInput
   ownedImages?: Prisma.ImageUncheckedCreateNestedManyWithoutUploaderInput
 }
@@ -614,6 +638,7 @@ export type UserUpdateWithoutLogsInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ownedEntities?: Prisma.ContentEntityUpdateManyWithoutCreatorNestedInput
   ownedImages?: Prisma.ImageUpdateManyWithoutUploaderNestedInput
 }
@@ -628,6 +653,7 @@ export type UserUncheckedUpdateWithoutLogsInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   ownedEntities?: Prisma.ContentEntityUncheckedUpdateManyWithoutCreatorNestedInput
   ownedImages?: Prisma.ImageUncheckedUpdateManyWithoutUploaderNestedInput
 }
@@ -642,6 +668,7 @@ export type UserCreateWithoutOwnedEntitiesInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   logs?: Prisma.UserAuditLogCreateNestedManyWithoutUserInput
   ownedImages?: Prisma.ImageCreateNestedManyWithoutUploaderInput
 }
@@ -656,6 +683,7 @@ export type UserUncheckedCreateWithoutOwnedEntitiesInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   logs?: Prisma.UserAuditLogUncheckedCreateNestedManyWithoutUserInput
   ownedImages?: Prisma.ImageUncheckedCreateNestedManyWithoutUploaderInput
 }
@@ -686,6 +714,7 @@ export type UserUpdateWithoutOwnedEntitiesInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logs?: Prisma.UserAuditLogUpdateManyWithoutUserNestedInput
   ownedImages?: Prisma.ImageUpdateManyWithoutUploaderNestedInput
 }
@@ -700,6 +729,7 @@ export type UserUncheckedUpdateWithoutOwnedEntitiesInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logs?: Prisma.UserAuditLogUncheckedUpdateManyWithoutUserNestedInput
   ownedImages?: Prisma.ImageUncheckedUpdateManyWithoutUploaderNestedInput
 }
@@ -714,6 +744,7 @@ export type UserCreateWithoutOwnedImagesInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   logs?: Prisma.UserAuditLogCreateNestedManyWithoutUserInput
   ownedEntities?: Prisma.ContentEntityCreateNestedManyWithoutCreatorInput
 }
@@ -728,6 +759,7 @@ export type UserUncheckedCreateWithoutOwnedImagesInput = {
   gender: $Enums.Gender
   createdAt?: Date | string
   updatedAt?: Date | string
+    feishuOpenId?: string | null
   logs?: Prisma.UserAuditLogUncheckedCreateNestedManyWithoutUserInput
   ownedEntities?: Prisma.ContentEntityUncheckedCreateNestedManyWithoutCreatorInput
 }
@@ -758,6 +790,7 @@ export type UserUpdateWithoutOwnedImagesInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logs?: Prisma.UserAuditLogUpdateManyWithoutUserNestedInput
   ownedEntities?: Prisma.ContentEntityUpdateManyWithoutCreatorNestedInput
 }
@@ -772,6 +805,7 @@ export type UserUncheckedUpdateWithoutOwnedImagesInput = {
   gender?: Prisma.EnumGenderFieldUpdateOperationsInput | $Enums.Gender
   createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
   updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+    feishuOpenId?: Prisma.NullableStringFieldUpdateOperationsInput | string | null
   logs?: Prisma.UserAuditLogUncheckedUpdateManyWithoutUserNestedInput
   ownedEntities?: Prisma.ContentEntityUncheckedUpdateManyWithoutCreatorNestedInput
 }
@@ -835,6 +869,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   gender?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+    feishuOpenId?: boolean
   logs?: boolean | Prisma.User$logsArgs<ExtArgs>
   ownedEntities?: boolean | Prisma.User$ownedEntitiesArgs<ExtArgs>
   ownedImages?: boolean | Prisma.User$ownedImagesArgs<ExtArgs>
@@ -851,6 +886,7 @@ export type UserSelectCreateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   gender?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+    feishuOpenId?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
@@ -863,6 +899,7 @@ export type UserSelectUpdateManyAndReturn<ExtArgs extends runtime.Types.Extensio
   gender?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+    feishuOpenId?: boolean
 }, ExtArgs["result"]["user"]>
 
 export type UserSelectScalar = {
@@ -875,9 +912,10 @@ export type UserSelectScalar = {
   gender?: boolean
   createdAt?: boolean
   updatedAt?: boolean
+    feishuOpenId?: boolean
 }
 
-export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<"id" | "name" | "pinyin" | "phone" | "roles" | "type" | "gender" | "createdAt" | "updatedAt", ExtArgs["result"]["user"]>
+export type UserOmit<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetOmit<'id' | 'name' | 'pinyin' | 'phone' | 'roles' | 'type' | 'gender' | 'createdAt' | 'updatedAt' | 'feishuOpenId', ExtArgs['result']['user']>
 export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
   logs?: boolean | Prisma.User$logsArgs<ExtArgs>
   ownedEntities?: boolean | Prisma.User$ownedEntitiesArgs<ExtArgs>
@@ -904,6 +942,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     gender: $Enums.Gender
     createdAt: Date
     updatedAt: Date
+      feishuOpenId: string | null
   }, ExtArgs["result"]["user"]>
   composites: {}
 }
@@ -1339,6 +1378,7 @@ export interface UserFieldRefs {
   readonly gender: Prisma.FieldRef<"User", 'Gender'>
   readonly createdAt: Prisma.FieldRef<"User", 'DateTime'>
   readonly updatedAt: Prisma.FieldRef<"User", 'DateTime'>
+    readonly feishuOpenId: Prisma.FieldRef<'User', 'String'>
 }
     
 

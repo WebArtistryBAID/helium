@@ -12,7 +12,13 @@ import {
 import { HiPencil } from 'react-icons/hi2'
 import If from '@/app/lib/If'
 import { EntityType, Role, User } from '@/generated/prisma/browser'
-import { addApproval, ApprovalThresholds, getApprovalNames, getThresholds } from '@/app/lib/approval/approval-actions'
+import {
+    addApproval,
+    ApprovalThresholds,
+    getApprovalNames,
+    getThresholds,
+    requestContentReview
+} from '@/app/lib/approval/approval-actions'
 import { HiCloudUpload } from 'react-icons/hi'
 import { useEffect, useState } from 'react'
 import { getMyUser } from '@/app/login/login-actions'
@@ -32,6 +38,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
     const [ publishConfirm, setPublishConfirm ] = useState(false)
     const [ approvalConfirm, setApprovalConfirm ] = useState(false)
     const [ approvalConfirm2, setApprovalConfirm2 ] = useState(false)
+    const [ requestConfirm, setRequestConfirm ] = useState(false)
 
     const router = useRouter()
 
@@ -66,6 +73,22 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                                     onClick={() => router.push(`/studio/pages/${entityId}/preview`)}>查看预览</Button>
                             <Button pill color="alternative"
                                     onClick={() => router.push(`/studio/pages/${entityId}/editor`)}>返回编辑器</Button>
+                        </div>
+                    </If>
+                    <If condition={user?.roles.includes(Role.writer)}>
+                        <div className="mt-3">
+                            <Button disabled={loading} pill color="blue" onClick={async () => {
+                                if (!requestConfirm) {
+                                    setRequestConfirm(true)
+                                    return
+                                }
+                                setLoading(true)
+                                await requestContentReview({ entityType, entityId })
+                                setLoading(false)
+                                setRequestConfirm(false)
+                                await refresh()
+                                router.refresh()
+                            }}>{requestConfirm ? '确认请求审核？' : '请求审核'}</Button>
                         </div>
                     </If>
                 </TimelineContent>

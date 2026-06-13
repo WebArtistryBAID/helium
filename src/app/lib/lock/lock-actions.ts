@@ -3,106 +3,128 @@
 import crypto from 'crypto'
 import { EntityType } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
+import { requireUser } from '@/app/login/login-actions'
 
-const FRESH_MS = 90_000
-const SKEW_MS = 15_000
+const LOCK_TTL_MS = 90_000
 
-export async function acquireLock(params: {
+type EntityLockParams = {
     entityType: EntityType
     entityId: number
-    userId: number
-    currentToken?: string // for renewal
-}) {
-    const { entityType, entityId, userId, currentToken } = params
-    const now = new Date()
-    const existing = await prisma.entityLock.findUnique({ where: { entityType_entityId: { entityType, entityId } } })
-
-    // Renewal path
-    if (existing && currentToken && existing.token === currentToken) {
-        const updated = await prisma.entityLock.update({
-            where: { entityType_entityId: { entityType, entityId } },
-            data: { lockedAt: now, lockedBy: userId, token: currentToken }
-        })
-        return { token: updated.token, lockedAt: updated.lockedAt }
-    }
-
-    // Expired or no lock -> take it
-    if (!existing || now.getTime() - existing.lockedAt.getTime() > FRESH_MS) {
-        const token = crypto.randomBytes(16).toString('hex')
-        const upserted = await prisma.entityLock.upsert({
-            where: { entityType_entityId: { entityType, entityId } },
-            update: { lockedAt: now, lockedBy: userId, token },
-            create: { entityType, entityId, lockedBy: userId, lockedAt: now, token }
-        })
-        return { token: upserted.token, lockedAt: upserted.lockedAt }
-    }
-
-    // Fresh lock held by someone else
-    return null
 }
 
-export async function overrideLock(params: {
-    entityType: EntityType, entityId: number, userId: number
-}) {
-    const token = crypto.randomBytes(16).toString('hex')
+type SessionLockParams = EntityLockParams & {
+    token: string
+}
+
+function isUniqueConstraintError(error: unknown) {
+    return typeof error === 'object' && error !== null && 'code' in error && error.code === 'P2002'
+}
+
+export async function acquireLock(params: EntityLockParams & { currentToken?: string }) {
+    const user = await requireUser()
     const now = new Date()
-    const updated = await prisma.entityLock.upsert({
-        where: { entityType_entityId: { entityType: params.entityType, entityId: params.entityId } },
-        update: { lockedAt: now, lockedBy: params.userId, token },
-        create: {
+
+    if (params.currentToken) {
+        const renewed = await prisma.entityLock.updateMany({
+            where: {
+                entityType: params.entityType,
+                entityId: params.entityId,
+                lockedBy: user.id,
+                token: params.currentToken
+            },
+            data: { lockedAt: now }
+        })
+        if (renewed.count === 1) {
+            return { token: params.currentToken }
+        }
+    }
+
+    const token = crypto.randomBytes(32).toString('hex')
+    const reclaimed = await prisma.entityLock.updateMany({
+        where: {
             entityType: params.entityType,
             entityId: params.entityId,
-            lockedBy: params.userId,
+            lockedAt: { lt: new Date(now.getTime() - LOCK_TTL_MS) }
+        },
+        data: {
+            lockedBy: user.id,
             lockedAt: now,
             token
         }
     })
-    return { token: updated.token, lockedAt: updated.lockedAt }
+    if (reclaimed.count === 1) {
+        return { token }
+    }
+
+    try {
+        await prisma.entityLock.create({
+            data: {
+                entityType: params.entityType,
+                entityId: params.entityId,
+                lockedBy: user.id,
+                lockedAt: now,
+                token
+            }
+        })
+        return { token }
+    } catch (error) {
+        if (isUniqueConstraintError(error)) {
+            return null
+        }
+        throw error
+    }
 }
 
-export async function releaseLock(params: {
-    entityType: EntityType, entityId: number, userId: number, token: string
-}) {
-    const row = await prisma.entityLock.findUnique({
+export async function renewLock(params: SessionLockParams) {
+    const user = await requireUser()
+    const renewed = await prisma.entityLock.updateMany({
+        where: {
+            entityType: params.entityType,
+            entityId: params.entityId,
+            lockedBy: user.id,
+            token: params.token
+        },
+        data: { lockedAt: new Date() }
+    })
+    return renewed.count === 1
+}
+
+export async function overrideLock(params: EntityLockParams) {
+    const user = await requireUser()
+    const token = crypto.randomBytes(32).toString('hex')
+
+    await prisma.entityLock.upsert({
         where: {
             entityType_entityId: {
                 entityType: params.entityType,
                 entityId: params.entityId
             }
+        },
+        update: {
+            lockedBy: user.id,
+            lockedAt: new Date(),
+            token
+        },
+        create: {
+            entityType: params.entityType,
+            entityId: params.entityId,
+            lockedBy: user.id,
+            lockedAt: new Date(),
+            token
         }
     })
-    if (!row) return
-    if (row.lockedBy !== params.userId) return
-    if (row.token !== params.token) return
-    const delta = Math.abs(Date.now() - row.lockedAt.getTime())
-    if (delta > SKEW_MS) return
-    await prisma.entityLock.delete({
-        where: {
-            entityType_entityId: {
-                entityType: params.entityType,
-                entityId: params.entityId
-            }
-        }
-    })
+
+    return { token }
 }
 
-export async function isLocked(entityType: EntityType, entityId: number) {
-    const row = await prisma.entityLock.findUnique({ where: { entityType_entityId: { entityType, entityId } } })
-    if (!row) return false
-    return Date.now() - row.lockedAt.getTime() <= FRESH_MS
-}
-
-export async function isLockAlive(params: { entityType: EntityType, entityId: number, userId: number }) {
-    const row = await prisma.entityLock.findUnique({
+export async function releaseLock(params: SessionLockParams) {
+    const user = await requireUser()
+    await prisma.entityLock.deleteMany({
         where: {
-            entityType_entityId: {
-                entityType: params.entityType,
-                entityId: params.entityId
-            }
+            entityType: params.entityType,
+            entityId: params.entityId,
+            lockedBy: user.id,
+            token: params.token
         }
     })
-    if (!row) return false
-    if (Date.now() - row.lockedAt.getTime() > FRESH_MS) return false
-    // Your lock is alive if it's fresh and belongs to you
-    return row.lockedBy === params.userId
 }

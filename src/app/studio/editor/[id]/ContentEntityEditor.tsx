@@ -129,8 +129,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     useEntityLock({
         entityType: init.type,
         entityId: post.id,
-        userId: user.id,
-        initialToken: lockToken,
+        token: lockToken,
         hasChanges,
         onLockLost: () => setShowLockBroken(true)
     })

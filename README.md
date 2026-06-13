@@ -46,6 +46,8 @@ Certain pages have hardcoded constants associated with them; for example, header
 | `ONELOGIN_CLIENT_ID`     | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                            |
 | `ONELOGIN_CLIENT_SECRET` | OneLogin client secret.                                                                                         |
 | `DEEPSEEK_API_KEY`       | Used for sanitizing articles automatically.                                                                     |
+| `FEISHU_CLIENT_ID`       | Feishu app ID used for account binding and approval notifications.                                              |
+| `FEISHU_CLIENT_SECRET`   | Feishu app secret used for account binding and approval notifications.                                          |
 
 ## Contribution
 

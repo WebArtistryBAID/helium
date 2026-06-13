@@ -25,7 +25,8 @@ import {
     HiPuzzlePiece,
     HiShare,
     HiStar,
-    HiUsers
+    HiUsers,
+    HiCog
 } from 'react-icons/hi2'
 import If from '@/app/lib/If'
 import { usePathname } from 'next/navigation'
@@ -66,6 +67,11 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                 <Link href="/studio/media">
                                     <SidebarItem as="div" icon={HiPhoto}>
                                         媒体库
+                                    </SidebarItem>
+                                </Link>
+                                <Link href="/studio/settings">
+                                    <SidebarItem as="div" icon={HiCog}>
+                                        飞书设置
                                     </SidebarItem>
                                 </Link>
                                 <If condition={myUser?.roles.includes(Role.admin)}>
