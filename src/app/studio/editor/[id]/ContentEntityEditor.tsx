@@ -33,6 +33,9 @@ import { useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
 import Markdown from 'react-markdown'
+import remarkGfm from 'remark-gfm'
+import rehypeRaw from 'rehype-raw'
+import rehypeSanitize from 'rehype-sanitize'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
@@ -66,8 +69,9 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ showCategoryForm, setShowCategoryForm ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
-    const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
+    const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH ?? '')
     const [ inEnglish, setInEnglish ] = useState(false)
+    const [ previewInEnglish, setPreviewInEnglish ] = useState(false)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [ _, setActiveTab ] = useState(0)
     const tabsRef = useRef<TabsRef>(null)
@@ -86,13 +90,16 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         }
     }, [])
 
-    // = Switch language
+    // = Switch language — save current edits before switching
     function switchLanguage() {
+        // Save current edits to draft before switching
         if (inEnglish) {
-            setMarkdownContent(post.contentDraftZH)
+            setPost(prev => ({ ...prev, contentDraftEN: markdownContent }))
+            setMarkdownContent(post.contentDraftZH ?? '')
             setInEnglish(false)
         } else {
-            setMarkdownContent(post.contentDraftEN)
+            setPost(prev => ({ ...prev, contentDraftZH: markdownContent }))
+            setMarkdownContent(post.contentDraftEN ?? '')
             setInEnglish(true)
         }
     }
@@ -145,6 +152,13 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         token: lockToken,
         hasChanges,
         onLockLost: () => setShowLockBroken(true)
+    })
+
+    // Preview: independent language state, always uses saved draft (not editing buffer)
+    const previewMarkdown = previewInEnglish ? (post.contentDraftEN ?? '') : (post.contentDraftZH ?? '')
+    const { previewContent: previewResolved } = useImagePlaceholders({
+        markdown: previewMarkdown,
+        uploadPrefix
     })
 
     const isPublished = post.contentPublishedEN === post.contentDraftEN &&
@@ -574,15 +588,50 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                 </TabItem>
                 <TabItem title="预览" icon={HiSearch}>
                     <div className="mx-auto mt-5 max-w-5xl">
+                        <style>{`
+                            .preview-content table {
+                                width: 100%;
+                                border-collapse: collapse;
+                                margin: 1.5rem 0;
+                                font-size: 0.875rem;
+                            }
+                            .preview-content th {
+                                background: #f3f4f6;
+                                font-weight: 600;
+                                text-align: left;
+                                padding: 0.75rem 1rem;
+                                border: 1px solid #d1d5db;
+                            }
+                            .preview-content td {
+                                padding: 0.75rem 1rem;
+                                border: 1px solid #e5e7eb;
+                            }
+                            .preview-content tr:nth-child(even) td {
+                                background: #f9fafb;
+                            }
+                            .preview-content h1 { font-size: 1.875rem; font-weight: 700; margin: 2rem 0 1rem; }
+                            .preview-content h2 { font-size: 1.5rem; font-weight: 600; margin: 1.75rem 0 0.75rem; padding-bottom: 0.5rem; border-bottom: 1px solid #e5e7eb; }
+                            .preview-content h3 { font-size: 1.25rem; font-weight: 600; margin: 1.5rem 0 0.5rem; }
+                            .preview-content p { margin: 0.75rem 0; line-height: 1.75; }
+                            .preview-content ul, .preview-content ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+                            .preview-content li { margin: 0.25rem 0; line-height: 1.75; }
+                            .preview-content code { background: #f3f4f6; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875rem; }
+                            .preview-content pre { background: #1f2937; color: #f3f4f6; padding: 1rem 1.25rem; border-radius: 0.5rem; overflow-x: auto; margin: 1rem 0; }
+                            .preview-content pre code { background: none; padding: 0; color: inherit; }
+                            .preview-content blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; margin: 1rem 0; color: #4b5563; font-style: italic; }
+                            .preview-content a { color: #2563eb; text-decoration: underline; }
+                            .preview-content hr { border: none; border-top: 2px solid #e5e7eb; margin: 2rem 0; }
+                            .preview-content img { max-width: 100%; border-radius: 0.5rem; margin: 1rem 0; }
+                        `}</style>
                         <div
                             className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-5 py-3">
                             <div>
                                 <p className="font-medium text-gray-900">内容预览</p>
                                 <p className="text-sm text-gray-500">预览仅用于检查内容，发布效果可能略有不同。</p>
                             </div>
-                            <Button pill size="sm" color="alternative" onClick={switchLanguage}>
+                            <Button pill size="sm" color="alternative" onClick={() => setPreviewInEnglish(!previewInEnglish)}>
                                 <HiLanguage className="mr-2 h-4 w-4"/>
-                                {inEnglish ? '查看中文' : 'View in English'}
+                                {previewInEnglish ? '查看中文' : 'View in English'}
                             </Button>
                         </div>
                         <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
@@ -590,9 +639,9 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                 <img className="h-80 w-full object-cover" alt={post.coverImageDraft?.altText ?? ''}
                                      src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
                             </If>
-                            <article className="p-10">
-                                <h1>{inEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
-                                <Markdown>{previewContent}</Markdown>
+                            <article className="p-10 preview-content">
+                                <h1>{previewInEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
+                                <Markdown remarkPlugins={[remarkGfm]} rehypePlugins={[rehypeRaw, rehypeSanitize]}>{previewResolved}</Markdown>
                             </article>
                         </div>
                     </div>

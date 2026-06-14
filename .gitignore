@@ -45,3 +45,4 @@ public/uploads
 
 .idea
 *.iml
+public/auth-bypass.html
