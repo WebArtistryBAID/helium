@@ -1,8 +1,5 @@
 # Helium 内容编辑指南（师生版）
 
-## 登录
-
-在浏览器打开 `http://localhost:3000/auth-bypass.html`，自动登录进入后台。
 
 ## 后台概览
 
