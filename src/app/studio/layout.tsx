@@ -17,6 +17,7 @@ import { HiUser } from 'react-icons/hi'
 import { ROLES_TRANSLATIONS } from '@/app/lib/common-translations'
 import {
     HiBookmarkSquare,
+    HiArchiveBox,
     HiChartPie,
     HiNewspaper,
     HiPencil,
@@ -80,6 +81,11 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                     <Link href="/studio/users">
                                         <SidebarItem as="div" icon={HiUsers}>
                                             用户管理
+                                        </SidebarItem>
+                                    </Link>
+                                    <Link href="/studio/backups">
+                                        <SidebarItem as="div" icon={HiArchiveBox}>
+                                            备份管理
                                         </SidebarItem>
                                     </Link>
                                 </If>
