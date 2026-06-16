@@ -9,8 +9,9 @@ export async function GET(_req: NextRequest, { params }: {
     await requireUserWithRole(Role.admin)
     const { filename } = await params
     const file = await readBackupFile(decodeURIComponent(filename))
+    const body = new Uint8Array(file)
 
-    return new NextResponse(file, {
+    return new NextResponse(body, {
         headers: {
             'Content-Type': 'application/zip',
             'Content-Length': file.length.toString(),
