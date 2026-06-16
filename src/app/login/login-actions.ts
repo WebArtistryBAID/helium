@@ -1,6 +1,6 @@
 'use server'
 
-import { Role, User } from '@/generated/prisma/client'
+import { Gender, Prisma, Role, User, UserType } from '@/generated/prisma/client'
 import { me } from '@/app/login/login'
 import { Paginated, SIMPLIFIED_USER_SELECT, SimplifiedUser } from '@/app/lib/data-types'
 import { prisma } from '@/app/lib/prisma'
@@ -47,28 +47,66 @@ export async function getUser(id: number): Promise<User | null> {
     })
 }
 
-export async function getUsers(page: number, keyword: string | undefined = undefined): Promise<Paginated<User>> {
+export type UserFilters = {
+    keyword?: string
+    role?: Role | 'all'
+    type?: UserType | 'all'
+    gender?: Gender | 'all'
+    feishu?: 'all' | 'linked' | 'unlinked'
+}
+
+function buildUserWhere(filters: UserFilters = {}): Prisma.UserWhereInput {
+    const keyword = filters.keyword?.trim()
+    const clauses: Prisma.UserWhereInput[] = []
+
+    if (keyword) {
+        const keywordClauses: Prisma.UserWhereInput[] = [
+            { name: { contains: keyword, mode: 'insensitive' } },
+            { pinyin: { contains: keyword, mode: 'insensitive' } },
+            { phone: { contains: keyword, mode: 'insensitive' } }
+        ]
+
+        if (/^\d+$/.test(keyword)) {
+            keywordClauses.push({ id: Number(keyword) })
+        }
+
+        clauses.push({ OR: keywordClauses })
+    }
+
+    if (filters.role && filters.role !== 'all') {
+        clauses.push({ roles: { has: filters.role } })
+    }
+
+    if (filters.type && filters.type !== 'all') {
+        clauses.push({ type: filters.type })
+    }
+
+    if (filters.gender && filters.gender !== 'all') {
+        clauses.push({ gender: filters.gender })
+    }
+
+    if (filters.feishu === 'linked') {
+        clauses.push({ feishuOpenId: { not: null } })
+    } else if (filters.feishu === 'unlinked') {
+        clauses.push({ feishuOpenId: null })
+    }
+
+    return clauses.length > 0 ? { AND: clauses } : {}
+}
+
+export async function getUsers(page: number, filters: UserFilters = {}): Promise<Paginated<User>> {
     await requireUserWithRole(Role.admin)
-    const pages = Math.ceil(await prisma.user.count({
-        where: keyword != null ? {
-            OR: [
-                { name: { contains: keyword, mode: 'insensitive' } },
-                { pinyin: { contains: keyword, mode: 'insensitive' } }
-            ]
-        } : undefined
-    }) / 10)
+    const where = buildUserWhere(filters)
+    const pageSize = 20
+    const pages = Math.ceil(await prisma.user.count({ where }) / pageSize)
     const users = await prisma.user.findMany({
-        where: keyword != null ? {
-            OR: [
-                { name: { contains: keyword, mode: 'insensitive' } },
-                { pinyin: { contains: keyword, mode: 'insensitive' } }
-            ]
-        } : undefined,
-        orderBy: {
-            pinyin: 'asc'
-        },
-        skip: page * 10,
-        take: 10
+        where,
+        orderBy: [
+            { pinyin: 'asc' },
+            { name: 'asc' }
+        ],
+        skip: page * pageSize,
+        take: pageSize
     })
     return {
         items: users,
