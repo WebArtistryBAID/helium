@@ -92,14 +92,14 @@ const DECISION_TREE: {
                 {
                     value: 'CN_MAIN',
                     label: {
-                        zh: '中国公民，且不具有港澳台永久居住权',
-                        en: 'Chinese citizen without Hong Kong, Macau, or Taiwan permanent residency'
+                        zh: '中国公民，持有《居民身份证》',
+                        en: 'Chinese citizen with a mainland Resident Identity Card'
                     }
                 },
                 {
                     value: 'CN_HK_PR',
                     label: {
-                        zh: '中国公民，且具有港澳台永久居住权',
+                        zh: '中国公民，具有港澳台永久居住权',
                         en: 'Chinese citizen with Hong Kong, Macao, or Taiwan permanent residency'
                     }
                 },
@@ -120,8 +120,8 @@ const DECISION_TREE: {
                 {
                     value: 'DUAL',
                     label: {
-                        zh: '同时具有中国和其他国籍',
-                        en: 'Dual citizen of China and another country'
+                        zh: '中国公民，具有外国护照和《旅行证》',
+                        en: 'Chinese citizen with a foreign passport and a Chinese Travel Document'
                     }
                 }
             ]
