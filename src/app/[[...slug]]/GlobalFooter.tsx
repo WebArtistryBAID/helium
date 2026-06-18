@@ -66,7 +66,6 @@ export default function GlobalFooter({ pages }: {
             <p>{locales[language].copyright}</p>
             <p><a href="https://www.beijingacademy.com.cn">{locales[language].chn}</a></p>
             <p><a href="https://beian.miit.gov.cn">京ICP备13051651号-2</a></p>
-            <p><a href="/studio">{locales[language].backend}</a></p>
         </div>
     </footer>
 }
