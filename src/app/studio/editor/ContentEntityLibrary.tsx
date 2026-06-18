@@ -15,6 +15,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
 import { EntityType, Role, User } from '@/generated/prisma/browser'
+import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
 export default function ContentEntityLibrary({ init, title, user, type }: {
     init: Paginated<SimplifiedContentEntity>,
@@ -34,8 +35,15 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
     const [ wechatStatus, setWeChatStatus ] = useState<WeChatWorkerStatus>(WeChatWorkerStatus.idle)
     const [ loading, setLoading ] = useState(false)
     const [ uploadServePath, setUploadServePath ] = useState<string>('')
+    const {
+        permissionDenied,
+        showPermissionDenied,
+        closePermissionDenied,
+        handlePermissionError
+    } = usePermissionDialog()
 
     const router = useRouter()
+    const canWrite = user.roles.includes(Role.writer)
 
     useEffect(() => {
         const t = setTimeout(() => setDebouncedSearch(search), 300)
@@ -45,13 +53,23 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
     useEffect(() => {
         (async () => {
             setUploadServePath(await getUploadServePath())
-            setWeChatStatus(await checkWeChatWorkerStatus())
+            if (canWrite) {
+                try {
+                    setWeChatStatus(await checkWeChatWorkerStatus())
+                } catch (error) {
+                    if (!handlePermissionError(error)) {
+                        console.error('Failed to check WeChat worker status:', error)
+                    }
+                }
+            }
             const res = await getContentEntities(currentPage, type, debouncedSearch || undefined)
             setPage(res)
         })()
-    }, [ currentPage, debouncedSearch, type ])
+    }, [ canWrite, currentPage, debouncedSearch, handlePermissionError, type ])
 
     return <>
+        <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+
         <Modal show={showCreate} size="md" popup onClose={() => setShowCreate(false)}>
             <ModalHeader/>
             <ModalBody>
@@ -79,12 +97,23 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
             </ModalBody>
             <ModalFooter>
                 <Button disabled={loading} pill color="blue" onClick={async () => {
+                    if (!canWrite) {
+                        showPermissionDenied()
+                        return
+                    }
                     if (!postTitleEN || !postTitleZH) return
                     setLoading(true)
-                    const post = await createContentEntity(type, postTitleEN, postTitleZH)
-                    setLoading(false)
-                    setShowCreate(false)
-                    router.push(type === EntityType.page ? `/studio/pages/${post.id}/editor` : `/studio/editor/${post.id}`)
+                    try {
+                        const post = await createContentEntity(type, postTitleEN, postTitleZH)
+                        setShowCreate(false)
+                        router.push(type === EntityType.page ? `/studio/pages/${post.id}/editor` : `/studio/editor/${post.id}`)
+                    } catch (error) {
+                        if (!handlePermissionError(error)) {
+                            console.error('Failed to create content entity:', error)
+                        }
+                    } finally {
+                        setLoading(false)
+                    }
                 }}>创建</Button>
                 <Button disabled={loading} pill color="alternative" onClick={() => setShowCreate(false)}>
                     取消
@@ -111,6 +140,10 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
             </ModalBody>
             <ModalFooter>
                 <Button disabled={loading} pill color="blue" onClick={async () => {
+                    if (!canWrite) {
+                        showPermissionDenied()
+                        return
+                    }
                     if (!wechatLink) return
                     try {
                         const url = new URL(wechatLink)
@@ -120,9 +153,15 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                     } catch {
                         return
                     }
-                    await createPostFromWeChat(wechatLink, null)
-                    setWeChatStatus(WeChatWorkerStatus.download)
-                    setShowWeChatLink(false)
+                    try {
+                        await createPostFromWeChat(wechatLink, null)
+                        setWeChatStatus(WeChatWorkerStatus.download)
+                        setShowWeChatLink(false)
+                    } catch (error) {
+                        if (!handlePermissionError(error)) {
+                            console.error('Failed to create post from WeChat:', error)
+                        }
+                    }
                 }}>开始同步任务</Button>
                 <Button disabled={loading} pill color="alternative" onClick={() => setShowWeChatLink(false)}>
                     取消
@@ -132,9 +171,9 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
 
         <div className="p-8">
             <div className="flex gap-3 mb-1">
-                <If condition={type === EntityType.post}>
+                <If condition={canWrite && type === EntityType.post}>
                     <Button pill
-                            disabled={wechatStatus !== WeChatWorkerStatus.idle || !user.roles.includes(Role.writer)}
+                            disabled={wechatStatus !== WeChatWorkerStatus.idle}
                             color="blue"
                             onClick={() => setShowWeChatLink(true)}>
                         {{
@@ -148,10 +187,12 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                         }[wechatStatus]}
                     </Button>
                 </If>
-                <Button pill disabled={!user.roles.includes(Role.writer)} color="blue" className="mb-3"
-                        onClick={() => setShowCreate(true)}>
-                    <If condition={type === EntityType.post}>手动</If>创建
-                </Button>
+                <If condition={canWrite}>
+                    <Button pill color="blue" className="mb-3"
+                            onClick={() => setShowCreate(true)}>
+                        <If condition={type === EntityType.post}>手动</If>创建
+                    </Button>
+                </If>
             </div>
             <div className="mb-5">
                 <TextInput

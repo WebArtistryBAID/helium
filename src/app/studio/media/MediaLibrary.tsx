@@ -21,6 +21,7 @@ import type { ImagePage } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
 import { getMyUser } from '@/app/login/login-actions'
+import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
 function formatSize(kb: number): string {
     if (kb < 1024) {
@@ -46,8 +47,15 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     const [ imageAlt, setImageAlt ] = useState('')
     const [ imageHash, setImageHash ] = useState('')
     const [ currentPage, setCurrentPage ] = useState(0)
+    const {
+        permissionDenied,
+        showPermissionDenied,
+        closePermissionDenied,
+        handlePermissionError
+    } = usePermissionDialog()
 
     const tabsRef = useRef<TabsRef>(null)
+    const canWrite = user?.roles.includes(Role.writer) ?? false
 
     useEffect(() => {
         (async () => {
@@ -64,6 +72,8 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     }, [ currentPage, page.page ])
 
     return <>
+        <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+
         <Modal show={showUploadForm} size="md" popup onClose={() => setShowUploadForm(false)}>
             <ModalHeader/>
             <ModalBody>
@@ -93,18 +103,29 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
             </ModalBody>
             <ModalFooter>
                 <Button pill color="blue" disabled={loading} onClick={async () => {
+                    if (!canWrite) {
+                        showPermissionDenied()
+                        return
+                    }
                     if (!imageName || !imageAlt) return
                     setLoading(true)
-                    setSelectedImage(await createImage({
-                        name: imageName,
-                        altText: imageAlt,
-                        sha1: imageHash
-                    }))
-                    setLoading(false)
-                    setCurrentPage(0)
-                    setPage(await getImages(0))
-                    setShowUploadForm(false)
-                    tabsRef.current?.setActiveTab(0)
+                    try {
+                        setSelectedImage(await createImage({
+                            name: imageName,
+                            altText: imageAlt,
+                            sha1: imageHash
+                        }))
+                        setCurrentPage(0)
+                        setPage(await getImages(0))
+                        setShowUploadForm(false)
+                        tabsRef.current?.setActiveTab(0)
+                    } catch (error) {
+                        if (!handlePermissionError(error)) {
+                            console.error('Failed to create image:', error)
+                        }
+                    } finally {
+                        setLoading(false)
+                    }
                 }}>确认</Button>
                 <Button pill color="alternative" disabled={loading} onClick={() => setShowUploadForm(false)}>
                     取消
@@ -119,7 +140,7 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                         <div className="flex flex-col justify-center items-center">
                             <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
                             <p className="mb-3">暂时没有图片</p>
-                            <If condition={user?.roles.includes(Role.writer)}>
+                            <If condition={canWrite}>
                                 <Button pill color="blue" onClick={() => tabsRef.current?.setActiveTab(1)}>上传</Button>
                             </If>
                             <If condition={allowUnpick}>
@@ -201,27 +222,45 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                             }}>选取</Button>
                                         </div>
                                     </If>
-                                    <Button pill disabled={loading || !user?.roles.includes(Role.writer)} color="red"
-                                            onClick={async () => {
-                                                if (deleteConfirm && selectedImage != null) {
-                                                    setLoading(true)
-                                                    await deleteImage(selectedImage.id)
-                                                    setLoading(false)
-                                                    setSelectedImage(null)
-                                                    setPage(await getImages(currentPage))
-                                                } else {
-                                                    setDeleteConfirm(true)
-                                                }
-                                            }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
+                                    <If condition={canWrite}>
+                                        <Button pill disabled={loading} color="red"
+                                                onClick={async () => {
+                                                    if (!canWrite) {
+                                                        showPermissionDenied()
+                                                        return
+                                                    }
+                                                    if (deleteConfirm && selectedImage != null) {
+                                                        setLoading(true)
+                                                        try {
+                                                            await deleteImage(selectedImage.id)
+                                                            setSelectedImage(null)
+                                                            setPage(await getImages(currentPage))
+                                                        } catch (error) {
+                                                            if (!handlePermissionError(error)) {
+                                                                console.error('Failed to delete image:', error)
+                                                            }
+                                                        } finally {
+                                                            setLoading(false)
+                                                        }
+                                                    } else {
+                                                        setDeleteConfirm(true)
+                                                    }
+                                                }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
+                                    </If>
                                 </If>
                             </div>
                         </div>
                     </If>
                 </TabItem>
-                <TabItem title="上传" icon={HiArrowUpTray}>
+                {canWrite ? (
+                    <TabItem title="上传" icon={HiArrowUpTray}>
                     <div className="flex flex-col justify-center items-center">
                         <div className="mb-3">
                             <UploadAreaClient uploadPrefix={page.uploadServePath} onDone={hash => {
+                                if (!canWrite) {
+                                    showPermissionDenied()
+                                    return
+                                }
                                 setImageHash(hash)
                                 setImageName('')
                                 setImageAlt('')
@@ -232,6 +271,7 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                         <p>上传超过 1 MB 的图片会严重降低访问速度。</p>
                     </div>
                 </TabItem>
+                ) : null}
             </Tabs>
         </div>
     </>

@@ -3,7 +3,7 @@ import { imageTypeField, RESOLVED_CONTENT_ENTITY_TYPE, RESOLVED_IMAGE_TYPE } fro
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import InFocusProjects from '@/app/lib/puck/components/InFocusProjects'
 import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
-import { getContentEntity, getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
 import InFocusNewStudents from '@/app/lib/puck/components/InFocusNewStudents'
 
@@ -153,7 +153,7 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
             (props.projects ?? []).map(async (p: any) => {
                 if (!p?.project?.id) return null
                 return {
-                    project: convertDatesToStrings(await getContentEntity(p.project.id)),
+                    project: convertDatesToStrings(await getPublishedContentEntity(p.project.id)),
                     discipline: p.discipline
                 }
             })
@@ -317,7 +317,7 @@ export const InFocusProjectsConfig: ComponentConfig = {
                 resolvedProjects: await Promise.all((props.projects ?? []).map(async (item: any) => {
                     if (!item?.project?.id) return null
                     return {
-                        project: convertDatesToStrings(await getContentEntity(item.project.id)),
+                        project: convertDatesToStrings(await getPublishedContentEntity(item.project.id)),
                         discipline: item.discipline,
                         description: item.description,
                         linkText: item.linkText

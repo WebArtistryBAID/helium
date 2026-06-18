@@ -133,6 +133,16 @@ export async function getContentEntityBySlug(slug: string): Promise<HydratedCont
     })
 }
 
+export async function getPublishedContentEntity(id: number): Promise<HydratedContentEntity | null> {
+    return prisma.contentEntity.findFirst({
+        where: {
+            id,
+            contentPublishedEN: { not: null }
+        },
+        select: HYDRATED_CONTENT_ENTITY_SELECT
+    })
+}
+
 export async function getPublishedProjectsByCategory(page: number, category: string): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
@@ -312,6 +322,7 @@ export async function getContentEntities(page: number, type: EntityType, query: 
 }
 
 export async function getContentEntity(id: number): Promise<HydratedContentEntity | null> {
+    await requireUser()
     return prisma.contentEntity.findUnique({
         where: { id },
         select: HYDRATED_CONTENT_ENTITY_SELECT

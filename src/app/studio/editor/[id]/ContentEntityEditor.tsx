@@ -49,6 +49,7 @@ import {
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
 import { Role, User } from '@/generated/prisma/browser'
+import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
 export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
     init: HydratedContentEntity,
@@ -72,6 +73,14 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ _, setActiveTab ] = useState(0)
     const tabsRef = useRef<TabsRef>(null)
     const router = useRouter()
+    const canWrite = user.roles.includes(Role.writer)
+    const canModerate = user.roles.includes(Role.editor)
+    const {
+        permissionDenied,
+        showPermissionDenied,
+        closePermissionDenied,
+        handlePermissionError
+    } = usePermissionDialog()
 
     const { previewContent } = useImagePlaceholders({
         markdown: markdownContent,
@@ -136,7 +145,22 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             'createdAt'
         ]
     })
-    useSaveShortcut(true, save)
+
+    async function guardedSave() {
+        if (!canWrite) {
+            showPermissionDenied()
+            return
+        }
+        try {
+            await save()
+        } catch (error) {
+            if (!handlePermissionError(error)) {
+                console.error('Failed to save content entity:', error)
+            }
+        }
+    }
+
+    useSaveShortcut(true, guardedSave)
 
     // = Locking
     useEntityLock({
@@ -329,9 +353,14 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             </ModalFooter>
         </Modal>
 
+        <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
         <LockBrokenPrompt show={showLockBroken} returnUri="/studio"/>
         <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} allowUnpick={false}
                      onPick={image => {
+                         if (!canWrite) {
+                             showPermissionDenied()
+                             return
+                         }
                          setPost(prev => ({
                              ...prev,
                              coverImageDraft: image!,
@@ -367,12 +396,14 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <HiLanguage className="mr-2 h-4 w-4"/>
                             {inEnglish ? 'English · 切换到中文' : '中文 · Switch to English'}
                         </Button>
-                        <Button pill color="blue"
-                                disabled={loading || !user.roles.includes(Role.writer)}
-                                onClick={save}>
-                            <HiCheckCircle className="mr-2 h-4 w-4"/>
-                            {loading ? '正在保存...' : '保存更改'}
-                        </Button>
+                        <If condition={canWrite}>
+                            <Button pill color="blue"
+                                    disabled={loading}
+                                    onClick={guardedSave}>
+                                <HiCheckCircle className="mr-2 h-4 w-4"/>
+                                {loading ? '正在保存...' : '保存更改'}
+                            </Button>
+                        </If>
                     </div>
                 </div>
             </header>
@@ -397,7 +428,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <SimpleMarkdownEditor
                                 className="rounded-xl shadow-none"
                                 value={markdownContent}
+                                readOnly={!canWrite}
                                 onChange={(content: string) => {
+                                    if (!canWrite) {
+                                        showPermissionDenied()
+                                        return
+                                    }
                                     setMarkdownContent(content)
                                     if (inEnglish) {
                                         setPost(prev => ({ ...prev, contentDraftEN: content }))
@@ -421,10 +457,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                             {inEnglish ? post.titleDraftZH : post.titleDraftEN}
                                         </p>
                                     </div>
-                                    <button type="button" className={editButtonClass} aria-label="编辑标题"
-                                            onClick={() => setShowTitleForm(true)}>
-                                        <HiPencil className="h-4 w-4"/>
-                                    </button>
+                                    <If condition={canWrite}>
+                                        <button type="button" className={editButtonClass} aria-label="编辑标题"
+                                                onClick={() => setShowTitleForm(true)}>
+                                            <HiPencil className="h-4 w-4"/>
+                                        </button>
+                                    </If>
                                 </div>
 
                                 <div className="space-y-4 border-t border-gray-100 pt-4">
@@ -434,10 +472,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                             <p className="text-xs font-medium text-gray-500">链接位置</p>
                                             <p className="truncate text-sm text-gray-900">{post.slug}</p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑链接位置"
-                                                onClick={() => setShowSlugForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑链接位置"
+                                                    onClick={() => setShowSlugForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                     <div className="flex gap-3">
                                         <HiTag className="mt-0.5 h-5 w-5 shrink-0 text-gray-400"/>
@@ -447,10 +487,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                 {inEnglish ? post.categoryEN : post.categoryZH || '尚未设置'}
                                             </p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑类别"
-                                                onClick={() => setShowCategoryForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑类别"
+                                                    onClick={() => setShowCategoryForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                     <div className="flex gap-3">
                                         <HiNewspaper className="mt-0.5 h-5 w-5 shrink-0 text-gray-400"/>
@@ -460,10 +502,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                 {displayedShortContent || '尚未设置'}
                                             </p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑短内容"
-                                                onClick={() => setShowShortContentForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑短内容"
+                                                    onClick={() => setShowShortContentForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                 </div>
                             </section>
@@ -487,10 +531,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                     new Date(post.createdAt) : post.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑显示日期"
-                                                onClick={() => setShowDateForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑显示日期"
+                                                    onClick={() => setShowDateForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                     <div className="flex gap-3">
                                         <HiClock className="mt-0.5 h-5 w-5 text-gray-400"/>
@@ -517,58 +563,100 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                     </div>
                                     <HiPhoto className="h-5 w-5 text-gray-400"/>
                                 </div>
-                                <button type="button"
-                                        aria-label={post.coverImageDraft != null ? '更换封面图片' : '选择封面图片'}
-                                        onClick={() => setShowMediaLibrary(true)}
-                                        className="block w-full text-left">
-                                    <If condition={post.coverImageDraft != null}>
-                                        <img className="h-40 w-full object-cover transition-opacity hover:opacity-90"
-                                             alt={post.coverImageDraft?.altText ?? ''}
-                                             src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
-                                    </If>
-                                    <If condition={post.coverImageDraft == null}>
-                                        <div
-                                            className="m-5 mt-1 flex h-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600">
-                                            选择封面图片
-                                        </div>
-                                    </If>
-                                </button>
+                                <If condition={canWrite}>
+                                    <button type="button"
+                                            aria-label={post.coverImageDraft != null ? '更换封面图片' : '选择封面图片'}
+                                            onClick={() => setShowMediaLibrary(true)}
+                                            className="block w-full text-left">
+                                        <If condition={post.coverImageDraft != null}>
+                                            <img
+                                                className="h-40 w-full object-cover transition-opacity hover:opacity-90"
+                                                alt={post.coverImageDraft?.altText ?? ''}
+                                                src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
+                                        </If>
+                                        <If condition={post.coverImageDraft == null}>
+                                            <div
+                                                className="m-5 mt-1 flex h-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600">
+                                                选择封面图片
+                                            </div>
+                                        </If>
+                                    </button>
+                                </If>
+                                <If condition={!canWrite}>
+                                    <div className="block w-full text-left">
+                                        <If condition={post.coverImageDraft != null}>
+                                            <img className="h-40 w-full object-cover"
+                                                 alt={post.coverImageDraft?.altText ?? ''}
+                                                 src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
+                                        </If>
+                                        <If condition={post.coverImageDraft == null}>
+                                            <div
+                                                className="m-5 mt-1 flex h-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500">
+                                                尚未设置封面图片
+                                            </div>
+                                        </If>
+                                    </div>
+                                </If>
                             </section>
 
-                            <section className="rounded-2xl border border-red-100 bg-red-50/50 p-5">
-                                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">
-                                    内容管理
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
-                                        <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)}
+                            <If condition={canModerate}>
+                                <section className="rounded-2xl border border-red-100 bg-red-50/50 p-5">
+                                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">
+                                        内容管理
+                                    </p>
+                                    <div className="flex flex-wrap gap-2">
+                                        <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
+                                            <Button disabled={loadingAdditional}
+                                                    size="xs" color="red" outline onClick={async () => {
+                                                if (!canModerate) {
+                                                    showPermissionDenied()
+                                                    return
+                                                }
+                                                if (!unpublishConfirm) {
+                                                    setUnpublishConfirm(true)
+                                                    return
+                                                }
+                                                setLoadingAdditional(true)
+                                                try {
+                                                    await unpublishContentEntity(post.id)
+                                                    await refresh()
+                                                    router.refresh()
+                                                } catch (error) {
+                                                    if (!handlePermissionError(error)) {
+                                                        console.error('Failed to unpublish content entity:', error)
+                                                    }
+                                                } finally {
+                                                    setLoadingAdditional(false)
+                                                }
+                                            }}>
+                                                {unpublishConfirm ? '确认撤回?' : '撤回发布'}
+                                            </Button>
+                                        </If>
+                                        <Button disabled={loadingAdditional}
                                                 size="xs" color="red" outline onClick={async () => {
-                                            if (!unpublishConfirm) {
-                                                setUnpublishConfirm(true)
+                                            if (!canModerate) {
+                                                showPermissionDenied()
+                                                return
+                                            }
+                                            if (!deleteConfirm) {
+                                                setDeleteConfirm(true)
                                                 return
                                             }
                                             setLoadingAdditional(true)
-                                            await unpublishContentEntity(post.id)
-                                            setLoadingAdditional(false)
-                                            await refresh()
-                                            router.refresh()
-                                        }}>
-                                            {unpublishConfirm ? '确认撤回?' : '撤回发布'}
-                                        </Button>
-                                    </If>
-                                    <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)}
-                                            size="xs" color="red" outline onClick={async () => {
-                                        if (!deleteConfirm) {
-                                            setDeleteConfirm(true)
-                                            return
-                                        }
-                                        setLoadingAdditional(true)
-                                        await deleteContentEntity(post.id)
-                                        setLoadingAdditional(false)
-                                        router.push('/studio')
-                                    }}>{deleteConfirm ? '确认删除?' : '删除内容'}</Button>
-                                </div>
-                            </section>
+                                            try {
+                                                await deleteContentEntity(post.id)
+                                                router.push('/studio')
+                                            } catch (error) {
+                                                if (!handlePermissionError(error)) {
+                                                    console.error('Failed to delete content entity:', error)
+                                                }
+                                            } finally {
+                                                setLoadingAdditional(false)
+                                            }
+                                        }}>{deleteConfirm ? '确认删除?' : '删除内容'}</Button>
+                                    </div>
+                                </section>
+                            </If>
                         </aside>
                     </div>
                 </TabItem>

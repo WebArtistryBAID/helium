@@ -1,6 +1,6 @@
 import { EntityType } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@measured/puck'
-import { getContentEntity, getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import Activities from '@/app/lib/puck/components/Activities'
 import { convertDatesToStrings } from '@/app/lib/data-types'
@@ -63,7 +63,7 @@ const ActivitiesConfig: ComponentConfig = {
                 resolvedActivities: await Promise.all((props.activities ?? []).map(async (item: any) => {
                     if (!item?.activity?.id) return null
                     return {
-                        activity: convertDatesToStrings(await getContentEntity(item.activity.id))
+                        activity: convertDatesToStrings(await getPublishedContentEntity(item.activity.id))
                     }
                 })),
                 resolvedUploadPrefix: await getUploadServePath()

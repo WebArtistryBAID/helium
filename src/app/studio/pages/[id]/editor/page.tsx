@@ -8,7 +8,7 @@ export default async function StudioPageEditor({ params, searchParams }: {
     params: Promise<{ id: string }>,
     searchParams: Promise<{ token?: string | null }>
 }) {
-    await requireUser()
+    const user = await requireUser()
 
     const entity = await getContentEntity(parseInt((await params).id))
     if (entity == null) {
@@ -28,5 +28,5 @@ export default async function StudioPageEditor({ params, searchParams }: {
         redirect(`/studio/pages/${entity.id}/editor?token=${token}`)
     }
 
-    return <PageEditor init={entity} lockToken={token}/>
+    return <PageEditor init={entity} lockToken={token} user={user}/>
 }

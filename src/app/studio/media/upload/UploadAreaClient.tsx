@@ -79,6 +79,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                 <If condition={error != ''}>
                     {{
                         network: '网络错误，请稍后再试',
+                        'no-permission': '你没有权限执行此操作',
                         'no-file': '未检测到文件，请重试',
                         'not-image': '仅支持图片格式的文件',
                         duplicate: '该图片已存在，无需重复上传'

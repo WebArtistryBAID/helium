@@ -3,7 +3,8 @@ import path from 'node:path'
 import { NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import crypto from 'crypto'
-import { requireUser } from '@/app/login/login-actions'
+import { requireUserWithRole } from '@/app/login/login-actions'
+import { Role } from '@/generated/prisma/client'
 
 function getPath(relative: string): string {
     return path.join(process.env.UPLOAD_PATH!, relative)
@@ -15,7 +16,11 @@ export async function POST(req: NextRequest): Promise<Response> {
     } catch {
         await fs.mkdir(process.env.UPLOAD_PATH!, { recursive: true })
     }
-    await requireUser()
+    try {
+        await requireUserWithRole(Role.writer)
+    } catch {
+        return NextResponse.json({ error: 'no-permission' }, { status: 403 })
+    }
     const formData = await req.formData()
     const file = formData.get('file') as File | null
     if (file == null) {

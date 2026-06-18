@@ -18,11 +18,13 @@ import { Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, 
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
 import '@measured/puck/puck.css'
-import { Role } from '@/generated/prisma/enums'
+import { Role, User } from '@/generated/prisma/browser'
+import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
-export default function PageEditor({ init, lockToken }: {
+export default function PageEditor({ init, lockToken, user }: {
     init: HydratedContentEntity,
-    lockToken: string
+    lockToken: string,
+    user: User
 }) {
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMetadata, setShowMetadata ] = useState(false)
@@ -32,6 +34,14 @@ export default function PageEditor({ init, lockToken }: {
     const [ inEnglish, setInEnglish ] = useState(false)
 
     const router = useRouter()
+    const canWrite = user.roles.includes(Role.writer)
+    const canModerate = user.roles.includes(Role.editor)
+    const {
+        permissionDenied,
+        showPermissionDenied,
+        closePermissionDenied,
+        handlePermissionError
+    } = usePermissionDialog()
 
     // = Switch language
     function switchLanguage() {
@@ -72,7 +82,22 @@ export default function PageEditor({ init, lockToken }: {
             'createdAt'
         ]
     })
-    useSaveShortcut(true, save)
+
+    async function guardedSave() {
+        if (!canWrite) {
+            showPermissionDenied()
+            return
+        }
+        try {
+            await save()
+        } catch (error) {
+            if (!handlePermissionError(error)) {
+                console.error('Failed to save page:', error)
+            }
+        }
+    }
+
+    useSaveShortcut(true, guardedSave)
 
     // = Locking
     useEntityLock({
@@ -84,6 +109,7 @@ export default function PageEditor({ init, lockToken }: {
     })
 
     return <>
+        <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
         <LockBrokenPrompt show={showLockBroken} returnUri="/studio/pages"/>
 
         <Modal show={showMetadata} size="md" popup onClose={() => setShowMetadata(false)}>
@@ -105,7 +131,12 @@ export default function PageEditor({ init, lockToken }: {
                             <Label htmlFor="slug">链接位置</Label>
                         </div>
                         <TextInput id="slug" value={draft.slug} placeholder="better-me-better-world"
+                                   disabled={!canWrite}
                                    onChange={e => {
+                                       if (!canWrite) {
+                                           showPermissionDenied()
+                                           return
+                                       }
                                        const val = e.currentTarget?.value ?? '' // I really don't know why it can be null
                                        setDraft(prev => ({
                                            ...prev,
@@ -147,48 +178,78 @@ export default function PageEditor({ init, lockToken }: {
                 </div>
             </ModalBody>
             <ModalFooter>
-                <Button pill color="alternative"
-                        onClick={() => {
-                            setDraft(prev => ({
-                                ...prev,
-                                contentDraftEN: prev.contentDraftZH,
-                                titleDraftEN: prev.titleDraftZH
-                            }))
-                        }}>用中文内容覆盖英文</Button>
+                <If condition={canWrite}>
+                    <Button pill color="alternative"
+                            onClick={() => {
+                                if (!canWrite) {
+                                    showPermissionDenied()
+                                    return
+                                }
+                                setDraft(prev => ({
+                                    ...prev,
+                                    contentDraftEN: prev.contentDraftZH,
+                                    titleDraftEN: prev.titleDraftZH
+                                }))
+                            }}>用中文内容覆盖英文</Button>
+                </If>
 
-                <If condition={draft.contentPublishedEN != null || draft.contentPublishedZH != null}>
+                <If condition={canModerate && (draft.contentPublishedEN != null || draft.contentPublishedZH != null)}>
                     <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                        if (!canModerate) {
+                            showPermissionDenied()
+                            return
+                        }
                         if (!unpublishConfirm) {
                             setUnpublishConfirm(true)
                             return
                         }
                         setLoadingAdditional(true)
-                        await unpublishContentEntity(draft.id)
-                        setLoadingAdditional(false)
-                        await refresh()
-                        setUnpublishConfirm(false)
-                        setDraft(prev => ({ // Somehow refreshing doesn't work so we update the state locally
-                            ...prev,
-                            titlePublishedEN: null,
-                            titlePublishedZH: null,
-                            contentPublishedEN: null,
-                            contentPublishedZH: null
-                        }))
-                        router.refresh()
+                        try {
+                            await unpublishContentEntity(draft.id)
+                            await refresh()
+                            setUnpublishConfirm(false)
+                            setDraft(prev => ({ // Somehow refreshing doesn't work so we update the state locally
+                                ...prev,
+                                titlePublishedEN: null,
+                                titlePublishedZH: null,
+                                contentPublishedEN: null,
+                                contentPublishedZH: null
+                            }))
+                            router.refresh()
+                        } catch (error) {
+                            if (!handlePermissionError(error)) {
+                                console.error('Failed to unpublish page:', error)
+                            }
+                        } finally {
+                            setLoadingAdditional(false)
+                        }
                     }}>
                         {unpublishConfirm ? '确认撤回?' : '撤回发布'}
                     </Button>
                 </If>
-                <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
-                    if (!deleteConfirm) {
-                        setDeleteConfirm(true)
-                        return
-                    }
-                    setLoadingAdditional(true)
-                    await deleteContentEntity(draft.id)
-                    setLoadingAdditional(false)
-                    router.push('/studio/pages')
-                }}>{deleteConfirm ? '确认删除?' : '删除页面'}</Button>
+                <If condition={canModerate}>
+                    <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                        if (!canModerate) {
+                            showPermissionDenied()
+                            return
+                        }
+                        if (!deleteConfirm) {
+                            setDeleteConfirm(true)
+                            return
+                        }
+                        setLoadingAdditional(true)
+                        try {
+                            await deleteContentEntity(draft.id)
+                            router.push('/studio/pages')
+                        } catch (error) {
+                            if (!handlePermissionError(error)) {
+                                console.error('Failed to delete page:', error)
+                            }
+                        } finally {
+                            setLoadingAdditional(false)
+                        }
+                    }}>{deleteConfirm ? '确认删除?' : '删除页面'}</Button>
+                </If>
             </ModalFooter>
         </Modal>
 
@@ -197,6 +258,10 @@ export default function PageEditor({ init, lockToken }: {
             config={PUCK_CONFIG}
             data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
             onChange={data => {
+                if (!canWrite) {
+                    showPermissionDenied()
+                    return
+                }
                 if (inEnglish) {
                     setDraft(prev => ({
                         ...prev,
@@ -218,7 +283,9 @@ export default function PageEditor({ init, lockToken }: {
                     <Button pill color="alternative" onClick={() => setShowMetadata(true)}>页面信息</Button>
                     <Button pill color="alternative"
                             onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
-                    <Button pill color="blue" disabled={loading} onClick={save}>保存更改</Button>
+                    <If condition={canWrite}>
+                        <Button pill color="blue" disabled={loading} onClick={guardedSave}>保存更改</Button>
+                    </If>
                 </>
             }}
         />

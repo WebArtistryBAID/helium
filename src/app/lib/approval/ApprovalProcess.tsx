@@ -24,6 +24,7 @@ import { useEffect, useState } from 'react'
 import { getMyUser } from '@/app/login/login-actions'
 import { useRouter } from 'next/navigation'
 import { HydratedContentEntity, isAligned } from '@/app/lib/data-types'
+import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
 export default function ApprovalProcess({ entityType, entityId, entity, doAlign }: {
     entityType: EntityType,
@@ -39,8 +40,17 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
     const [ approvalConfirm, setApprovalConfirm ] = useState(false)
     const [ approvalConfirm2, setApprovalConfirm2 ] = useState(false)
     const [ requestConfirm, setRequestConfirm ] = useState(false)
+    const {
+        permissionDenied,
+        showPermissionDenied,
+        closePermissionDenied,
+        handlePermissionError
+    } = usePermissionDialog()
 
     const router = useRouter()
+    const canWrite = user?.roles.includes(Role.writer) ?? false
+    const canApproveAsEditor = user?.roles.includes(Role.editor) ?? false
+    const canApproveAsAdmin = user?.roles.includes(Role.admin) ?? false
 
     useEffect(() => {
         (async () => {
@@ -55,7 +65,9 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
         setApprovalNames(await getApprovalNames(entityType, entityId))
     }
 
-    return <div className="p-8">
+    return <>
+        <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+        <div className="p-8">
         <h2 className="text-2xl font-bold mb-5">
             审核与发布流程<If condition={entityType === EntityType.page}>: &#34;{entity.titleDraftZH}&#34; 页面</If>
         </h2>
@@ -75,19 +87,30 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                                     onClick={() => router.push(`/studio/pages/${entityId}/editor`)}>返回编辑器</Button>
                         </div>
                     </If>
-                    <If condition={user?.roles.includes(Role.writer)}>
+                    <If condition={canWrite}>
                         <div className="mt-3">
                             <Button disabled={loading} pill color="blue" onClick={async () => {
+                                if (!canWrite) {
+                                    showPermissionDenied()
+                                    return
+                                }
                                 if (!requestConfirm) {
                                     setRequestConfirm(true)
                                     return
                                 }
                                 setLoading(true)
-                                await requestContentReview({ entityType, entityId })
-                                setLoading(false)
-                                setRequestConfirm(false)
-                                await refresh()
-                                router.refresh()
+                                try {
+                                    await requestContentReview({ entityType, entityId })
+                                    setRequestConfirm(false)
+                                    await refresh()
+                                    router.refresh()
+                                } catch (error) {
+                                    if (!handlePermissionError(error)) {
+                                        console.error('Failed to request content review:', error)
+                                    }
+                                } finally {
+                                    setLoading(false)
+                                }
                             }}>{requestConfirm ? '确认发送?' : '发送飞书审核通知'}</Button>
                         </div>
                     </If>
@@ -110,22 +133,33 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                             <p className="text-green-400">已经由 {approvalsNames.editor.join('、')} 批准，本步骤已完成。</p>
                         </If>
                     </TimelineBody>
-                    <If condition={user?.roles?.includes(Role.editor) && !approvalsNames.editor.includes(user?.name)}>
+                    <If condition={canApproveAsEditor && !approvalsNames.editor.includes(user?.name ?? '')}>
                         <Button disabled={loading} pill color="blue" onClick={async () => {
+                            if (!canApproveAsEditor) {
+                                showPermissionDenied()
+                                return
+                            }
                             if (!approvalConfirm) {
                                 setApprovalConfirm(true)
                                 return
                             }
                             setLoading(true)
-                            await addApproval({
-                                entityType,
-                                entityId,
-                                role: Role.editor
-                            })
-                            setLoading(false)
-                            setApprovalConfirm(false)
-                            await refresh()
-                            router.refresh()
+                            try {
+                                await addApproval({
+                                    entityType,
+                                    entityId,
+                                    role: Role.editor
+                                })
+                                setApprovalConfirm(false)
+                                await refresh()
+                                router.refresh()
+                            } catch (error) {
+                                if (!handlePermissionError(error)) {
+                                    console.error('Failed to approve content as editor:', error)
+                                }
+                            } finally {
+                                setLoading(false)
+                            }
                         }}>{approvalConfirm ? '确认批准?' : '批准'}</Button>
                     </If>
                 </TimelineContent>
@@ -147,22 +181,33 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                             <p className="text-green-400">已经由 {approvalsNames.admin.join('、')} 批准，本步骤已完成。</p>
                         </If>
                     </TimelineBody>
-                    <If condition={user?.roles?.includes(Role.admin) && !approvalsNames.admin.includes(user?.name)}>
+                    <If condition={canApproveAsAdmin && !approvalsNames.admin.includes(user?.name ?? '')}>
                         <Button disabled={loading} pill color="blue" onClick={async () => {
+                            if (!canApproveAsAdmin) {
+                                showPermissionDenied()
+                                return
+                            }
                             if (!approvalConfirm2) {
                                 setApprovalConfirm2(true)
                                 return
                             }
                             setLoading(true)
-                            await addApproval({
-                                entityType,
-                                entityId,
-                                role: Role.admin
-                            })
-                            setLoading(false)
-                            setApprovalConfirm2(false)
-                            await refresh()
-                            router.refresh()
+                            try {
+                                await addApproval({
+                                    entityType,
+                                    entityId,
+                                    role: Role.admin
+                                })
+                                setApprovalConfirm2(false)
+                                await refresh()
+                                router.refresh()
+                            } catch (error) {
+                                if (!handlePermissionError(error)) {
+                                    console.error('Failed to approve content as admin:', error)
+                                }
+                            } finally {
+                                setLoading(false)
+                            }
                         }}>{approvalConfirm2 ? '确认批准?' : '批准'}</Button>
                     </If>
                 </TimelineContent>
@@ -178,18 +223,31 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                         <If condition={approvalsNames.editor.length >= (approvalsThreshold?.editor ?? 1) && approvalsNames.admin.length >= (approvalsThreshold?.admin ?? 1) &&
                             !isAligned(entity)}>
                             <p>内容已审核完成，可以发表。</p>
-                            <Button disabled={loading || !user?.roles.includes(Role.admin)} pill color="blue"
-                                    onClick={async () => {
-                                if (!publishConfirm) {
-                                    setPublishConfirm(true)
-                                    return
-                                }
-                                setLoading(true)
-                                await doAlign()
-                                setLoading(false)
-                                await refresh()
-                                router.refresh()
-                            }}>{publishConfirm ? '确认发布?' : '发布'}</Button>
+                            <If condition={canApproveAsAdmin}>
+                                <Button disabled={loading} pill color="blue"
+                                        onClick={async () => {
+                                            if (!canApproveAsAdmin) {
+                                                showPermissionDenied()
+                                                return
+                                            }
+                                            if (!publishConfirm) {
+                                                setPublishConfirm(true)
+                                                return
+                                            }
+                                            setLoading(true)
+                                            try {
+                                                await doAlign()
+                                                await refresh()
+                                                router.refresh()
+                                            } catch (error) {
+                                                if (!handlePermissionError(error)) {
+                                                    console.error('Failed to publish content:', error)
+                                                }
+                                            } finally {
+                                                setLoading(false)
+                                            }
+                                        }}>{publishConfirm ? '确认发布?' : '发布'}</Button>
+                            </If>
                         </If>
                         <If condition={isAligned(entity)}>
                             <p>内容已成功发布! 自动更新可能需要最多一小时。</p>
@@ -199,4 +257,5 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
             </TimelineItem>
         </Timeline>
     </div>
+    </>
 }
