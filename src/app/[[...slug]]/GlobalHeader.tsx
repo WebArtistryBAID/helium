@@ -198,12 +198,6 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                     ].join(' ')}
                 >
                     <RouterLinks pages={pages}/>
-                    <div className="flex items-center justify-center text-lg ml-3">
-                        <a className="bg-red-900 rounded-full p-2 text-white" href="https://link.beijing.academy"
-                           target="_blank" rel="noreferrer">
-                            LinkBAID
-                        </a>
-                    </div>
                 </nav>
 
                 <div className="h-18 w-24 flex items-center justify-center gap-2">

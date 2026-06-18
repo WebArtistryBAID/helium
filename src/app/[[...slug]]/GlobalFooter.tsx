@@ -8,13 +8,15 @@ const locales = {
         wechat: '(add on WeChat)',
         copyright: '© 2026 Beijing Academy Education Group. All rights reserved.',
         chn: 'Learn more about Beijing Academy Education Group\'s other programs.',
-        nav: 'Footer Navigation'
+        nav: 'Footer Navigation',
+        backend: 'Open Administrative Interface'
     },
     zh: {
         wechat: '(在微信上添加)',
         copyright: '© 2026 北京中学教育集团 / 保留所有权利',
         chn: '了解北京中学教育集团的其他教育项目。',
-        nav: '页脚导航'
+        nav: '页脚导航',
+        backend: '打开管理后台'
     }
 }
 
@@ -64,6 +66,7 @@ export default function GlobalFooter({ pages }: {
             <p>{locales[language].copyright}</p>
             <p><a href="https://www.beijingacademy.com.cn">{locales[language].chn}</a></p>
             <p><a href="https://beian.miit.gov.cn">京ICP备13051651号-2</a></p>
+            <p><a href="/studio">{locales[language].backend}</a></p>
         </div>
     </footer>
 }
