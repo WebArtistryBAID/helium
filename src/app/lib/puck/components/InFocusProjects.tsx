@@ -68,7 +68,7 @@ export default function InFocusProjects({
                                 transition={{ duration: 0.8 }}>
                         <p className="text-lg uppercase text-center tracking-wider text-gray-300 !mb-3">In Focus</p>
                         <h1 id="hero-heading"
-                            className={`mb-3 text-white text-center font-bold font-serif ${language === 'en' ? 'text-5xl md:text-6xl' : 'text-4xl md:text-5xl'}`}>
+                            className={`mb-3 text-white text-center font-bold font-serif text-4xl lg:text-5xl`}>
                             {title}
                         </h1>
                     </motion.div>
