@@ -145,7 +145,7 @@ export default function InFocusCommencement({
         </section>
 
         <section data-surface={collageHasLightBackground ? 'light' : 'dark'}
-                 className="relative isolate min-h-[56rem] overflow-hidden px-5 py-28 sm:px-8 lg:px-12"
+                 className="relative isolate overflow-hidden px-5 py-16 sm:px-8 sm:py-20 md:min-h-[56rem] md:py-28 lg:px-12"
                  style={{ backgroundColor: collageBackground }} aria-labelledby="commencement-collage-heading">
             <div
                 className="absolute inset-0"
@@ -153,7 +153,7 @@ export default function InFocusCommencement({
                     background: `radial-gradient(circle at center, ${collageHasLightBackground ? 'rgba(18, 42, 40, 0.08)' : 'rgba(255, 255, 255, 0.08)'}, transparent 44%)`
                 }}/>
             <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, amount: 0.2 }}
-                        className="absolute inset-0 z-0 grid grid-cols-12 grid-rows-12 gap-x-5 gap-y-6 p-6 pointer-events-none sm:gap-x-8 sm:gap-y-10 sm:p-10">
+                        className="pointer-events-none absolute inset-0 z-0 hidden grid-cols-12 grid-rows-12 gap-x-8 gap-y-10 p-10 md:grid">
                 {visibleCollageImages.map((item, index) => {
                     const position = COLLAGE_POSITIONS[index % COLLAGE_POSITIONS.length]
                     return <motion.div
@@ -174,7 +174,7 @@ export default function InFocusCommencement({
                     </motion.div>
                 })}
             </motion.div>
-            <div className="container relative z-10 flex min-h-[34rem] items-center justify-center text-center">
+            <div className="container relative z-10 flex items-center justify-center text-center md:min-h-[34rem]">
                 <div className="max-w-2xl">
                     <p className="!mb-5 text-xs font-semibold tracking-[0.24em]" style={{ color: collageMutedTextColor }}>{collageEyebrow}</p>
                     <h2 id="commencement-collage-heading"
@@ -186,6 +186,25 @@ export default function InFocusCommencement({
                     </div>}
                 </div>
             </div>
+            <motion.div
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
+                className="relative z-10 mt-10 grid grid-cols-2 gap-3 sm:gap-4 md:hidden"
+            >
+                {visibleCollageImages.slice(0, 3).map((item, index) => <motion.div
+                    key={`${item.image.sha1}-${index}`}
+                    custom={index}
+                    variants={COLLAGE_IMAGE_VARIANTS}
+                    className={`overflow-hidden shadow-2xl ${index === 2 ? 'col-span-2 aspect-[2/1]' : 'aspect-[4/5]'}`}
+                >
+                    <img
+                        src={`${uploadPrefix}/${item.image.sha1}.webp`}
+                        alt={item.image.altText ?? ''}
+                        className="h-full w-full object-cover"
+                    />
+                </motion.div>)}
+            </motion.div>
         </section>
 
         <section className="bg-[#f2f0ea] py-6 sm:py-10" aria-label="毕业故事">
