@@ -5,7 +5,7 @@ import ContainerConfig from '@/app/lib/puck/components/ContainerConfig'
 import LatestNewsConfig from '@/app/lib/puck/components/LatestNewsConfig'
 import BentoBoxConfig from '@/app/lib/puck/components/BentoBox'
 import QuoteConfig from '@/app/lib/puck/components/Quote'
-import { InFocusNewStudentsConfig, InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
+import { InFocusCommencementConfig, InFocusNewStudentsConfig, InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
 import StatisticsConfig from '@/app/lib/puck/components/Statistics'
 import HorizontalTopTextConfig from '@/app/lib/puck/components/HorizontalTopText'
 import HeroConfig from '@/app/lib/puck/components/HeroConfig'
@@ -47,6 +47,7 @@ export const PUCK_CONFIG: Config = {
         QuoteConfig,
         InFocusProjectsConfig,
         InFocusNewStudentsConfig,
+        InFocusCommencementConfig,
         StatisticsConfig,
         HorizontalTopTextConfig,
         HeroConfig,
@@ -87,7 +88,7 @@ export const PUCK_CONFIG: Config = {
         },
         home: {
             title: '首页内容',
-            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig', 'BentoBoxConfig',
+            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig', 'InFocusCommencementConfig', 'BentoBoxConfig',
                 'LatestNewsConfig', 'NewsListConfig' ]
         },
         about: {

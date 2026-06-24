@@ -1,11 +1,124 @@
 import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_CONTENT_ENTITY_TYPE, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { colorTypeField, imageTypeField, RESOLVED_CONTENT_ENTITY_TYPE, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import InFocusProjects from '@/app/lib/puck/components/InFocusProjects'
 import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
 import InFocusNewStudents from '@/app/lib/puck/components/InFocusNewStudents'
+import InFocusCommencement, { CommencementChapter, CommencementCollageImage } from '@/app/lib/puck/components/InFocusCommencement'
+
+export const InFocusCommencementConfig: ComponentConfig = {
+    label: '毕业季',
+    fields: {
+        heroBg: imageTypeField('背景图片'),
+        heroTitle: { label: '主标题', type: 'text', contentEditable: true },
+        heroDescription: { label: '主描述', type: 'textarea', contentEditable: true },
+        introEyebrow: { label: '引言小标题', type: 'text', contentEditable: true },
+        introTitle: { label: '引言标题', type: 'text', contentEditable: true },
+        introDescription: { label: '引言描述', type: 'textarea', contentEditable: true },
+        collageBackgroundColor: colorTypeField('拼贴背景颜色'),
+        collageEyebrow: { label: '拼贴小标题', type: 'text', contentEditable: true },
+        collageTitle: { label: '拼贴标题', type: 'text', contentEditable: true },
+        collageDescription: { label: '拼贴描述', type: 'textarea', contentEditable: true },
+        collageLink: { label: '拼贴链接', type: 'text' },
+        collageLinkText: { label: '拼贴链接文字', type: 'text', contentEditable: true },
+        collageImages: {
+            label: '拼贴图片',
+            type: 'array',
+            arrayFields: {
+                image: imageTypeField('图片')
+            },
+            max: 11
+        },
+        chapters: {
+            label: '故事章节',
+            type: 'array',
+            arrayFields: {
+                eyebrow: { label: '小标题', type: 'text', contentEditable: true },
+                title: { label: '标题', type: 'text', contentEditable: true },
+                description: { label: '描述', type: 'textarea', contentEditable: true }
+            },
+            max: 6
+        },
+        closingEyebrow: { label: '结尾小标题', type: 'text', contentEditable: true },
+        closingTitle: { label: '结尾标题', type: 'text', contentEditable: true },
+        closingDescription: { label: '结尾描述', type: 'textarea', contentEditable: true },
+        resolvedHeroBg: RESOLVED_IMAGE_TYPE,
+        resolvedCollageImages: {
+            type: 'array',
+            visible: false,
+            arrayFields: {}
+        },
+        resolvedUploadPrefix: { type: 'text', visible: false }
+    },
+    defaultProps: {
+        heroTitle: 'Celebrating the Class of 2026',
+        heroDescription: '告别熟悉的校园，也带着在这里收获的勇气、友谊与目光，走向更辽阔的世界。',
+        collageBackgroundColor: '#861126',
+        collageEyebrow: '毕业生们',
+        collageTitle: '奔赴与回响',
+        collageDescription: '在这里遇见彼此，也遇见更清晰、更坚定的自己。让我们记住此刻的笑容，然后带着它奔向远方。',
+        collageLink: '/alumni',
+        collageLinkText: '认识我们的毕业生',
+        chapters: [
+            {
+                eyebrow: 'Eyebrow 1',
+                title: 'Title 1',
+                description: 'Description 1'
+            },
+            {
+                eyebrow: 'Eyebrow 2',
+                title: 'Title 2',
+                description: 'Description 2'
+            },
+            {
+                eyebrow: 'Eyebrow 3',
+                title: 'Title 3',
+                description: 'Description 3'
+            }
+        ]
+    },
+    resolveData: async ({ props }) => ({
+        props: {
+            resolvedHeroBg: props.heroBg == null ? null : convertDatesToStrings(await getImage(parseInt(props.heroBg))),
+            resolvedCollageImages: await Promise.all(
+                // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                (props.collageImages ?? []).map(async (item: any) => ({
+                    image: item?.image == null ? null : convertDatesToStrings(await getImage(parseInt(item.image)))
+                }))
+            ),
+            resolvedUploadPrefix: await getUploadServePath()
+        }
+    }),
+    render: ({
+                 resolvedHeroBg,
+                 heroTitle,
+                 heroDescription,
+                 collageBackgroundColor,
+                 collageEyebrow,
+                 collageTitle,
+                 collageDescription,
+                 collageLink,
+                 collageLinkText,
+                 resolvedCollageImages,
+                 chapters,
+                 resolvedUploadPrefix
+             }) => <InFocusCommencement
+        heroBg={resolvedHeroBg}
+        heroTitle={heroTitle}
+        heroDescription={heroDescription}
+        collageBackgroundColor={collageBackgroundColor}
+        collageEyebrow={collageEyebrow}
+        collageTitle={collageTitle}
+        collageDescription={collageDescription}
+        collageLink={collageLink}
+        collageLinkText={collageLinkText}
+        collageImages={resolvedCollageImages as CommencementCollageImage[]}
+        chapters={chapters as CommencementChapter[]}
+        uploadPrefix={resolvedUploadPrefix}
+    />
+}
 
 export const InFocusNewStudentsConfig: ComponentConfig = {
     label: '欢迎新生',
