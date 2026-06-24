@@ -59,7 +59,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                 onClick={() => inputRef.current?.click()}
                 className="bg-blue-50 hover:bg-blue-100
         rounded-3xl flex flex-col justify-center items-center text-center p-5 min-w-96
-        transition-colors duration-100">
+        transition-colors duration-100 cursor-pointer">
         <input type="file" disabled={loading} accept="image/*" aria-label="选择要上传的图片"
                className="hidden" ref={inputRef} onChange={e => {
             if (e.currentTarget.files != null && e.currentTarget.files.length > 0) {
