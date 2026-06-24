@@ -64,7 +64,7 @@ export default function GlobalFooter({ pages }: {
             </address>
 
             <p>{locales[language].copyright}</p>
-            <p><a href="https://www.beijingacademy.com.cn">{locales[language].chn}</a></p>
+                            <p className="break-words"><a href="https://www.beijingacademy.com.cn">{locales[language].chn}</a></p>
             <p><a href="https://beian.miit.gov.cn">京ICP备13051651号-2</a></p>
         </div>
     </footer>

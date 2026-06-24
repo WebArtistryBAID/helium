@@ -71,7 +71,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 min-w-0 md:col-span-3 row-span-1 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1 from-orange-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-5 flex items-center overflow-hidden">
+                className="col-span-1 flex min-w-0 flex-col items-start gap-4 overflow-hidden rounded-3xl bg-linear-to-br from-orange-500/5 to-gray-50 p-5 sm:flex-row sm:items-center md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1">
                 <h3
                     className="text-lg"
                     role="heading">
@@ -80,7 +80,7 @@ function BentoBox({
                 </h3>
                 <div
                     aria-hidden="true"
-                    className="relative flex min-w-0 justify-center items-end">
+                    className="relative flex min-w-0 shrink-0 items-end justify-center">
                     <img
                         src="/assets/components/bento/lj.jpg"
                         alt=""
@@ -209,7 +209,7 @@ function BentoBox({
 
             <div
                 style={{ backgroundImage: 'url(/assets/components/bento/life.webp)' }}
-                className="hidden sm:flex col-span-1 md:col-span-2 row-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-5 lg:row-span-2 rounded-3xl p-8 bg-cover flex-col justify-end"
+                className="col-span-1 flex min-h-48 flex-col justify-end rounded-3xl bg-cover p-8 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-5 lg:row-span-2"
             >
                 <h3
                     className="text-white text-center font-bold"

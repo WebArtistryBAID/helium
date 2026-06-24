@@ -23,13 +23,13 @@ export default function Clubs({ title, init, uploadPrefix }: {
         })()
     }, [ currentPage ])
 
-    return <section aria-labelledby="clubs-heading" className="py-24 border-b border-gray-200">
+    return <section aria-labelledby="clubs-heading" className="border-b border-gray-200 py-16 md:py-24">
         <div className="container">
             <h2 id="clubs-heading" className="mb-5 text-4xl font-bold">
                 {title}
             </h2>
 
-            <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
+            <div className="mb-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
                 {page.items.map(club => <Card
                     key={club.id}
                     href={prefixLink(language, getContentEntityURI(club.createdAt, club.slug))}

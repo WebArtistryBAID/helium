@@ -15,7 +15,7 @@ function ActivityTextBlock({ name, description, background, light }: {
         style={{
             background: background,
             color: light ? 'white' : 'black'
-        }} className="w-full h-80 p-8">
+        }} className="min-h-64 w-full p-6 sm:h-80 sm:p-8">
         <h3 className="text-xl mb-3 font-bold">
             {name}
         </h3>

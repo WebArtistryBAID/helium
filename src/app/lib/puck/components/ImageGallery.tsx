@@ -30,7 +30,7 @@ export default function ImageGallery({ title, slides, uploadPrefix }: {
                 modules={[ A11y, Pagination ]} pagination={{ clickable: true }} grabCursor={true}>
             {resolvedSlides.map((slide, index) =>
                 <SwiperSlide key={index}>
-                    <div className="relative h-[70vh] min-h-120 w-full md:h-screen">
+                    <div className="relative h-[70svh] min-h-[28rem] w-full md:h-screen">
                         <img src={`${uploadPrefix}/${slide.image?.sha1}.webp`} alt={slide.image?.altText ?? ''}
                              className="h-full w-full object-cover"/>
                         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent"/>

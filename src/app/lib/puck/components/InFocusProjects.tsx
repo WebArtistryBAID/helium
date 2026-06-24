@@ -52,16 +52,15 @@ export default function InFocusProjects({
             backgroundImage: `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
             backgroundPosition: `center ${scrollY * 0.5}px`,
             backgroundRepeat: 'no-repeat',
-            backgroundSize: 'cover',
-            height: '105vh'
+            backgroundSize: 'cover'
         }}
-                 className="w-full flex flex-col bg-cover bg-center justify-center relative"
+                 className="relative flex min-h-[42rem] h-[100svh] w-full flex-col justify-center bg-cover bg-center md:h-[105vh]"
                  aria-labelledby="hero-heading"
                  role="banner">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
                         className="absolute inset-0 pointer-events-none from-transparent to-gray-950 bg-gradient-to-b"/>
             <div
-                className="absolute bottom-0 text-white w-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
+                className="absolute bottom-0 flex w-full flex-col items-center justify-center px-4 text-white sm:px-6 lg:px-8">
                 <div className="w-full md:max-w-2xl flex flex-col justify-center items-center">
                     <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                                 animate={{ opacity: 1, transform: 'translateY(0)' }}
@@ -102,13 +101,13 @@ export default function InFocusProjects({
                     {projects.length > 0 &&
                         <>
                             <div
-                                className="hidden md:block px-8 py-16 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from">
+                                className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
                                 <img src={`${uploadPrefix}/${projects[0].project?.coverImagePublished?.sha1}.webp`}
                                      alt={projects[0].project?.coverImagePublished?.altText ?? ''}
-                                     className="rounded-3xl w-full h-80 object-cover"/>
+                                     className="h-64 w-full rounded-3xl object-cover md:h-80"/>
                             </div>
                             <div
-                                className="p-8 flex flex-col justify-center animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from"
+                            className="flex flex-col justify-center p-5 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from sm:p-8"
                             >
                                 <p className="uppercase tracking-wide !mb-3 text-sm">
                                     {projects[0].discipline}
@@ -131,7 +130,7 @@ export default function InFocusProjects({
 
                     {projects.length > 1 && <>
                         <div
-                            className="p-8  flex flex-col justify-center animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from"
+                            className="flex flex-col justify-center p-5 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from sm:p-8"
                         >
                             <p className="uppercase tracking-wide !mb-3 text-sm">
                                 {projects[1].discipline}
@@ -151,22 +150,22 @@ export default function InFocusProjects({
                             />
                         </div>
                         <div
-                            className="hidden md:block px-8 py-16 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from">
+                            className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
                             <img src={`${uploadPrefix}/${projects[1].project?.coverImagePublished?.sha1}.webp`}
                                  alt={projects[1].project?.coverImagePublished?.altText ?? ''}
-                                 className="rounded-3xl w-full h-80 object-cover"/>
+                                 className="h-64 w-full rounded-3xl object-cover md:h-80"/>
                         </div>
                     </>}
 
                     {projects.length > 2 && <>
                         <div
-                            className="hidden md:block px-8 py-16 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from">
+                            className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
                             <img src={`${uploadPrefix}/${projects[2].project?.coverImagePublished?.sha1}.webp`}
                                  alt={projects[2].project?.coverImagePublished?.altText ?? ''}
-                                 className="rounded-3xl w-full h-80 object-cover"/>
+                                 className="h-64 w-full rounded-3xl object-cover md:h-80"/>
                         </div>
                         <div
-                            className="p-8  flex flex-col justify-center animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from"
+                            className="flex flex-col justify-center p-5 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from sm:p-8"
                         >
                             <p className="uppercase tracking-wide !mb-3 text-sm">
                                 {projects[2].discipline}
@@ -249,7 +248,7 @@ export default function InFocusProjects({
                     </div>
 
                     <div
-                        className="col-span-1 md:col-span-2 flex flex-col items-center justify-center text-center px-8 py-32 sm:px-16 md:px-32">
+                        className="col-span-1 flex flex-col items-center justify-center px-5 py-20 text-center sm:px-16 md:col-span-2 md:px-32 md:py-32">
                         <p className="text-lg uppercase tracking-wider text-gray-600 !mb-3">
                             {startTopText}
                         </p>

@@ -103,7 +103,7 @@ export default function InFocusCommencement({
         <section
             data-surface="dark"
             aria-labelledby="commencement-hero-heading"
-            className="relative flex min-h-[46rem] h-[105vh] items-end overflow-hidden bg-[#122a28] text-white"
+            className="relative flex min-h-[42rem] h-[100svh] items-end overflow-hidden bg-[#122a28] text-white md:min-h-[46rem] md:h-[105vh]"
             style={{
                 backgroundImage: heroImage,
                 backgroundPosition: `center ${scrollY * 0.35}px`,
@@ -128,7 +128,7 @@ export default function InFocusCommencement({
                         initial={{ opacity: 0, transform: 'translateY(20px)' }}
                         animate={{ opacity: 1, transform: 'translateY(0)' }}
                         transition={{ duration: 0.8, delay: 0.08 }}
-                        className={`!mb-6 font-serif leading-[1.05] ${language === 'en' ? 'font-bold sm:text-6xl md:text-8xl' : 'text-2xl font-semibold sm:text-3xl md:text-4xl'}`}
+                        className={`!mb-6 font-serif leading-[1.05] ${language === 'en' ? 'text-4xl font-bold sm:text-6xl md:text-8xl' : 'text-2xl font-semibold sm:text-3xl md:text-4xl'}`}
                     >
                         {heroTitle}
                     </motion.h1>

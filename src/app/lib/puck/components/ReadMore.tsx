@@ -95,13 +95,13 @@ export default function ReadMore({ text, to, color = '#82181a', iconColor = 'mat
     const [ isHovered, setIsHovered ] = useState(false)
     const language = useLanguage()
 
-    return <Link href={prefixLink(language, to)} className="decoration-none group"
+    return <Link href={prefixLink(language, to)} className="group inline-flex max-w-full decoration-none"
                  onMouseEnter={() => setIsHovered(true)}
                  onMouseLeave={() => setIsHovered(false)}>
-        <div className="flex items-center w-min">
+        <div className="flex min-w-0 items-center">
             <i
                 aria-hidden="true"
-                className="mr-2 flex items-center"
+                className="mr-2 flex shrink-0 items-center"
             >
                 <svg
                     height="30"
@@ -126,7 +126,7 @@ export default function ReadMore({ text, to, color = '#82181a', iconColor = 'mat
             </i>
             <span
                 style={{ color }}
-                className="w-max !font-sans tracking-wide"
+                className="min-w-0 break-words !font-sans tracking-wide"
             >{text}</span>
         </div>
     </Link>

@@ -66,22 +66,21 @@ export default function InFocusNewStudents({
             backgroundImage: `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
             backgroundPosition: `center ${scrollY * 0.5}px`,
             backgroundRepeat: 'no-repeat',
-            backgroundSize: 'cover',
-            height: '105vh'
+            backgroundSize: 'cover'
         }}
-                 className="w-full flex flex-col bg-cover bg-center justify-center relative"
+                 className="relative flex min-h-[42rem] h-[100svh] w-full flex-col justify-center bg-cover bg-center md:h-[105vh]"
                  aria-labelledby="hero-heading"
                  role="banner">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
                         className="absolute inset-0 pointer-events-none from-white/60 to-white bg-gradient-to-b"/>
             <div className="text-black w-full h-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
-                <div className="w-full md:max-w-2xl flex flex-col justify-center items-center">
+                <div className="flex w-full flex-col items-center justify-center md:max-w-2xl">
                     <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                                 animate={{ opacity: 1, transform: 'translateY(0)' }}
                                 transition={{ duration: 0.8 }}>
                         <p className="text-lg uppercase text-center tracking-wider text-gray-700 !mb-3">IN FOCUS</p>
                         <h1 id="hero-heading"
-                            className="mb-8 text-center font-bold font-serif text-5xl md:text-7xl">
+                            className="mb-8 text-center font-bold font-serif text-4xl sm:text-5xl md:text-7xl">
                             {title}
                         </h1>
                     </motion.div>
@@ -130,7 +129,7 @@ export default function InFocusNewStudents({
                             transition={{ duration: 0.8 }}
                             viewport={{ once: true }}
                             className="w-full md:w-1/2">
-                    <h2 className="text-5xl font-bold mb-5">{resourcesTitle}</h2>
+                    <h2 className="mb-5 text-4xl font-bold sm:text-5xl">{resourcesTitle}</h2>
                     <p className="text-xl mb-8">
                         {resourcesDescription}
                     </p>
@@ -145,7 +144,7 @@ export default function InFocusNewStudents({
                             viewport={{ once: true }}
                             className="w-full md:w-1/2 grid grid-cols-2 grid-rows-2 gap-6 text-center md:text-left">
                     {resources?.map((r, index) => <div key={index}>
-                        <p className="text-6xl text-red-900">{r?.content}</p>
+                        <p className="text-4xl text-red-900 sm:text-5xl md:text-6xl">{r?.content}</p>
                         <p className="text-lg">{r?.name}</p>
                     </div>)}
                 </motion.div>
@@ -153,7 +152,7 @@ export default function InFocusNewStudents({
         </section>
 
         <section className="container">
-            <h2 className="text-5xl font-bold mb-5 text-center">{projectsTitle}</h2>
+            <h2 className="mb-5 text-center text-4xl font-bold sm:text-5xl">{projectsTitle}</h2>
             <p className="text-xl mb-8 text-center">{projectsDescription}</p>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-24 w-full">

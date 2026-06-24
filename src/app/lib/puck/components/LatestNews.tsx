@@ -16,14 +16,14 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
 
     return <>
         <section aria-labelledby="news-heading" className="mt-24 border-black">
-            <div className="container mb-8 flex items-center px-5 md:px-0">
+            <div className="container mb-8 flex flex-col items-start gap-3 px-5 sm:flex-row sm:items-center md:px-0">
                 <h2 id="news-heading"
-                    className="text-4xl lg:text-5xl xl:text-6xl font-bold mr-auto xl:-mb-2">
+                    className="mr-auto min-w-0 text-4xl font-bold lg:text-5xl xl:-mb-2 xl:text-6xl">
                     {title}
                 </h2>
 
                 <Link href={prefixLink(language, '/news')}
-                      className="flex items-center gap-1 text-black decoration-none opacity-80 hover:opacity-100 transition">
+                      className="flex shrink-0 items-center gap-1 text-black decoration-none opacity-80 transition hover:opacity-100">
                     <span className="!font-sans">{readMoreText}</span>
                     <svg
                         height="25"
