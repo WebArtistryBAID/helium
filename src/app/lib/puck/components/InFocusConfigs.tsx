@@ -14,9 +14,6 @@ export const InFocusCommencementConfig: ComponentConfig = {
         heroBg: imageTypeField('背景图片'),
         heroTitle: { label: '主标题', type: 'text', contentEditable: true },
         heroDescription: { label: '主描述', type: 'textarea', contentEditable: true },
-        introEyebrow: { label: '引言小标题', type: 'text', contentEditable: true },
-        introTitle: { label: '引言标题', type: 'text', contentEditable: true },
-        introDescription: { label: '引言描述', type: 'textarea', contentEditable: true },
         collageBackgroundColor: colorTypeField('拼贴背景颜色'),
         collageEyebrow: { label: '拼贴小标题', type: 'text', contentEditable: true },
         collageTitle: { label: '拼贴标题', type: 'text', contentEditable: true },
@@ -37,13 +34,12 @@ export const InFocusCommencementConfig: ComponentConfig = {
             arrayFields: {
                 eyebrow: { label: '小标题', type: 'text', contentEditable: true },
                 title: { label: '标题', type: 'text', contentEditable: true },
-                description: { label: '描述', type: 'textarea', contentEditable: true }
+                description: { label: '描述', type: 'textarea', contentEditable: true },
+                link: { label: '链接', type: 'text' },
+                linkText: { label: '链接文字', type: 'text', contentEditable: true }
             },
             max: 6
         },
-        closingEyebrow: { label: '结尾小标题', type: 'text', contentEditable: true },
-        closingTitle: { label: '结尾标题', type: 'text', contentEditable: true },
-        closingDescription: { label: '结尾描述', type: 'textarea', contentEditable: true },
         resolvedHeroBg: RESOLVED_IMAGE_TYPE,
         resolvedCollageImages: {
             type: 'array',
@@ -65,17 +61,23 @@ export const InFocusCommencementConfig: ComponentConfig = {
             {
                 eyebrow: 'Eyebrow 1',
                 title: 'Title 1',
-                description: 'Description 1'
+                description: 'Description 1',
+                link: '/about',
+                linkText: 'Read more'
             },
             {
                 eyebrow: 'Eyebrow 2',
                 title: 'Title 2',
-                description: 'Description 2'
+                description: 'Description 2',
+                link: '/academics',
+                linkText: 'Read more'
             },
             {
                 eyebrow: 'Eyebrow 3',
                 title: 'Title 3',
-                description: 'Description 3'
+                description: 'Description 3',
+                link: '/projects',
+                linkText: 'Read more'
             }
         ]
     },

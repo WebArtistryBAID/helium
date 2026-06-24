@@ -10,6 +10,8 @@ export interface CommencementChapter {
     eyebrow?: string
     title?: string
     description?: string
+    link?: string
+    linkText?: string
 }
 
 export interface CommencementCollageImage {
@@ -206,6 +208,10 @@ export default function InFocusCommencement({
                             className={`md:col-span-7 ${reversed ? 'md:col-start-2 md:row-start-1' : 'md:col-start-5'}`}>
                             <h2 className={`!mb-6 max-w-2xl font-serif leading-tight ${language === 'en' ? 'text-4xl font-bold md:text-5xl' : 'text-2xl font-semibold md:text-3xl'}`}>{chapter.title}</h2>
                             <p className="max-w-xl text-lg leading-8 text-black/65 md:text-xl md:leading-9">{chapter.description}</p>
+                            {chapter.link && chapter.linkText && <div className="mt-7">
+                                <ReadMore text={chapter.linkText} to={chapter.link} color="#82181a"
+                                          iconColor="#b23244"/>
+                            </div>}
                         </div>
                     </motion.article>
                 })}
