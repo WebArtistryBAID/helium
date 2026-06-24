@@ -9,17 +9,38 @@ import {
 } from '@/app/studio/editor/entity-actions'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
-import { useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { Puck } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
-import { Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
+import StableInlineText from '@/app/lib/puck/StableInlineText'
+import { Badge, Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
 import '@measured/puck/puck.css'
 import { Role, User } from '@/generated/prisma/browser'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+
+const STABLE_INLINE_TEXT_TRANSFORMS = {
+    text: ({ componentId, field, isReadOnly, propPath, value }: any) =>
+        field.contentEditable && typeof value === 'string'
+            ? <StableInlineText componentId={componentId} disableLineBreaks isReadOnly={isReadOnly}
+                                propPath={propPath} value={value}/>
+            : value,
+    textarea: ({ componentId, field, isReadOnly, propPath, value }: any) =>
+        field.contentEditable && typeof value === 'string'
+            ? <StableInlineText componentId={componentId} isReadOnly={isReadOnly}
+                                propPath={propPath} value={value}/>
+            : value,
+    custom: ({ componentId, field, isReadOnly, propPath, value }: any) =>
+        field.contentEditable && typeof value === 'string'
+            ? <StableInlineText componentId={componentId} isReadOnly={isReadOnly}
+                                propPath={propPath} value={value}/>
+            : value
+}
+
+const AUTO_SAVE_INTERVAL_MS = 30_000
 
 export default function PageEditor({ init, lockToken, user }: {
     init: HydratedContentEntity,
@@ -83,7 +104,7 @@ export default function PageEditor({ init, lockToken, user }: {
         ]
     })
 
-    async function guardedSave() {
+    const guardedSave = useCallback(async () => {
         if (!canWrite) {
             showPermissionDenied()
             return
@@ -95,9 +116,19 @@ export default function PageEditor({ init, lockToken, user }: {
                 console.error('Failed to save page:', error)
             }
         }
-    }
+    }, [ canWrite, handlePermissionError, save, showPermissionDenied ])
 
     useSaveShortcut(true, guardedSave)
+
+    useEffect(() => {
+        if (!canWrite || showLockBroken) return
+
+        const interval = window.setInterval(() => {
+            if (hasChanges && !loading) void guardedSave()
+        }, AUTO_SAVE_INTERVAL_MS)
+
+        return () => window.clearInterval(interval)
+    }, [ canWrite, guardedSave, hasChanges, loading, showLockBroken ])
 
     // = Locking
     useEntityLock({
@@ -108,78 +139,75 @@ export default function PageEditor({ init, lockToken, user }: {
         onLockLost: () => setShowLockBroken(true)
     })
 
+    const publishStatus = draft.contentPublishedEN === draft.contentDraftEN && draft.contentPublishedZH === draft.contentDraftZH
+        ? { label: '已发布', color: 'blue' }
+        : draft.contentPublishedEN != null || draft.contentPublishedZH != null
+            ? { label: '有更新未发布', color: 'warning' }
+            : { label: '草稿', color: 'gray' }
+
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
         <LockBrokenPrompt show={showLockBroken} returnUri="/studio/pages"/>
 
-        <Modal show={showMetadata} size="md" popup onClose={() => setShowMetadata(false)}>
-            <ModalHeader/>
+        <Modal show={showMetadata} size="xl" popup onClose={() => setShowMetadata(false)}>
+            <ModalHeader>页面信息</ModalHeader>
             <ModalBody>
-                <div className="space-y-6">
-                    <h3 className="text-xl font-bold">页面信息</h3>
-                    <div>
-                        <div className="mb-2 block">
-                            <Label htmlFor="title-zh">标题</Label>
+                <div className="space-y-5">
+                    <div className="grid gap-5 sm:grid-cols-2">
+                        <div className="sm:col-span-2">
+                            <div className="mb-2 block">
+                                <Label htmlFor="title-zh">标题</Label>
+                            </div>
+                            <TextInput id="title-zh" value={`${draft.titleDraftZH} / ${draft.titleDraftEN}`} disabled/>
+                            <HelperText>请通过编辑器更改标题。</HelperText>
                         </div>
-                        <TextInput id="title-zh" value={`${draft.titleDraftZH} / ${draft.titleDraftEN}`} disabled/>
-                        <HelperText>
-                            请通过编辑器更改标题。
-                        </HelperText>
-                    </div>
-                    <div>
-                        <div className="mb-2 block">
-                            <Label htmlFor="slug">链接位置</Label>
+
+                        <div className="sm:col-span-2">
+                            <div className="mb-2 block">
+                                <Label htmlFor="slug">链接位置</Label>
+                            </div>
+                            <TextInput id="slug" value={draft.slug} placeholder="better-me-better-world"
+                                       disabled={!canWrite}
+                                       onChange={e => {
+                                           if (!canWrite) {
+                                               showPermissionDenied()
+                                               return
+                                           }
+                                           const val = e.currentTarget?.value ?? '' // I really don't know why it can be null
+                                           setDraft(prev => ({
+                                               ...prev,
+                                               slug: val
+                                           }))
+                                       }}/>
+                            <HelperText>保存后，链接更新才会生效。</HelperText>
                         </div>
-                        <TextInput id="slug" value={draft.slug} placeholder="better-me-better-world"
-                                   disabled={!canWrite}
-                                   onChange={e => {
-                                       if (!canWrite) {
-                                           showPermissionDenied()
-                                           return
-                                       }
-                                       const val = e.currentTarget?.value ?? '' // I really don't know why it can be null
-                                       setDraft(prev => ({
-                                           ...prev,
-                                           slug: val
-                                       }))
-                                   }}/>
-                    </div>
-                    <div>
-                        <Label>状态</Label>
-                        <p className="text-xl">
-                            <If condition={draft.contentPublishedEN === draft.contentDraftEN && draft.contentPublishedZH === draft.contentDraftZH}>
-                                已发布
-                            </If>
-
-                            <If condition={draft.contentPublishedEN == null && draft.contentPublishedZH == null}>
-                                草稿
-                            </If>
-
-                            <If condition={(draft.contentPublishedEN !== draft.contentDraftEN || draft.contentPublishedZH !== draft.contentDraftZH) &&
-                                draft.contentPublishedEN != null && draft.contentPublishedZH != null}>
-                                有更新未发布
-                            </If>
-                        </p>
-                    </div>
-                    <div>
-                        <Label>创建用户</Label>
-                        <p className="text-xl">{draft.creator.name}</p>
-                    </div>
-                    <div>
-                        <Label>创建时间</Label>
-                        <p className="text-xl">{draft.createdAt.toLocaleString()}</p>
-                    </div>
-                    <div>
-                        <Label>最新更改时间</Label>
-                        <p className="text-xl">{draft.updatedAt.toLocaleString()}</p>
                     </div>
 
-                    <p className="text-sm">关闭后，请务必保存。</p>
+                    <dl className="grid gap-4 border-t border-gray-200 pt-5 text-sm sm:grid-cols-2">
+                        <div>
+                            <dt className="text-gray-500">状态</dt>
+                            <dd className="mt-1 font-medium text-gray-900">{publishStatus.label}</dd>
+                        </div>
+                        <div>
+                            <dt className="text-gray-500">创建用户</dt>
+                            <dd className="mt-1 font-medium text-gray-900">{draft.creator.name}</dd>
+                        </div>
+                        <div>
+                            <dt className="text-gray-500">创建时间</dt>
+                            <dd className="mt-1 font-medium text-gray-900">{draft.createdAt.toLocaleString()}</dd>
+                        </div>
+                        <div>
+                            <dt className="text-gray-500">最新更改时间</dt>
+                            <dd className="mt-1 font-medium text-gray-900">{draft.updatedAt.toLocaleString()}</dd>
+                        </div>
+                    </dl>
+
+                    <p className="text-sm text-gray-500">关闭后，请务必保存。</p>
                 </div>
             </ModalBody>
-            <ModalFooter>
+            <ModalFooter className="flex flex-wrap items-center gap-2">
                 <If condition={canWrite}>
-                    <Button pill color="alternative"
+                    <Button pill size="md" color="alternative" className="whitespace-nowrap"
                             onClick={() => {
                                 if (!canWrite) {
                                     showPermissionDenied()
@@ -193,8 +221,10 @@ export default function PageEditor({ init, lockToken, user }: {
                             }}>用中文内容覆盖英文</Button>
                 </If>
 
-                <If condition={canModerate && (draft.contentPublishedEN != null || draft.contentPublishedZH != null)}>
-                    <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                <div className="ml-auto flex flex-wrap gap-2">
+                    <If condition={canModerate && (draft.contentPublishedEN != null || draft.contentPublishedZH != null)}>
+                        <Button disabled={loadingAdditional} pill size="md" color="red" className="whitespace-nowrap"
+                                onClick={async () => {
                         if (!canModerate) {
                             showPermissionDenied()
                             return
@@ -223,12 +253,13 @@ export default function PageEditor({ init, lockToken, user }: {
                         } finally {
                             setLoadingAdditional(false)
                         }
-                    }}>
-                        {unpublishConfirm ? '确认撤回?' : '撤回发布'}
-                    </Button>
-                </If>
-                <If condition={canModerate}>
-                    <Button disabled={loadingAdditional} pill color="red" onClick={async () => {
+                                }}>
+                            {unpublishConfirm ? '确认撤回?' : '撤回发布'}
+                        </Button>
+                    </If>
+                    <If condition={canModerate}>
+                        <Button disabled={loadingAdditional} pill size="md" color="red" className="whitespace-nowrap"
+                                onClick={async () => {
                         if (!canModerate) {
                             showPermissionDenied()
                             return
@@ -248,46 +279,53 @@ export default function PageEditor({ init, lockToken, user }: {
                         } finally {
                             setLoadingAdditional(false)
                         }
-                    }}>{deleteConfirm ? '确认删除?' : '删除页面'}</Button>
-                </If>
+                                }}>{deleteConfirm ? '确认删除?' : '删除页面'}</Button>
+                    </If>
+                </div>
             </ModalFooter>
         </Modal>
 
-        <Puck
-            key={inEnglish ? 'en' : 'zh'} // Force re-render
-            config={PUCK_CONFIG}
-            data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
-            onChange={data => {
-                if (!canWrite) {
-                    showPermissionDenied()
-                    return
-                }
-                if (inEnglish) {
-                    setDraft(prev => ({
-                        ...prev,
-                        contentDraftEN: JSON.stringify(data),
-                        titleDraftEN: data.root.props?.title ?? ''
-                    }))
-                } else {
-                    setDraft(prev => ({
-                        ...prev,
-                        contentDraftZH: JSON.stringify(data),
-                        titleDraftZH: data.root.props?.title ?? ''
-                    }))
-                }
-            }}
-            overrides={{
-                headerActions: () => <>
-                    <Button pill color="alternative"
-                            onClick={switchLanguage}>切换到{inEnglish ? '中文' : '英文'}</Button>
-                    <Button pill color="alternative" onClick={() => setShowMetadata(true)}>页面信息</Button>
-                    <Button pill color="alternative"
-                            onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
-                    <If condition={canWrite}>
-                        <Button pill color="blue" disabled={loading} onClick={guardedSave}>保存更改</Button>
-                    </If>
-                </>
-            }}
-        />
+        <div className="page-editor">
+            <Puck
+                key={inEnglish ? 'en' : 'zh'} // Force re-render
+                config={PUCK_CONFIG}
+                data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
+                fieldTransforms={STABLE_INLINE_TEXT_TRANSFORMS}
+                onChange={data => {
+                    if (!canWrite) {
+                        showPermissionDenied()
+                        return
+                    }
+                    if (inEnglish) {
+                        setDraft(prev => ({
+                            ...prev,
+                            contentDraftEN: JSON.stringify(data),
+                            titleDraftEN: data.root.props?.title ?? ''
+                        }))
+                    } else {
+                        setDraft(prev => ({
+                            ...prev,
+                            contentDraftZH: JSON.stringify(data),
+                            titleDraftZH: data.root.props?.title ?? ''
+                        }))
+                    }
+                }}
+                overrides={{
+                    headerActions: () => <>
+                        <Button pill size="md" color="alternative"
+                                onClick={switchLanguage}>切换到{inEnglish ? '中文' : '英文'}</Button>
+                        <Button pill size="md" color="alternative"
+                                onClick={() => setShowMetadata(true)}>页面信息</Button>
+                        <Button pill size="md" color="alternative"
+                                onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
+                        <If condition={canWrite}>
+                            <Button pill size="md" color="blue" disabled={loading || !hasChanges} onClick={guardedSave}>
+                                {loading ? '保存中…' : hasChanges ? '保存更改' : '已保存'}
+                            </Button>
+                        </If>
+                    </>
+                }}
+            />
+        </div>
     </>
 }

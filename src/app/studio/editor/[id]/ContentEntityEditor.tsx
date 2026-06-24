@@ -29,7 +29,7 @@ import {
     HiUser
 } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
 import Markdown from 'react-markdown'
@@ -50,6 +50,8 @@ import {
 } from '@/app/studio/editor/entity-actions'
 import { Role, User } from '@/generated/prisma/browser'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+
+const AUTO_SAVE_INTERVAL_MS = 30_000
 
 export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
     init: HydratedContentEntity,
@@ -146,7 +148,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         ]
     })
 
-    async function guardedSave() {
+    const guardedSave = useCallback(async () => {
         if (!canWrite) {
             showPermissionDenied()
             return
@@ -158,9 +160,19 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                 console.error('Failed to save content entity:', error)
             }
         }
-    }
+    }, [ canWrite, handlePermissionError, save, showPermissionDenied ])
 
     useSaveShortcut(true, guardedSave)
+
+    useEffect(() => {
+        if (!canWrite || showLockBroken) return
+
+        const interval = window.setInterval(() => {
+            if (hasChanges && !loading) void guardedSave()
+        }, AUTO_SAVE_INTERVAL_MS)
+
+        return () => window.clearInterval(interval)
+    }, [ canWrite, guardedSave, hasChanges, loading, showLockBroken ])
 
     // = Locking
     useEntityLock({
@@ -370,7 +382,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         }}/>
 
         <div className="mx-auto max-w-[1600px] pb-12">
-            <header className="mb-6 border-b border-gray-200 pb-6">
+            <header className="mb-6 pb-6">
                 <button type="button" onClick={() => router.back()}
                         className="mb-5 flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-900">
                     <HiArrowLeft className="h-4 w-4"/>
@@ -394,11 +406,11 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                     <div className="flex shrink-0 items-center gap-3">
                         <Button pill color="alternative" onClick={switchLanguage}>
                             <HiLanguage className="mr-2 h-4 w-4"/>
-                            {inEnglish ? 'English · 切换到中文' : '中文 · Switch to English'}
+                            {inEnglish ? '英文 · 切换到中文' : '中文 · 切换到英文'}
                         </Button>
                         <If condition={canWrite}>
                             <Button pill color="blue"
-                                    disabled={loading}
+                                    disabled={loading || !hasChanges}
                                     onClick={guardedSave}>
                                 <HiCheckCircle className="mr-2 h-4 w-4"/>
                                 {loading ? '正在保存...' : '保存更改'}
@@ -416,9 +428,6 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             <div className="mb-3 flex items-center justify-between px-1">
                                 <div>
                                     <h2 className="font-semibold text-gray-900">正文</h2>
-                                    <p className="text-sm text-gray-500">
-                                        正在编辑{inEnglish ? '英文' : '中文'}版本
-                                    </p>
                                 </div>
                                 <span
                                     className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm">
@@ -670,7 +679,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             </div>
                             <Button pill size="sm" color="alternative" onClick={switchLanguage}>
                                 <HiLanguage className="mr-2 h-4 w-4"/>
-                                {inEnglish ? '查看中文' : 'View in English'}
+                                {inEnglish ? '查看中文' : '查看英文'}
                             </Button>
                         </div>
                         <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">

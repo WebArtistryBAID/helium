@@ -92,8 +92,8 @@ const DECISION_TREE: {
                 {
                     value: 'CN_MAIN',
                     label: {
-                        zh: '中国公民，持有《居民身份证》',
-                        en: 'Chinese citizen with a mainland Resident Identity Card'
+                        zh: '中国公民，持有中华人民共和国居民身份证',
+                        en: 'Chinese citizen with a Resident Identity Card'
                     }
                 },
                 {
@@ -120,7 +120,7 @@ const DECISION_TREE: {
                 {
                     value: 'DUAL',
                     label: {
-                        zh: '中国公民，具有外国护照和《旅行证》',
+                        zh: '中国公民，具有外国护照和中国旅行证',
                         en: 'Chinese citizen with a foreign passport and a Chinese Travel Document'
                     }
                 }
@@ -140,8 +140,7 @@ const DECISION_TREE: {
             },
             options: [
                 { value: 'yes', label: { zh: '是', en: 'Yes' } },
-                { value: 'no', label: { zh: '否', en: 'No' } },
-                { value: 'unsure', label: { zh: '不确定', en: 'Not sure' } }
+                { value: 'no', label: { zh: '否', en: 'No' } }
             ]
         },
         {
@@ -423,13 +422,15 @@ function normalizeMulti(values: string[]): string[] {
     return values.filter((x) => x !== 'none')
 }
 
+function createInitialAnswers(): Answers {
+    const answers: Answers = {}
+    for (const question of DECISION_TREE.questions) answers[question.id] = null
+    return answers
+}
+
 export default function EligibilityWizard() {
     const lang = useLanguage()
-    const [ answers, setAnswers ] = useState<Answers>(() => {
-        const init: Answers = {}
-        for (const q of DECISION_TREE.questions) init[q.id] = null
-        return init
-    })
+    const [ answers, setAnswers ] = useState<Answers>(createInitialAnswers)
     const [ showResults, setShowResults ] = useState(false)
 
     const visibleQuestions = useMemo(() => {
@@ -454,10 +455,6 @@ export default function EligibilityWizard() {
     }, [ firstUnansweredIndex, visibleQuestions.length ])
 
     const current = visibleQuestions[step]
-
-    const allVisibleAnswered = useMemo(() => {
-        return visibleQuestions.every((q) => getQuestionAnswered(q, answers))
-    }, [ visibleQuestions, answers ])
 
     const programResults = useMemo(() => {
         const evaluated = DECISION_TREE.programs.map((p) => {
@@ -484,6 +481,12 @@ export default function EligibilityWizard() {
             }
             return next
         })
+    }
+
+    function resetWizard() {
+        setAnswers(createInitialAnswers())
+        setShowResults(false)
+        setStep(0)
     }
 
     function renderQuestion(q: Question) {
@@ -590,79 +593,9 @@ export default function EligibilityWizard() {
                     </div>
                 </div>
 
-                <div className="flex items-center justify-between text-sm opacity-80">
-                    <div role="status" aria-live="polite">
-                        {lang === 'zh'
-                            ? `进度: ${Math.min(step + 1, visibleQuestions.length)}/${visibleQuestions.length}`
-                            : `Progress: ${Math.min(step + 1, visibleQuestions.length)}/${visibleQuestions.length}`}
-                    </div>
-                    <button
-                        type="button"
-                        onClick={() => {
-                            // Reset
-                            const init: Answers = {}
-                            for (const q of DECISION_TREE.questions) init[q.id] = null
-                            setAnswers(init)
-                            setShowResults(false)
-                            setStep(0)
-                        }}
-                        className="rounded-xl border border-neutral-700/40 cursor-pointer px-3 py-1.5 hover:border-neutral-500/60"
-                    >
-                        {lang === 'zh' ? '重置' : 'Reset'}
-                    </button>
-                </div>
-
-                <div className="rounded-2xl border border-neutral-700/40 p-4"
-                     aria-live="polite" aria-atomic="true">
-                    {current ? renderQuestion(current) : null}
-                </div>
-
-                <div className="flex items-center justify-between gap-2">
-                    <button
-                        type="button"
-                        onClick={() => setStep((s) => Math.max(0, s - 1))}
-                        disabled={step <= 0}
-                        className={`rounded-xl px-4 py-2 border ${
-                            step <= 0 ? 'opacity-40 cursor-not-allowed border-neutral-700/40' : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'
-                        }`}
-                    >
-                        {lang === 'zh' ? '上一步' : 'Back'}
-                    </button>
-
-                    <div className="flex items-center gap-2">
-                        <button
-                            type="button"
-                            onClick={() => setShowResults(true)}
-                            disabled={!allVisibleAnswered && (canGoNext || step < visibleQuestions.length)}
-                            className={`rounded-xl px-4 py-2 border ${
-                                allVisibleAnswered ? 'border-indigo-500/70 cursor-pointer hover:border-indigo-400' :
-                                    (canGoNext || step < visibleQuestions.length
-                                        ? 'opacity-40 cursor-not-allowed border-neutral-700/40'
-                                        : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60')
-                            }`}
-                        >
-                            {lang === 'zh' ? '查看结果' : 'View Results'}
-                        </button>
-
-                        <button
-                            type="button"
-                            onClick={() => setStep((s) => Math.min(visibleQuestions.length - 1, s + 1))}
-                            disabled={!canGoNext || step >= visibleQuestions.length - 1}
-                            className={`rounded-xl px-4 py-2 border ${
-                                !canGoNext || step >= visibleQuestions.length - 1
-                                    ? 'opacity-40 cursor-not-allowed border-neutral-700/40'
-                                    : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'
-                            }`}
-                        >
-                            {lang === 'zh' ? '下一步' : 'Next'}
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {showResults ? (
-                <div className="mt-4 rounded-2xl border border-neutral-700/40 p-5 space-y-3"
-                     role="region" aria-live="polite" aria-labelledby="eligibility-results-heading">
+                {showResults ? (
+                    <div className="rounded-2xl border border-neutral-700/40 p-4 space-y-3"
+                         role="region" aria-live="polite" aria-labelledby="eligibility-results-heading">
                     <h2 id="eligibility-results-heading" className="text-lg font-semibold">
                         {lang === 'zh' ? '结果' : 'Results'}
                     </h2>
@@ -714,8 +647,70 @@ export default function EligibilityWizard() {
                             </div>
                         </div>
                     )}
-                </div>
-            ) : null}
+                        <div className="pt-2">
+                            <button
+                                type="button"
+                                onClick={resetWizard}
+                                className="rounded-xl border border-neutral-700/40 cursor-pointer px-4 py-2 hover:border-neutral-500/60"
+                            >
+                                {lang === 'zh' ? '重新开始' : 'Start again'}
+                            </button>
+                        </div>
+                    </div>
+                ) : <>
+                    <div className="flex items-center justify-between text-sm opacity-80">
+                        <div role="status" aria-live="polite">
+                            {lang === 'zh'
+                                ? `进度: ${Math.min(step + 1, visibleQuestions.length)}/${visibleQuestions.length}`
+                                : `Progress: ${Math.min(step + 1, visibleQuestions.length)}/${visibleQuestions.length}`}
+                        </div>
+                        <button
+                            type="button"
+                            onClick={resetWizard}
+                            className="rounded-xl border border-neutral-700/40 cursor-pointer px-3 py-1.5 hover:border-neutral-500/60"
+                        >
+                            {lang === 'zh' ? '重置' : 'Reset'}
+                        </button>
+                    </div>
+
+                    <div className="rounded-2xl border border-neutral-700/40 p-4"
+                         aria-live="polite" aria-atomic="true">
+                        {current ? renderQuestion(current) : null}
+                    </div>
+
+                    <div className="flex items-center justify-between gap-2">
+                        <button
+                            type="button"
+                            onClick={() => setStep((s) => Math.max(0, s - 1))}
+                            disabled={step <= 0}
+                            className={`rounded-xl px-4 py-2 border ${
+                                step <= 0 ? 'opacity-40 cursor-not-allowed border-neutral-700/40' : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'
+                            }`}
+                        >
+                            {lang === 'zh' ? '上一步' : 'Back'}
+                        </button>
+
+                        <button
+                            type="button"
+                            onClick={() => {
+                                if (step >= visibleQuestions.length - 1) {
+                                    setShowResults(true)
+                                    return
+                                }
+                                setStep((s) => s + 1)
+                            }}
+                            disabled={!canGoNext}
+                            className={`rounded-xl px-4 py-2 border ${
+                                !canGoNext
+                                    ? 'opacity-40 cursor-not-allowed border-neutral-700/40'
+                                    : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'
+                            }`}
+                        >
+                            {lang === 'zh' ? '下一步' : 'Next'}
+                        </button>
+                    </div>
+                </>}
+            </div>
         </div>
     )
 }

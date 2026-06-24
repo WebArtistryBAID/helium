@@ -70,6 +70,42 @@
     --shrink-limit: 750px;
 }
 
+/* Studio page editor: a restrained blue treatment for Puck's stock UI. */
+.page-editor {
+    --puck-color-azure-04: #2563eb;
+    --puck-color-azure-05: #3b82f6;
+    --puck-color-azure-08: #bfdbfe;
+    --puck-color-azure-09: #dbeafe;
+    --puck-color-azure-10: #eff6ff;
+    --puck-color-azure-11: #f5f9ff;
+    --puck-color-azure-12: #f8fbff;
+    --puck-color-grey-09: #e5e7eb;
+    --puck-color-grey-10: #f0f2f5;
+    --puck-color-grey-11: #f6f7f9;
+    --puck-color-grey-12: #fafafa;
+}
+
+.page-editor [class*="_PuckHeader_"]:not([class*="_PuckHeader-"]) {
+    background: #ffffff;
+    border-color: #e5e7eb;
+}
+
+.page-editor [class*="_PuckCanvas_"]:not([class*="_PuckCanvas-"]) {
+    background: #f6f7f9;
+}
+
+.page-editor [class*="_PuckCanvas-root_"] {
+    border-color: #dfe3e8;
+    border-radius: 0.75rem;
+    box-shadow: none;
+    overflow: hidden;
+}
+
+.page-editor [class*="_Sidebar--"] {
+    background: #ffffff;
+    border-color: #e5e7eb;
+}
+
 a.inline {
     @apply text-blue-500 hover:underline;
 }
