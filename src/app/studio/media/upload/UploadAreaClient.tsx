@@ -56,6 +56,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                         void upload(e.dataTransfer.files[0])
                     }
                 }}
+                onClick={() => inputRef.current?.click()}
                 className="bg-blue-50 hover:bg-blue-100
         rounded-3xl flex flex-col justify-center items-center text-center p-5 min-w-96
         transition-colors duration-100">
@@ -67,10 +68,6 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
         }}/>
         <HiUpload aria-hidden="true" className="text-blue-400 dark:text-blue-300 text-4xl mb-3"/>
         <p className="text-xl font-bold">上传</p>
-        <button type="button" disabled={loading} className="text-sm underline-offset-4 hover:underline"
-                onClick={() => inputRef.current?.click()}>
-            选择图片
-        </button>
         <div aria-live="polite" className="mt-1 text-sm">
             <If condition={loading}>
                 上传进度: {progress}%
