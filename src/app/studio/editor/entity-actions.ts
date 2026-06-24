@@ -576,7 +576,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         console.log(`+ Starting article download from ${link}.`)
         // STEP 0: Download the article
         await fs.mkdir(`/tmp/article-build-${post.id}`)
-        await runCommand(path.join(path.dirname(await pkgUp() ?? ''), 'blobs', 'downloader-macos'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
+        await runCommand(path.join(path.dirname(await pkgUp() ?? ''), 'blobs', 'downloader'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
 
         // Move from /tmp/article-build-${build.id}/(...) to /tmp/article-build-${build.id}/article
         const files = await fs.readdir(`/tmp/article-build-${post.id}`)
