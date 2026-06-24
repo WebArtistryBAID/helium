@@ -684,6 +684,16 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
                 withoutEnlargement: true
             }).webp().toBuffer()
             const hash = crypto.createHash('sha1').update(webpBuffer).digest('hex')
+
+            const existingImage = await prisma.image.findUnique({
+                where: { sha1: hash },
+                select: { id: true }
+            })
+            if (existingImage) {
+                mapping.set(file, existingImage.id)
+                continue
+            }
+
             await fs.writeFile(path.join(process.env.UPLOAD_PATH!, hash + '.webp'), webpBuffer)
             await fs.writeFile(path.join(process.env.UPLOAD_PATH!, hash + '_thumb.webp'), thumbnailBuffer)
 
