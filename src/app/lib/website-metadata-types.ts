@@ -41,6 +41,20 @@ export type WebsiteMetadataEditorState = WebsiteMetadataDraft & {
     entity: HydratedContentEntity
 }
 
+export type WebsitePageOption = {
+    id: number
+    titleEN: string
+    titleZH: string
+    url: string
+}
+
+export function resolveWebsiteHref(value: string): string {
+    const href = value.trim()
+    if (!href) return '/'
+    if (/^(?:https?:\/\/|mailto:|tel:|\/\/|\/|#|\?)/i.test(href)) return href
+    return `/${href.replace(/^\/+/, '')}`
+}
+
 const NAVBAR_EN: WebsiteLink[] = [
     { id: 'about', name: 'About Us', url: '/about' },
     { id: 'academics', name: 'Academics', url: '/academics' },

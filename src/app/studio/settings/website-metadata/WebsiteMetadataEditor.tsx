@@ -35,7 +35,8 @@ import {
     WebsiteLink,
     WebsiteMetadataContent,
     WebsiteMetadataDraft,
-    WebsiteMetadataEditorState
+    WebsiteMetadataEditorState,
+    WebsitePageOption
 } from '@/app/lib/website-metadata-types'
 import {
     getWebsiteMetadataEditorState,
@@ -60,11 +61,121 @@ function moveItem<T>(items: T[], index: number, direction: -1 | 1): T[] {
     return next
 }
 
-function LinkFields({ item, prefix, disabled, inputLang, onChange }: {
+function LinkAutocomplete({ id, value, disabled, language, pageOptions, onChange }: {
+    id: string
+    value: string
+    disabled: boolean
+    language: Language
+    pageOptions: WebsitePageOption[]
+    onChange: (value: string) => void
+}) {
+    const [ open, setOpen ] = useState(false)
+    const [ query, setQuery ] = useState('')
+    const [ activeIndex, setActiveIndex ] = useState(-1)
+    const listboxId = `${id}-pages`
+    const normalizedQuery = query.trim().toLocaleLowerCase()
+    const filteredPages = normalizedQuery
+        ? pageOptions.filter(page => [ page.titleEN, page.titleZH, page.url ]
+            .some(text => text.toLocaleLowerCase().includes(normalizedQuery)))
+        : pageOptions
+
+    function openPages() {
+        setQuery('')
+        setOpen(true)
+        setActiveIndex(pageOptions.length > 0 ? 0 : -1)
+    }
+
+    function selectPage(page: WebsitePageOption) {
+        onChange(page.url)
+        setOpen(false)
+        setQuery('')
+        setActiveIndex(-1)
+    }
+
+    return <div className="relative"
+                onBlur={event => {
+                    if (!event.currentTarget.contains(event.relatedTarget)) {
+                        setOpen(false)
+                        setActiveIndex(-1)
+                    }
+                }}>
+        <TextInput id={id} value={value} disabled={disabled} icon={HiLink} required
+                   role="combobox"
+                   aria-autocomplete="list"
+                   aria-expanded={open}
+                   aria-controls={listboxId}
+                   aria-activedescendant={open && activeIndex >= 0
+                       ? `${listboxId}-${filteredPages[activeIndex]?.id}`
+                       : undefined}
+                   autoComplete="off"
+                   onFocus={openPages}
+                   onChange={event => {
+                       const nextValue = event.currentTarget.value
+                       const nextQuery = nextValue.trim().toLocaleLowerCase()
+                       const hasMatchingPage = pageOptions.some(page => [ page.titleEN, page.titleZH, page.url ]
+                           .some(text => text.toLocaleLowerCase().includes(nextQuery)))
+                       onChange(nextValue)
+                       setQuery(nextValue)
+                       setOpen(true)
+                       setActiveIndex(hasMatchingPage ? 0 : -1)
+                   }}
+                   onKeyDown={event => {
+                       if (event.key === 'ArrowDown') {
+                           event.preventDefault()
+                           if (!open) {
+                               openPages()
+                               return
+                           }
+                           setActiveIndex(current => Math.min(current + 1, filteredPages.length - 1))
+                       } else if (event.key === 'ArrowUp') {
+                           event.preventDefault()
+                           setActiveIndex(current => Math.max(current - 1, 0))
+                       } else if (event.key === 'Enter' && open && activeIndex >= 0) {
+                           const page = filteredPages[activeIndex]
+                           if (page) {
+                               event.preventDefault()
+                               selectPage(page)
+                           }
+                       } else if (event.key === 'Escape') {
+                           setOpen(false)
+                           setActiveIndex(-1)
+                       }
+                   }}/>
+
+        {open ? <div id={listboxId} role="listbox" aria-label="可选择的网站页面"
+                     className="absolute left-0 right-0 top-full z-20 mt-2 max-h-64 overflow-y-auto rounded-xl border border-gray-200 bg-white p-1">
+            {filteredPages.map((page, index) => <button
+                id={`${listboxId}-${page.id}`}
+                key={page.id}
+                type="button"
+                role="option"
+                tabIndex={-1}
+                aria-selected={activeIndex === index}
+                className={`block w-full cursor-pointer rounded-lg px-3 py-2 text-left ${activeIndex === index ? 'bg-blue-50 text-blue-700' : 'text-gray-900 hover:bg-gray-50'}`}
+                onMouseDown={event => event.preventDefault()}
+                onMouseMove={() => setActiveIndex(index)}
+                onClick={() => selectPage(page)}>
+                <span className="block font-medium">
+                    {language === 'zh' ? page.titleZH : page.titleEN}
+                </span>
+                <span className="block text-xs text-gray-500">
+                    {language === 'zh' ? page.titleEN : page.titleZH}
+                </span>
+            </button>)}
+            {filteredPages.length === 0 ? <p className="px-3 py-2 text-sm text-gray-500">
+                没有匹配的页面，可以继续输入外部链接。
+            </p> : null}
+        </div> : null}
+    </div>
+}
+
+function LinkFields({ item, prefix, disabled, inputLang, language, pageOptions, onChange }: {
     item: WebsiteLink
     prefix: string
     disabled: boolean
     inputLang: string
+    language: Language
+    pageOptions: WebsitePageOption[]
     onChange: (field: LinkField, value: string) => void
 }) {
     return <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
@@ -79,17 +190,18 @@ function LinkFields({ item, prefix, disabled, inputLang, onChange }: {
             <div className="mb-2 block">
                 <Label htmlFor={`${prefix}-url`}>链接</Label>
             </div>
-            <TextInput id={`${prefix}-url`} value={item.url} disabled={disabled} icon={HiLink} required
-                       placeholder="/about"
-                       onChange={event => onChange('url', event.currentTarget.value)}/>
+            <LinkAutocomplete id={`${prefix}-url`} value={item.url} disabled={disabled}
+                              language={language} pageOptions={pageOptions}
+                              onChange={value => onChange('url', value)}/>
         </div>
     </div>
 }
 
-export default function WebsiteMetadataEditor({ init, user, lockToken }: {
+export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptions }: {
     init: WebsiteMetadataEditorState
     user: User
     lockToken: string
+    pageOptions: WebsitePageOption[]
 }) {
     const [ language, setLanguage ] = useState<Language>('zh')
     const [ showLockBroken, setShowLockBroken ] = useState(false)
@@ -457,7 +569,8 @@ export default function WebsiteMetadataEditor({ init, user, lockToken }: {
                                             </div> : null}
                                         </div>
                                         <LinkFields item={item} prefix={`navbar-${language}-${item.id}`}
-                                                    disabled={!canWrite} inputLang={inputLang}
+                                                    disabled={!canWrite} inputLang={inputLang} language={language}
+                                                    pageOptions={pageOptions}
                                                     onChange={(field, value) =>
                                             updateNavbarItem(index, field, value)}/>
                                     </div>)}
@@ -502,7 +615,8 @@ export default function WebsiteMetadataEditor({ init, user, lockToken }: {
                                             </div> : null}
                                         </div>
                                         <LinkFields item={item} prefix={`footer-${language}-${item.id}`}
-                                                    disabled={!canWrite} inputLang={inputLang}
+                                                    disabled={!canWrite} inputLang={inputLang} language={language}
+                                                    pageOptions={pageOptions}
                                                     onChange={(field, value) =>
                                             updateFooterItem(itemIndex, field, value)}/>
 
@@ -548,6 +662,8 @@ export default function WebsiteMetadataEditor({ init, user, lockToken }: {
                                                                 prefix={`footer-${language}-${item.id}-${subItem.id}`}
                                                                 disabled={!canWrite}
                                                                 inputLang={inputLang}
+                                                                language={language}
+                                                                pageOptions={pageOptions}
                                                                 onChange={(field, value) => updateFooterSubItem(
                                                                     itemIndex,
                                                                     subItemIndex,

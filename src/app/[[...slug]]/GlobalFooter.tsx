@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
-import { WebsiteMetadataDraft } from '@/app/lib/website-metadata-types'
+import { resolveWebsiteHref, WebsiteMetadataDraft } from '@/app/lib/website-metadata-types'
 
 const locales = {
     en: {
@@ -32,14 +32,14 @@ export default function GlobalFooter({ websiteMetadata }: {
                  className="lg:flex lg:justify-between lg:gap-3 space-y-3 mb-5">
                 {content.footer.items.map(item =>
                     <div key={item.id}>
-                        <Link href={item.url || '/'} className="fancy-link link-white mb-2">
+                        <Link href={resolveWebsiteHref(item.url)} className="fancy-link link-white mb-2">
                             <h3 className="text-lg font-bold">
                                 {item.name}
                             </h3>
                         </Link>
                         <div className="flex flex-col">
                             {item.subItems.map(subItem =>
-                                <Link href={subItem.url || '/'} className="link-white"
+                                <Link href={resolveWebsiteHref(subItem.url)} className="link-white"
                                       key={subItem.id}>
                                     {subItem.name}
                                 </Link>

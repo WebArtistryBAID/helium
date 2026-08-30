@@ -13,7 +13,8 @@ import {
     WEBSITE_METADATA_ENTITY_TITLE_ZH,
     WEBSITE_METADATA_SLUG,
     WebsiteMetadataDraft,
-    WebsiteMetadataEditorState
+    WebsiteMetadataEditorState,
+    WebsitePageOption
 } from '@/app/lib/website-metadata-types'
 
 function editorState(entity: WebsiteMetadataEditorState['entity']): WebsiteMetadataEditorState {
@@ -29,6 +30,29 @@ export async function getWebsiteMetadataEditorState(): Promise<WebsiteMetadataEd
     const entity = await ensureWebsiteMetadataEntity(user.id)
     if (!entity) throw new Error('Website metadata entity could not be created')
     return editorState(entity)
+}
+
+export async function getWebsitePageOptions(): Promise<WebsitePageOption[]> {
+    await requireUser()
+    const pages = await prisma.contentEntity.findMany({
+        where: {
+            type: EntityType.page,
+            NOT: { slug: WEBSITE_METADATA_SLUG }
+        },
+        orderBy: { titleDraftEN: 'asc' },
+        select: {
+            id: true,
+            titleDraftEN: true,
+            titleDraftZH: true,
+            slug: true
+        }
+    })
+    return pages.map(page => ({
+        id: page.id,
+        titleEN: page.titleDraftEN,
+        titleZH: page.titleDraftZH,
+        url: page.slug === '/' ? '/' : `/${page.slug.replace(/^\/+/, '')}`
+    }))
 }
 
 export async function saveWebsiteMetadata(

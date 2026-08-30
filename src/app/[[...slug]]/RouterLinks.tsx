@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { WebsiteLink } from '@/app/lib/website-metadata-types'
+import { resolveWebsiteHref, WebsiteLink } from '@/app/lib/website-metadata-types'
 
 export default function RouterLinks({ items }: {
     items: WebsiteLink[]
@@ -23,18 +23,21 @@ export default function RouterLinks({ items }: {
                     if (!event.currentTarget.contains(event.relatedTarget)) setShowBlock(false)
                 }}
                 onMouseLeave={() => setShowBlock(false)}>
-        {items.map((item, index) => <div key={item.id} className="h-full text-lg">
-            <Link href={item.url || '/'}
-                  aria-current={path === item.url ? 'page' : undefined}
+        {items.map((item, index) => {
+            const href = resolveWebsiteHref(item.url)
+            return <div key={item.id} className="h-full text-lg">
+            <Link href={href}
+                  aria-current={path === href ? 'page' : undefined}
                   onFocus={() => updateBlock(index)}
                   onMouseOver={() => updateBlock(index)}
                   className={`inline-block w-30 h-full decoration-none opacity-80 transition-colors text-inherit hover:opacity-100 active:opacity-70
-                  ${path === item.url ? ((path === '/life' || path === '/projects') ? 'opacity-100' : 'opacity-100 text-red-900') : ''}`}>
+                  ${path === href ? ((path === '/life' || path === '/projects') ? 'opacity-100' : 'opacity-100 text-red-900') : ''}`}>
                 <div className="flex items-center justify-center w-full h-full">
                     {item.name}
                 </div>
             </Link>
-        </div>)}
+        </div>
+        })}
 
         <div
             className={`${showBlock ? 'opacity-10' : 'opacity-0'} absolute w-30 h-full bg-black opacity-0 z-10 pointer-events-none transition-all duration-300`}
