@@ -106,6 +106,14 @@
     border-color: #e5e7eb;
 }
 
+.website-metadata-editor button:not(:disabled) {
+    cursor: pointer;
+}
+
+.website-metadata-editor button:disabled {
+    cursor: not-allowed;
+}
+
 a.inline {
     @apply text-blue-500 hover:underline;
 }

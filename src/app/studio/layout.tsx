@@ -27,7 +27,8 @@ import {
     HiShare,
     HiStar,
     HiUsers,
-    HiCog
+    HiCog,
+    HiGlobeAlt
 } from 'react-icons/hi2'
 import If from '@/app/lib/If'
 import { usePathname } from 'next/navigation'
@@ -72,9 +73,9 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                         媒体库
                                     </SidebarItem>
                                 </Link>
-                                <Link href="/studio/settings">
-                                    <SidebarItem as="div" icon={HiCog}>
-                                        飞书设置
+                                <Link href="/studio/settings/website-metadata">
+                                    <SidebarItem as="div" icon={HiGlobeAlt}>
+                                        网站信息
                                     </SidebarItem>
                                 </Link>
                                 <If condition={myUser?.roles.includes(Role.admin)}>

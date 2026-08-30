@@ -4,6 +4,7 @@ import { createSecretKey } from 'node:crypto'
 import { SignJWT } from 'jose'
 import { cookies } from 'next/headers'
 import { prisma } from '@/app/lib/prisma'
+import { ensureWebsiteMetadataEntity } from '@/app/lib/website-metadata.server'
 
 const secret = createSecretKey(process.env.JWT_SECRET!, 'utf-8')
 
@@ -64,6 +65,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
             gender: meJson['gender']
         }
     })
+    await ensureWebsiteMetadataEntity(user.id)
 
     await prisma.userAuditLog.create({
         data: {

@@ -6,6 +6,7 @@ import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import SchoolLogo from '@/app/[[...slug]]/SchoolLogo'
 import RouterLinks from '@/app/[[...slug]]/RouterLinks'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
+import { WebsiteMetadataDraft } from '@/app/lib/website-metadata-types'
 
 const locales = {
     en: {
@@ -26,14 +27,8 @@ const locales = {
     }
 }
 
-export default function GlobalHeader({ pages, headerAnimate = false }: {
-    pages: {
-        id: number,
-        titleEN: string,
-        titleZH: string,
-        slug: string,
-        subPages: { id: number, titleEN: string, titleZH: string, slug: string }[]
-    }[],
+export default function GlobalHeader({ websiteMetadata, headerAnimate = false }: {
+    websiteMetadata: WebsiteMetadataDraft,
     headerAnimate?: boolean
 }) {
     const pathname = usePathname() || '/'
@@ -187,7 +182,9 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                     backgroundClass
                 ].join(' ')}>
                 <div className="mr-auto py-4 transition-colors duration-300">
-                    <SchoolLogo color={useBlackText ? 'black' : 'white'}/>
+                    <SchoolLogo color={useBlackText ? 'black' : 'white'}
+                                titleEN={websiteMetadata.en.title}
+                                titleZH={websiteMetadata.zh.title}/>
                 </div>
 
                 <nav
@@ -197,7 +194,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                         useBlackText ? 'text-black' : 'text-white'
                     ].join(' ')}
                 >
-                    <RouterLinks pages={pages}/>
+                    <RouterLinks items={websiteMetadata[language].navbar}/>
                 </nav>
 
                 <div className="h-18 w-24 flex items-center justify-center gap-2">
@@ -267,7 +264,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                             </svg>
                         </button>
 
-                        <GlobalFooter pages={pages}/>
+                        <GlobalFooter websiteMetadata={websiteMetadata}/>
                     </div>
                 )}
             </header>

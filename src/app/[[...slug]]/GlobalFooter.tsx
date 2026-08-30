@@ -2,55 +2,46 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
+import { WebsiteMetadataDraft } from '@/app/lib/website-metadata-types'
 
 const locales = {
     en: {
-        wechat: '(add on WeChat)',
-        copyright: '© 2026 Beijing Academy Education Group. All rights reserved.',
-        chn: 'Learn more about Beijing Academy Education Group\'s other programs.',
         nav: 'Footer Navigation',
         backend: 'Open Administrative Interface'
     },
     zh: {
-        wechat: '(在微信上添加)',
-        copyright: '© 2026 北京中学教育集团 / 保留所有权利',
-        chn: '了解北京中学教育集团的其他教育项目。',
         nav: '页脚导航',
         backend: '打开管理后台'
     }
 }
 
-export default function GlobalFooter({ pages }: {
-    pages: {
-        id: number,
-        titleEN: string,
-        titleZH: string,
-        slug: string,
-        subPages: { id: number, titleEN: string, titleZH: string, slug: string }[]
-    }[]
+export default function GlobalFooter({ websiteMetadata }: {
+    websiteMetadata: WebsiteMetadataDraft
 }) {
     const language = useLanguage()
+    const content = websiteMetadata[language]
+    const phoneHref = `tel:${content.footer.phoneText.replace(/[^\d+]/g, '')}`
 
     return <footer className="w-full !font-sans py-16 px-5 !text-white bg-red-900">
         <div className="container mb-5">
             <p className="uppercase tracking-[0.3em] !mb-5 font-sans text-lg">
-                Beijing Academy
+                BEIJING ACADEMY
             </p>
 
             <nav aria-label={locales[language].nav} role="navigation"
                  className="lg:flex lg:justify-between lg:gap-3 space-y-3 mb-5">
-                {pages.map((page, index) =>
-                    <div key={index}>
-                        <Link href={`/${page.slug}`} className="fancy-link link-white mb-2">
+                {content.footer.items.map(item =>
+                    <div key={item.id}>
+                        <Link href={item.url || '/'} className="fancy-link link-white mb-2">
                             <h3 className="text-lg font-bold">
-                                {language === 'zh' ? page.titleZH : page.titleEN}
+                                {item.name}
                             </h3>
                         </Link>
                         <div className="flex flex-col">
-                            {page.subPages.map((subPage, subIndex) =>
-                                <Link href={`/${subPage.slug}`} className="link-white"
-                                      key={subIndex}>
-                                    {language === 'zh' ? subPage.titleZH : subPage.titleEN}
+                            {item.subItems.map(subItem =>
+                                <Link href={subItem.url || '/'} className="link-white"
+                                      key={subItem.id}>
+                                    {subItem.name}
                                 </Link>
                             )}
                         </div>
@@ -59,13 +50,13 @@ export default function GlobalFooter({ pages }: {
             </nav>
 
             <address className="mb-5">
-                <p><a href="tel:+8615910524064">+86 159 1052 4064</a> {locales[language].wechat}</p>
-                <p><a href="mailto:baid@bjacademy.com.cn">baid@bjacademy.com.cn</a></p>
+                <p><a href={phoneHref}>{content.footer.phoneText}</a></p>
+                <p><a href={`mailto:${content.footer.emailText.trim()}`}>{content.footer.emailText}</a></p>
             </address>
 
-            <p>{locales[language].copyright}</p>
-                            <p className="break-words"><a href="https://www.beijingacademy.com.cn">{locales[language].chn}</a></p>
-            <p><a href="https://beian.miit.gov.cn">京ICP备13051651号-2</a></p>
+            <p>{content.footer.copyrightText}</p>
+            <p className="break-words"><a href={content.footer.chineseWebsiteUrl}>{content.footer.chineseWebsiteText}</a></p>
+            <p><a href="https://beian.miit.gov.cn">{content.footer.icpNumber}</a></p>
         </div>
     </footer>
 }

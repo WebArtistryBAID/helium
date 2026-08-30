@@ -3,6 +3,7 @@ import { requireUser } from '@/app/login/login-actions'
 import { tryAcquireLock } from '@/app/lib/lock/lock-typicals'
 import { getContentEntity } from '@/app/studio/editor/entity-actions'
 import PageEditor from '@/app/studio/pages/[id]/editor/PageEditor'
+import { WEBSITE_METADATA_SLUG, WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/website-metadata-types'
 
 export default async function StudioPageEditor({ params, searchParams }: {
     params: Promise<{ id: string }>,
@@ -13,6 +14,9 @@ export default async function StudioPageEditor({ params, searchParams }: {
     const entity = await getContentEntity(parseInt((await params).id))
     if (entity == null) {
         redirect('/studio')
+    }
+    if (entity.slug === WEBSITE_METADATA_SLUG) {
+        redirect(WEBSITE_METADATA_STUDIO_PATH)
     }
 
     const requestedToken = (await searchParams).token ?? undefined

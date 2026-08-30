@@ -4,14 +4,24 @@ import { EntityType, Role } from '@/generated/prisma/client'
 import { requireUserWithRole } from '@/app/login/login-actions'
 import { prisma } from '@/app/lib/prisma'
 import { sendApprovalNotification, sendApprovalProgressNotification } from '@/app/lib/feishu-approval'
+import {
+    WEBSITE_METADATA_SLUG,
+    WEBSITE_METADATA_STUDIO_PATH
+} from '@/app/lib/website-metadata-types'
 
 export type ApprovalThresholds = {
     [Role.editor]?: number
     [Role.admin]?: number
 }
 
-function getStudioReviewUrls(entityType: EntityType, entityId: number) {
+function getStudioReviewUrls(entityType: EntityType, entityId: number, slug?: string) {
     const baseUrl = process.env.HOST || 'http://localhost:3000'
+    if (slug === WEBSITE_METADATA_SLUG) {
+        return {
+            previewUrl: `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}`,
+            approvalUrl: `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}#approval`
+        }
+    }
     if (entityType === EntityType.page) {
         return {
             previewUrl: `${baseUrl}/studio/pages/${entityId}/preview`,
@@ -45,10 +55,10 @@ export async function addApproval(params: {
 
     const entity = await prisma.contentEntity.findUnique({
         where: { id: entityId },
-        select: { titleDraftEN: true, titleDraftZH: true }
+        select: { titleDraftEN: true, titleDraftZH: true, slug: true }
     })
     const approvalState = await meetsThresholds({ entityType, entityId })
-    const { previewUrl, approvalUrl } = getStudioReviewUrls(entityType, entityId)
+    const { previewUrl, approvalUrl } = getStudioReviewUrls(entityType, entityId, entity?.slug)
 
     await sendApprovalProgressNotification({
         entityId,
@@ -131,7 +141,7 @@ export async function requestContentReview(params: {
     const user = await requireUserWithRole(Role.writer)
     const entity = await prisma.contentEntity.findUnique({
         where: { id: params.entityId },
-        select: { titleDraftEN: true, titleDraftZH: true }
+        select: { titleDraftEN: true, titleDraftZH: true, slug: true }
     })
     if (!entity) {
         throw new Error('Content entity not found')
@@ -141,7 +151,7 @@ export async function requestContentReview(params: {
         where: { entityType: params.entityType, entityId: params.entityId }
     })
 
-    const { previewUrl, approvalUrl } = getStudioReviewUrls(params.entityType, params.entityId)
+    const { previewUrl, approvalUrl } = getStudioReviewUrls(params.entityType, params.entityId, entity.slug)
     await sendApprovalNotification({
         entityId: params.entityId,
         entityType: params.entityType,

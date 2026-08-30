@@ -21,12 +21,16 @@ import { prisma } from '@/app/lib/prisma'
 import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { sendApprovalProgressNotification } from '@/app/lib/feishu-approval'
+import {
+    WEBSITE_METADATA_SLUG,
+    WEBSITE_METADATA_STUDIO_PATH
+} from '@/app/lib/website-metadata-types'
 
 const PAGE_SIZE = 24
 
 export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
-        where: { type },
+        where: { type, NOT: { slug: WEBSITE_METADATA_SLUG } },
         orderBy: { updatedAt: 'desc' },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT,
         take: 3
@@ -80,6 +84,28 @@ export async function getMyPendingApprovals(): Promise<SimplifiedContentEntity[]
         return []
     }
 
+    const websiteMetadata = await prisma.contentEntity.findUnique({
+        where: { slug: WEBSITE_METADATA_SLUG },
+        select: {
+            id: true,
+            titlePublishedEN: true,
+            titlePublishedZH: true,
+            titleDraftEN: true,
+            titleDraftZH: true,
+            contentPublishedEN: true,
+            contentPublishedZH: true,
+            contentDraftEN: true,
+            contentDraftZH: true
+        }
+    })
+    if (websiteMetadata &&
+        websiteMetadata.titlePublishedEN === websiteMetadata.titleDraftEN &&
+        websiteMetadata.titlePublishedZH === websiteMetadata.titleDraftZH &&
+        websiteMetadata.contentPublishedEN === websiteMetadata.contentDraftEN &&
+        websiteMetadata.contentPublishedZH === websiteMetadata.contentDraftZH) {
+        ids = ids.filter(id => id !== websiteMetadata.id)
+    }
+
     if (ids.length === 0) return []
 
     const limited = ids.slice(0, 24)
@@ -107,7 +133,8 @@ export async function refreshPageData(): Promise<void> {
     }
     const pages = await prisma.contentEntity.findMany({
         where: {
-            type: EntityType.page
+            type: EntityType.page,
+            NOT: { slug: WEBSITE_METADATA_SLUG }
         }
     })
     for (const page of pages) {
@@ -124,6 +151,7 @@ export async function refreshPageData(): Promise<void> {
 }
 
 export async function getContentEntityBySlug(slug: string): Promise<HydratedContentEntity | null> {
+    if (slug === WEBSITE_METADATA_SLUG) return null
     return prisma.contentEntity.findFirst({
         where: {
             slug,
@@ -137,6 +165,7 @@ export async function getPublishedContentEntity(id: number): Promise<HydratedCon
     return prisma.contentEntity.findFirst({
         where: {
             id,
+            NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null }
         },
         select: HYDRATED_CONTENT_ENTITY_SELECT
@@ -204,6 +233,7 @@ export async function getPublishedProjectsByCategoriesForInit(): Promise<{
 export async function getAllPublishedContentEntities(): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
         where: {
+            NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null }
         },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT
@@ -214,6 +244,7 @@ export async function getPublishedContentEntities(page: number, type: EntityType
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
             type,
+            NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null },
             categoryEN: category == null ? undefined : category,
             OR: query == null ? undefined : [
@@ -226,6 +257,7 @@ export async function getPublishedContentEntities(page: number, type: EntityType
     const posts = await prisma.contentEntity.findMany({
         where: {
             type,
+            NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null },
             categoryEN: category == null ? undefined : category,
             OR: query == null ? undefined : [
@@ -263,13 +295,15 @@ export async function getContentEntities(page: number, type: EntityType, query: 
                               setweight(to_tsvector('simple', coalesce(ce."contentDraftEN", '')), 'B') ||
                               setweight(to_tsvector('simple', coalesce(ce."contentDraftZH", '')), 'B') AS doc
                        FROM "ContentEntity" ce
-                       WHERE ce."type" = ${type}::"EntityType"), m AS (
+                       WHERE ce."type" = ${type}::"EntityType"
+                         AND ce."slug" <> ${WEBSITE_METADATA_SLUG}), m AS (
             SELECT ce.id, ts_rank_cd(t.doc, websearch_to_tsquery('simple', ${q})) AS rank
             FROM "ContentEntity" ce
                 JOIN t
             ON t.id = ce.id
                 LEFT JOIN "User" u ON u.id = ce."creatorId"
             WHERE ce."type" = ${type}::"EntityType"
+              AND ce."slug" <> ${WEBSITE_METADATA_SLUG}
               AND (
                 t.doc @@ websearch_to_tsquery('simple'
                 , ${q})
@@ -302,12 +336,14 @@ export async function getContentEntities(page: number, type: EntityType, query: 
     // No-query
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
-            type
+            type,
+            NOT: { slug: WEBSITE_METADATA_SLUG }
         }
     }) / PAGE_SIZE)
     const posts = await prisma.contentEntity.findMany({
         where: {
-            type
+            type,
+            NOT: { slug: WEBSITE_METADATA_SLUG }
         },
         orderBy: { createdAt: 'desc' },
         skip: page * PAGE_SIZE,
@@ -334,6 +370,9 @@ export async function unpublishContentEntity(id: number): Promise<void> {
     const post = await prisma.contentEntity.findUnique({ where: { id } })
     if (post == null) {
         return
+    }
+    if (post.slug === WEBSITE_METADATA_SLUG) {
+        throw new Error('Website metadata must be managed from website settings')
     }
 
     await prisma.contentEntity.update({
@@ -391,10 +430,15 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
     })
     const approvalState = await meetsThresholds({ entityType: post.type, entityId: id })
     const baseUrl = process.env.HOST || 'http://localhost:3000'
-    const previewUrl = post.type === EntityType.page
+    const isWebsiteMetadata = post.slug === WEBSITE_METADATA_SLUG
+    const previewUrl = isWebsiteMetadata
+        ? `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}`
+        : post.type === EntityType.page
         ? `${baseUrl}/studio/pages/${id}/preview`
         : `${baseUrl}/studio/editor/${id}#preview`
-    const approvalUrl = post.type === EntityType.page
+    const approvalUrl = isWebsiteMetadata
+        ? `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}#approval`
+        : post.type === EntityType.page
         ? `${baseUrl}/studio/pages/${id}/approval`
         : `${baseUrl}/studio/editor/${id}#approval`
     await sendApprovalProgressNotification({
@@ -415,6 +459,10 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
 
 export async function deleteContentEntity(id: number): Promise<void> {
     const user = await requireUserWithRole(Role.editor)
+    const current = await prisma.contentEntity.findUnique({ where: { id }, select: { slug: true } })
+    if (current?.slug === WEBSITE_METADATA_SLUG) {
+        throw new Error('Website metadata cannot be deleted')
+    }
     const post = await prisma.contentEntity.delete({
         where: {
             id
@@ -479,6 +527,10 @@ export async function updateContentEntity(data: {
     coverImageDraftId: number | null | undefined
 }): Promise<HydratedContentEntity> {
     const user = await requireUserWithRole(Role.writer)
+    const current = await prisma.contentEntity.findUnique({ where: { id: data.id }, select: { slug: true } })
+    if (current?.slug === WEBSITE_METADATA_SLUG) {
+        throw new Error('Website metadata must be managed from website settings')
+    }
     const post = await prisma.contentEntity.update({
         where: { id: data.id },
         data: {

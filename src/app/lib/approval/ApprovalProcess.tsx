@@ -26,11 +26,12 @@ import { useRouter } from 'next/navigation'
 import { HydratedContentEntity, isAligned } from '@/app/lib/data-types'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
-export default function ApprovalProcess({ entityType, entityId, entity, doAlign }: {
+export default function ApprovalProcess({ entityType, entityId, entity, doAlign, showPageNavigation = true }: {
     entityType: EntityType,
     entityId: number,
     entity: HydratedContentEntity,
-    doAlign: () => Promise<void>
+    doAlign: () => Promise<void>,
+    showPageNavigation?: boolean
 }) {
     const [ user, setUser ] = useState<User | null>(null)
     const [ loading, setLoading ] = useState(false)
@@ -79,7 +80,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign 
                     <TimelineBody>
                         由撰稿员完成内容编写。
                     </TimelineBody>
-                    <If condition={entityType === EntityType.page}>
+                    <If condition={entityType === EntityType.page && showPageNavigation}>
                         <div className="flex gap-3">
                             <Button pill color="blue"
                                     onClick={() => router.push(`/studio/pages/${entityId}/preview`)}>查看预览</Button>

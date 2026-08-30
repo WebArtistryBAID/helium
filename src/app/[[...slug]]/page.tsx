@@ -9,47 +9,7 @@ import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
 import { retrieveMetadata } from '@/app/[[...slug]]/metadata-utils'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { Metadata } from 'next'
-
-const PAGES = [
-    {
-        id: 1, titleEN: 'About Us', titleZH: '关于', slug: 'about', subPages: [
-            { id: -1, titleEN: 'Our Mission', titleZH: '我们的使命', slug: 'about' },
-            { id: -1, titleEN: 'Core Values', titleZH: '核心价值观', slug: 'about' },
-            { id: -1, titleEN: 'Accreditation', titleZH: '认证', slug: 'about' }
-        ]
-    },
-    {
-        id: 2, titleEN: 'Academics', titleZH: '学术', slug: 'academics',
-        subPages: [
-            { id: 7, titleEN: 'ISBA Program', titleZH: 'ISBA 项目', slug: 'academics/isba' },
-            { id: 8, titleEN: 'BAID Program', titleZH: 'BAID 项目', slug: 'academics/baid' },
-            { id: 9, titleEN: 'Project-Based Learning', titleZH: '项目式学习', slug: 'academics/pbl' },
-            { id: 10, titleEN: 'College Counseling', titleZH: '大学升学指导', slug: 'academics/college-counseling' }
-        ]
-    },
-    {
-        id: 3, titleEN: 'Life', titleZH: '学生生活', slug: 'life', subPages: [
-            { id: 11, titleEN: 'Clubs', titleZH: '社团', slug: 'life/clubs' },
-            { id: 12, titleEN: 'Electives', titleZH: '选修课', slug: 'life/electives' },
-            { id: 13, titleEN: 'Dining', titleZH: '用餐', slug: 'life/dining' },
-            { id: 14, titleEN: 'Athletics', titleZH: '运动', slug: 'life/athletics' },
-            { id: 15, titleEN: 'Activities', titleZH: '校园活动', slug: 'life/activities' }
-        ]
-    },
-    {
-        id: 4, titleEN: 'Projects', titleZH: '自主项目', slug: 'projects', subPages: [
-            { id: -1, titleEN: 'Featured Projects', titleZH: '精选项目', slug: 'projects' },
-            { id: -1, titleEN: 'Gallery', titleZH: '项目展览', slug: 'projects' }
-        ]
-    },
-    {
-        id: 5, titleEN: 'Admissions', titleZH: '招生', slug: 'admissions', subPages: [
-            { id: 16, titleEN: 'BAID Admissions', titleZH: 'BAID 招生', slug: 'admissions/baid' },
-            { id: 17, titleEN: 'ISBA Admissions', titleZH: 'ISBA 招生', slug: 'admissions/isba' }
-        ]
-    },
-    { id: 6, titleEN: 'News', titleZH: '新闻', slug: 'news', subPages: [] }
-]
+import { getPublishedWebsiteMetadata } from '@/app/lib/website-metadata.server'
 
 export async function generateMetadata({ params }: {
     params: Promise<{ slug: string[] | undefined }>
@@ -71,7 +31,7 @@ export async function generateMetadata({ params }: {
     }
 
     const newRoute = route.slice(1)
-    const metadata = await retrieveMetadata(route)
+    const metadata = await retrieveMetadata(route, finalLocale as 'en' | 'zh')
 
     let ogImage = `${process.env.HOST}/assets/components/bento/life.webp`
     let ogType: 'website' | 'article' = 'website'
@@ -105,9 +65,7 @@ export async function generateMetadata({ params }: {
                     alt: metadata.title
                 }
             ],
-            siteName: finalLocale === 'en'
-                ? 'Beijing Academy International Division'
-                : '北京中学国际部',
+            siteName: metadata.siteName,
             locale: finalLocale === 'zh' ? 'zh_CN' : 'en_US',
             alternateLocale: finalLocale === 'zh' ? 'en_US' : 'zh_CN',
             ...(publishedTime ? { publishedTime } : {})
@@ -155,6 +113,7 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     }
 
     void refreshPageData()
+    const websiteMetadata = await getPublishedWebsiteMetadata()
     const newRoute = route.slice(1)
     const slug = newRoute.length === 0 ? '/' : newRoute.join('/')
 
@@ -175,12 +134,12 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         }
         return (
             <>
-                <GlobalHeader pages={PAGES}
+                <GlobalHeader websiteMetadata={websiteMetadata}
                               headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
                 <main id="main-content" tabIndex={-1}>
                     <AnyContentEntityPage entity={entity} params={params}/>
                 </main>
-                <GlobalFooter pages={PAGES}/>
+                <GlobalFooter websiteMetadata={websiteMetadata}/>
             </>
         )
     }
@@ -191,14 +150,15 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     }
     return (
         <>
-            <GlobalHeader pages={PAGES} headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
+            <GlobalHeader websiteMetadata={websiteMetadata}
+                          headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
             <main id="main-content" tabIndex={-1}>
                 <Render config={PUCK_CONFIG}
                         data={finalLocale === 'en'
                             ? JSON.parse(entity.contentPublishedEN!)
                             : JSON.parse(entity.contentPublishedZH!)}/>
             </main>
-            <GlobalFooter pages={PAGES}/>
+            <GlobalFooter websiteMetadata={websiteMetadata}/>
         </>
     )
 }
