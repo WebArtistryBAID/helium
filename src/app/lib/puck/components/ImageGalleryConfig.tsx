@@ -26,6 +26,15 @@ const ImageGalleryConfig: ComponentConfig = {
                     label: '正文',
                     type: 'textarea',
                     contentEditable: true
+                },
+                link: {
+                    label: '链接',
+                    type: 'text'
+                },
+                linkText: {
+                    label: '链接文字',
+                    type: 'text',
+                    contentEditable: true
                 }
             },
             min: 1
@@ -39,6 +48,12 @@ const ImageGalleryConfig: ComponentConfig = {
                     type: 'text'
                 },
                 content: {
+                    type: 'text'
+                },
+                link: {
+                    type: 'text'
+                },
+                linkText: {
                     type: 'text'
                 }
             }
@@ -63,12 +78,16 @@ const ImageGalleryConfig: ComponentConfig = {
                 resolvedSlides: await Promise.all((props.slides ?? []).map(async (slide: {
                     image: string | null | undefined,
                     title: string | undefined,
-                    content: string | undefined
+                    content: string | undefined,
+                    link: string | undefined,
+                    linkText: string | undefined
                 }) => {
                     if (!slide) return null
                     return {
                         title: slide.title,
                         content: slide.content,
+                        link: slide.link,
+                        linkText: slide.linkText,
                         image: (slide.image == null || slide.image === '') ? null : convertDatesToStrings(await getImage(parseInt(slide.image)))
                     }
                 })),

@@ -3,10 +3,13 @@
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Pagination } from 'swiper/modules'
+import ReadMore from '@/app/lib/puck/components/ReadMore'
 
 export interface GallerySlide {
     title: string | undefined
     content: string | undefined
+    link: string | undefined
+    linkText: string | undefined
     image: Image | null
 }
 
@@ -42,6 +45,9 @@ export default function ImageGallery({ title, slides, uploadPrefix }: {
                             <p className="max-w-3xl text-sm text-white/90 sm:text-base">
                                 {slide.content}
                             </p>
+                            {slide.link && slide.linkText && <div className="mt-5">
+                                <ReadMore text={slide.linkText} to={slide.link} color="white"/>
+                            </div>}
                         </div>
                     </div>
                 </SwiperSlide>

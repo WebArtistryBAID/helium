@@ -396,17 +396,20 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
         }))
     }
 
-    function addFooterSubItem(itemIndex: number) {
+    function addFooterSubItem(parentId: string, itemIndex: number) {
         const id = newItemId('footer-subitem')
-        const parentId = content.footer.items[itemIndex]?.id
-        if (parentId) pendingFocusRef.current = `footer-${language}-${parentId}-${id}-name`
+        pendingFocusRef.current = `footer-${language}-${parentId}-${id}-name`
         const add = (current: WebsiteMetadataContent) => ({
             ...current,
             footer: {
                 ...current.footer,
-                items: current.footer.items.map((item, index) => index === itemIndex
-                    ? { ...item, subItems: [ ...item.subItems, { id, name: '', url: '' } ] }
-                    : item)
+                items: current.footer.items.map((item, index) => {
+                    const parentExists = current.footer.items.some(candidate => candidate.id === parentId)
+                    const isParent = parentExists ? item.id === parentId : index === itemIndex
+                    return isParent
+                        ? { ...item, subItems: [ ...item.subItems, { id, name: '', url: '' } ] }
+                        : item
+                })
             }
         })
         setDraft(current => ({ ...current, en: add(current.en), zh: add(current.zh) }))
@@ -625,7 +628,7 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                                 <p className="text-sm font-semibold text-gray-700">子项目</p>
                                                 {canWrite ? <Button id={`add-footer-subitem-${item.id}`} type="button"
                                                                     color="alternative" size="xs"
-                                                                    onClick={() => addFooterSubItem(itemIndex)}>
+                                                                    onClick={() => addFooterSubItem(item.id, itemIndex)}>
                                                     <HiPlus aria-hidden="true" className="mr-2 h-4 w-4"/>添加子项目
                                                 </Button> : null}
                                             </div>
