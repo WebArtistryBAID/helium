@@ -22,6 +22,22 @@ const ImageGalleryConfig: ComponentConfig = {
                     type: 'text',
                     contentEditable: true
                 },
+                titleSize: {
+                    label: '大小',
+                    type: 'select',
+                    options: [
+                        { label: '小', value: 'sm' },
+                        { label: '中', value: 'base' },
+                        { label: '大', value: 'lg' },
+                        { label: '2x 大', value: 'xl' },
+                        { label: '3x 大', value: '2xl' },
+                        { label: '4x 大', value: '3xl' },
+                        { label: '5x 大', value: '4xl' },
+                        { label: '6x 大', value: '5xl' },
+                        { label: '7x 大', value: '6xl' },
+                        { label: '8x 大', value: '7xl' }
+                    ]
+                },
                 content: {
                     label: '正文',
                     type: 'textarea',
@@ -47,6 +63,9 @@ const ImageGalleryConfig: ComponentConfig = {
                 title: {
                     type: 'text'
                 },
+                titleSize: {
+                    type: 'text'
+                },
                 content: {
                     type: 'text'
                 },
@@ -68,6 +87,7 @@ const ImageGalleryConfig: ComponentConfig = {
         slides: [
             {
                 title: '在这里填写标题',
+                titleSize: '3xl',
                 content: '在这里填写正文'
             }
         ]
@@ -78,6 +98,7 @@ const ImageGalleryConfig: ComponentConfig = {
                 resolvedSlides: await Promise.all((props.slides ?? []).map(async (slide: {
                     image: string | null | undefined,
                     title: string | undefined,
+                    titleSize: string | undefined,
                     content: string | undefined,
                     link: string | undefined,
                     linkText: string | undefined
@@ -85,6 +106,7 @@ const ImageGalleryConfig: ComponentConfig = {
                     if (!slide) return null
                     return {
                         title: slide.title,
+                        titleSize: slide.titleSize,
                         content: slide.content,
                         link: slide.link,
                         linkText: slide.linkText,

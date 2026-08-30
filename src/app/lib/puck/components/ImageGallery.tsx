@@ -5,8 +5,22 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Pagination } from 'swiper/modules'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 
+const TITLE_SIZE_CLASSES: Record<string, string> = {
+    sm: 'text-sm',
+    base: 'text-base',
+    lg: 'text-lg',
+    xl: 'text-xl',
+    '2xl': 'text-2xl',
+    '3xl': 'text-3xl',
+    '4xl': 'text-4xl',
+    '5xl': 'text-5xl',
+    '6xl': 'text-6xl',
+    '7xl': 'text-7xl'
+}
+
 export interface GallerySlide {
     title: string | undefined
+    titleSize: string | undefined
     content: string | undefined
     link: string | undefined
     linkText: string | undefined
@@ -39,7 +53,11 @@ export default function ImageGallery({ title, slides, uploadPrefix }: {
                         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent"/>
                         <div
                             className="absolute inset-x-0 bottom-0 w-full px-6 pb-10 pt-6 sm:px-10 sm:pb-12 sm:pt-8 md:px-16 md:pb-16 md:pt-10">
-                            <h3 className="mb-1 max-w-4xl text-2xl sm:text-3xl font-bold text-white">
+                            <h3 className={`mb-1 max-w-4xl font-bold text-white ${
+                                slide.titleSize == null
+                                    ? 'text-2xl sm:text-3xl'
+                                    : (TITLE_SIZE_CLASSES[slide.titleSize] ?? 'text-3xl')
+                            }`}>
                                 {slide.title}
                             </h3>
                             <p className="max-w-3xl text-sm text-white/90 sm:text-base">
