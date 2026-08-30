@@ -48,7 +48,7 @@ import {
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
-import { Role, User } from '@/generated/prisma/browser'
+import { EntityType, Role, User } from '@/generated/prisma/browser'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
@@ -188,6 +188,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const isDraft = post.contentPublishedEN == null && post.contentPublishedZH == null
     const statusLabel = isPublished ? '已发布' : isDraft ? '草稿' : '有更新未发布'
     const displayedShortContent = inEnglish ? post.shortContentDraftEN : post.shortContentDraftZH
+    const displayedTitle = inEnglish ? post.titleDraftEN : post.titleDraftZH
+    const displayedDate = typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt
     const editButtonClass = 'shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600'
 
     return <>
@@ -670,27 +672,34 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                     </div>
                 </TabItem>
                 <TabItem title="预览" icon={HiSearch}>
-                    <div className="mx-auto mt-5 max-w-5xl">
-                        <div
-                            className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-5 py-3">
-                            <div>
-                                <p className="font-medium text-gray-900">内容预览</p>
-                                <p className="text-sm text-gray-500">预览仅用于检查内容，发布效果可能略有不同。</p>
-                            </div>
-                            <Button pill size="sm" color="alternative" onClick={switchLanguage}>
-                                <HiLanguage className="mr-2 h-4 w-4"/>
-                                {inEnglish ? '查看中文' : '查看英文'}
-                            </Button>
-                        </div>
-                        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
+                    <div className="mt-5">
+                        <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
                             <If condition={post.coverImageDraft != null}>
-                                <img className="h-80 w-full object-cover" alt={post.coverImageDraft?.altText ?? ''}
-                                     src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
+                                <div className="mx-auto w-full max-w-5xl px-4 pt-6 sm:px-8">
+                                    <img className="h-auto max-h-[24rem] w-full rounded-2xl object-cover"
+                                         alt={post.coverImageDraft?.altText ?? ''}
+                                         src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
+                                </div>
                             </If>
-                            <article className="p-10">
-                                <h1>{inEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
-                                <Markdown>{previewContent}</Markdown>
-                            </article>
+                            <div className={`mx-auto mb-14 w-full max-w-3xl px-6 sm:mb-20 sm:px-10 ${
+                                post.coverImageDraft == null ? 'pt-16' : 'pt-12 sm:pt-16'
+                            }`}>
+                                <article className="content-entity-article">
+                                    <If condition={post.type === EntityType.post}>
+                                        <header className="mb-10 border-b border-gray-200 pb-8">
+                                            <h1>{displayedTitle}</h1>
+                                            <time className="mt-4 block text-sm text-gray-600"
+                                                  dateTime={displayedDate.toISOString()}>
+                                                {displayedDate.toLocaleDateString(inEnglish ? 'en-US' : 'zh-CN')}
+                                            </time>
+                                        </header>
+                                    </If>
+                                    <If condition={post.type !== EntityType.post}>
+                                        <h1 className="text-center text-5xl">{displayedTitle}</h1>
+                                    </If>
+                                    <Markdown>{previewContent}</Markdown>
+                                </article>
+                            </div>
                         </div>
                     </div>
                 </TabItem>
