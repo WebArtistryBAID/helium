@@ -134,8 +134,7 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         }
         return (
             <>
-                <GlobalHeader websiteMetadata={websiteMetadata}
-                              headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
+                <GlobalHeader websiteMetadata={websiteMetadata}/>
                 <main id="main-content" tabIndex={-1}>
                     <AnyContentEntityPage entity={entity} params={params}/>
                 </main>
@@ -150,8 +149,7 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     }
     return (
         <>
-            <GlobalHeader websiteMetadata={websiteMetadata}
-                          headerAnimate={[ '/', 'projects', 'life', 'academics/pbl' ].includes(slug)}/>
+            <GlobalHeader websiteMetadata={websiteMetadata}/>
             <main id="main-content" tabIndex={-1}>
                 <Render config={PUCK_CONFIG}
                         data={finalLocale === 'en'

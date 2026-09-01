@@ -42,10 +42,11 @@ const STABLE_INLINE_TEXT_TRANSFORMS = {
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
-export default function PageEditor({ init, lockToken, user }: {
+export default function PageEditor({ init, lockToken, user, host }: {
     init: HydratedContentEntity,
     lockToken: string,
-    user: User
+    user: User,
+    host: string
 }) {
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMetadata, setShowMetadata ] = useState(false)
@@ -144,6 +145,7 @@ export default function PageEditor({ init, lockToken, user }: {
         : draft.contentPublishedEN != null || draft.contentPublishedZH != null
             ? { label: '有更新未发布', color: 'warning' }
             : { label: '草稿', color: 'gray' }
+    const pageUrl = `${host.replace(/\/+$/, '')}/${draft.slug.replace(/^\/+/, '')}`
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
@@ -180,6 +182,7 @@ export default function PageEditor({ init, lockToken, user }: {
                                            }))
                                        }}/>
                             <HelperText>保存后，链接更新才会生效。</HelperText>
+                            <HelperText className="break-all">本页面将显示于 {pageUrl}。</HelperText>
                         </div>
                     </div>
 

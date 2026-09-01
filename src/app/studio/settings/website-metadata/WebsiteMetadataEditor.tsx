@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import {
     Badge,
     Button,
+    Checkbox,
     Label,
     TabItem,
     Tabs,
@@ -298,13 +299,32 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
         }))
     }
 
+    function updateNavbarTransparency(index: number, transparentNavbar: boolean) {
+        if (!canWrite) {
+            showPermissionDenied()
+            return
+        }
+        const update = (current: WebsiteMetadataContent) => ({
+            ...current,
+            navbar: current.navbar.map((item, itemIndex) =>
+                itemIndex === index ? { ...item, transparentNavbar } : item)
+        })
+        setDraft(current => ({ ...current, en: update(current.en), zh: update(current.zh) }))
+    }
+
     function addNavbarItem() {
         const id = newItemId('navbar')
         pendingFocusRef.current = `navbar-${language}-${id}-name`
         setDraft(current => ({
             ...current,
-            en: { ...current.en, navbar: [ ...current.en.navbar, { id, name: '', url: '' } ] },
-            zh: { ...current.zh, navbar: [ ...current.zh.navbar, { id, name: '', url: '' } ] }
+            en: {
+                ...current.en,
+                navbar: [ ...current.en.navbar, { id, name: '', url: '', transparentNavbar: false } ]
+            },
+            zh: {
+                ...current.zh,
+                navbar: [ ...current.zh.navbar, { id, name: '', url: '', transparentNavbar: false } ]
+            }
         }))
     }
 
@@ -576,6 +596,25 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                                     pageOptions={pageOptions}
                                                     onChange={(field, value) =>
                                             updateNavbarItem(index, field, value)}/>
+                                        <div className="mt-4">
+                                            <div className="flex items-center gap-2">
+                                                <Checkbox id={`navbar-${language}-${item.id}-transparent`}
+                                                          checked={item.transparentNavbar}
+                                                          disabled={!canWrite}
+                                                          aria-describedby={`navbar-${language}-${item.id}-transparent-description`}
+                                                          onChange={event => updateNavbarTransparency(
+                                                              index,
+                                                              event.currentTarget.checked
+                                                          )}/>
+                                                <Label htmlFor={`navbar-${language}-${item.id}-transparent`}>
+                                                    透明导航栏
+                                                </Label>
+                                            </div>
+                                            <p id={`navbar-${language}-${item.id}-transparent-description`}
+                                               className="mt-1 pl-6 text-sm text-gray-500">
+                                                开启后，打开这个页面时，导航栏顶部透明，向下滚动后变为白色。
+                                            </p>
+                                        </div>
                                     </div>)}
                                 </div>
                             </section>

@@ -11,6 +11,10 @@ export type WebsiteLink = {
     url: string
 }
 
+export type WebsiteNavbarItem = WebsiteLink & {
+    transparentNavbar: boolean
+}
+
 export type WebsiteFooterItem = WebsiteLink & {
     subItems: WebsiteLink[]
 }
@@ -28,7 +32,7 @@ export type WebsiteFooterContent = {
 export type WebsiteMetadataContent = {
     title: string
     description: string
-    navbar: WebsiteLink[]
+    navbar: WebsiteNavbarItem[]
     footer: WebsiteFooterContent
 }
 
@@ -55,6 +59,20 @@ export function resolveWebsiteHref(value: string): string {
     return `/${href.replace(/^\/+/, '')}`
 }
 
+function normalizeInternalWebsitePath(value: string): string | null {
+    const href = resolveWebsiteHref(value)
+    if (!href.startsWith('/') || href.startsWith('//')) return null
+    const path = href.split(/[?#]/)[0].replace(/\/+$/, '') || '/'
+    return path.replace(/^\/(?:en|zh)(?=\/|$)/, '') || '/'
+}
+
+export function shouldUseTransparentNavbar(content: WebsiteMetadataContent, pathname: string): boolean {
+    const currentPath = normalizeInternalWebsitePath(pathname) ?? '/'
+    const configuredItem = content.navbar.find(item => normalizeInternalWebsitePath(item.url) === currentPath)
+    if (configuredItem) return configuredItem.transparentNavbar
+    return currentPath === '/' || currentPath === '/academics/pbl'
+}
+
 const NAVBAR_EN: WebsiteLink[] = [
     { id: 'about', name: 'About Us', url: '/about' },
     { id: 'academics', name: 'Academics', url: '/academics' },
@@ -72,6 +90,16 @@ const NAVBAR_ZH: WebsiteLink[] = [
     { id: 'admissions', name: '招生', url: '/admissions' },
     { id: 'news', name: '新闻', url: '/news' }
 ]
+
+const NAVBAR_SETTINGS_EN: WebsiteNavbarItem[] = NAVBAR_EN.map(item => ({
+    ...item,
+    transparentNavbar: item.id === 'life' || item.id === 'projects'
+}))
+
+const NAVBAR_SETTINGS_ZH: WebsiteNavbarItem[] = NAVBAR_ZH.map(item => ({
+    ...item,
+    transparentNavbar: item.id === 'life' || item.id === 'projects'
+}))
 
 const FOOTER_EN: WebsiteFooterItem[] = [
     {
@@ -171,7 +199,7 @@ export const DEFAULT_WEBSITE_METADATA: WebsiteMetadataDraft = {
     en: {
         title: 'Beijing Academy · International Education',
         description: 'The Beijing Academy Education Group offers AP, Cambridge Lower Secondary, and A Level programs through Beijing Academy International Division and the International School of Beijing Academy.',
-        navbar: NAVBAR_EN,
+        navbar: NAVBAR_SETTINGS_EN,
         footer: {
             items: FOOTER_EN,
             phoneText: '+86 186 1000 0000 (add on WeChat)',
@@ -185,7 +213,7 @@ export const DEFAULT_WEBSITE_METADATA: WebsiteMetadataDraft = {
     zh: {
         title: '北京中学 · 国际教育项目',
         description: '北京中学教育集团通过北京中学国际部 (BAID) 和北中外籍人员子女学校 (ISBA) 提供 AP、剑桥国际初中及 A Level 项目。',
-        navbar: NAVBAR_ZH,
+        navbar: NAVBAR_SETTINGS_ZH,
         footer: {
             items: FOOTER_ZH,
             phoneText: '+86 186 1000 0000 (可添加微信)',
@@ -210,6 +238,10 @@ function stringValue(value: unknown, fallback: string): string {
     return typeof value === 'string' ? value : fallback
 }
 
+function booleanValue(value: unknown, fallback: boolean): boolean {
+    return typeof value === 'boolean' ? value : fallback
+}
+
 function normalizeLinks(value: unknown, fallback: WebsiteLink[], prefix: string): WebsiteLink[] {
     if (!Array.isArray(value)) return clone(fallback)
     return value.map((item, index) => {
@@ -219,6 +251,26 @@ function normalizeLinks(value: unknown, fallback: WebsiteLink[], prefix: string)
             id: stringValue(source.id, defaultItem?.id ?? `${prefix}-${index + 1}`),
             name: stringValue(source.name, defaultItem?.name ?? ''),
             url: stringValue(source.url, defaultItem?.url ?? '')
+        }
+    })
+}
+
+function normalizeNavbarItems(value: unknown, fallback: WebsiteNavbarItem[]): WebsiteNavbarItem[] {
+    if (!Array.isArray(value)) return clone(fallback)
+    return value.map((item, index) => {
+        const source = isRecord(item) ? item : {}
+        const sourceId = typeof source.id === 'string' ? source.id : undefined
+        const defaultItem = fallback.find(candidate => candidate.id === sourceId) ?? fallback[index]
+        const url = stringValue(source.url, defaultItem?.url ?? '')
+        const legacyPath = normalizeInternalWebsitePath(url)
+        return {
+            id: stringValue(source.id, defaultItem?.id ?? `navbar-${index + 1}`),
+            name: stringValue(source.name, defaultItem?.name ?? ''),
+            url,
+            transparentNavbar: booleanValue(
+                source.transparentNavbar,
+                legacyPath === '/life' || legacyPath === '/projects'
+            )
         }
     })
 }
@@ -249,7 +301,7 @@ export function normalizeWebsiteMetadataContent(
     return {
         title: stringValue(value.title, fallback.title),
         description: stringValue(value.description, fallback.description),
-        navbar: normalizeLinks(value.navbar, fallback.navbar, 'navbar'),
+        navbar: normalizeNavbarItems(value.navbar, fallback.navbar),
         footer: {
             items: normalizeFooterItems(footer.items, fallback.footer.items),
             phoneText: stringValue(footer.phoneText, fallback.footer.phoneText),

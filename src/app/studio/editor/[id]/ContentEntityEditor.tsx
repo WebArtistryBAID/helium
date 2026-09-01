@@ -5,6 +5,7 @@ import {
     Badge,
     Button,
     Datepicker,
+    HelperText,
     Label,
     Modal,
     ModalBody,
@@ -40,7 +41,7 @@ import MediaPicker from '@/app/studio/media/MediaPicker'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
-import { HydratedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, HydratedContentEntity } from '@/app/lib/data-types'
 import {
     alignContentEntity,
     deleteContentEntity,
@@ -53,11 +54,12 @@ import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissio
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
-export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
+export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix, host }: {
     init: HydratedContentEntity,
     user: User,
     lockToken: string,
-    uploadPrefix: string
+    uploadPrefix: string,
+    host: string
 }) {
     const [ loadingAdditional, setLoadingAdditional ] = useState(false)
     const [ showLockBroken, setShowLockBroken ] = useState(false)
@@ -190,6 +192,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const displayedShortContent = inEnglish ? post.shortContentDraftEN : post.shortContentDraftZH
     const displayedTitle = inEnglish ? post.titleDraftEN : post.titleDraftZH
     const displayedDate = typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt
+    const contentUrl = `${host.replace(/\/+$/, '')}${getContentEntityURI(displayedDate, post.slug)}`
     const editButtonClass = 'shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600'
 
     return <>
@@ -335,6 +338,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                        }))
                                    }}
                                    required/>
+                        <HelperText className="break-all">本页面将显示于 {contentUrl}。</HelperText>
                     </div>
                 </div>
             </ModalBody>

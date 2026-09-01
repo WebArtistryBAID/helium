@@ -32,5 +32,5 @@ export default async function StudioPageEditor({ params, searchParams }: {
         redirect(`/studio/pages/${entity.id}/editor?token=${token}`)
     }
 
-    return <PageEditor init={entity} lockToken={token} user={user}/>
+    return <PageEditor init={entity} lockToken={token} user={user} host={process.env.HOST!}/>
 }

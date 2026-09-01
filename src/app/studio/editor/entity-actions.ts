@@ -27,6 +27,17 @@ import {
 } from '@/app/lib/website-metadata-types'
 
 const PAGE_SIZE = 24
+const AUTOMATIC_SLUG_SECTION_LIMIT = 8
+
+function createAutomaticSlug(title: string): string {
+    return title
+        .toLowerCase()
+        .replace(/[^a-z0-9]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .split('-')
+        .slice(0, AUTOMATIC_SLUG_SECTION_LIMIT)
+        .join('-')
+}
 
 export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
@@ -485,7 +496,7 @@ export async function createContentEntity(type: EntityType, titleEN: string, tit
             type,
             titleDraftEN: titleEN,
             titleDraftZH: titleZH,
-            slug: titleEN.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+            slug: createAutomaticSlug(titleEN),
             contentDraftEN: type === EntityType.page ? JSON.stringify({
                 content: [],
                 root: { props: { title: titleEN } },
@@ -792,7 +803,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
             data: {
                 titleDraftEN: title,
                 titleDraftZH: titleChinese,
-                slug: title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''),
+                slug: createAutomaticSlug(title),
                 contentDraftEN: finalContentEN,
                 contentDraftZH: finalContentZH,
                 coverImageDraftId: coverImageId,
