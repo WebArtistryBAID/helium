@@ -21,6 +21,7 @@ import { prisma } from '@/app/lib/prisma'
 import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { WEBSITE_METADATA_SLUG } from '@/app/lib/website-metadata-types'
+import { callFeishuAily } from '@/app/lib/feishu-aily'
 
 const PAGE_SIZE = 24
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
@@ -642,33 +643,17 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         }
         console.log('+ Removed decorative images: ' + toRemove.toString())
 
-        // Call DeepSeek to process the article
+        // Call Feishu Aily to process the article
         // STEP 2: Sanitize content
         wechatWorkerRunning = WeChatWorkerStatus.sanitization
-        console.log('+ Calling DeepSeek to sanitize article content.')
+        console.log('+ Calling Feishu Aily to sanitize article content.')
         console.log('Sending prompt:\n' + SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', post.id.toString()).replace('{{IMAGE_BLACKLIST}}', toRemove.toString())
             + markdownContent)
-        const sanitizeResp = await fetch('https://api.deepseek.com/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                    {
-                        role: 'user',
-                        content: SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', post.id.toString()).replace('{{IMAGE_BLACKLIST}}', toRemove.toString())
-                            + markdownContent
-                    }
-                ],
-                stream: false
-            })
-        })
-        console.log('+ DeepSeek responded with sanitized content.')
-        const srj = await sanitizeResp.json()
-        const srRawContent = srj.choices[0].message.content
+        const srRawContent = await callFeishuAily(
+            SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', post.id.toString()).replace('{{IMAGE_BLACKLIST}}', toRemove.toString())
+                + markdownContent
+        )
+        console.log('+ Feishu Aily responded with sanitized content.')
         const srStrippedContent = srRawContent.replace(/^```json\s*/, '').replace(/```$/, '')
         const sr = JSON.parse(srStrippedContent)
 
@@ -678,28 +663,10 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
 
         // STEP 3: Translate content
         wechatWorkerRunning = WeChatWorkerStatus.translation
-        console.log('+ Calling DeepSeek to translate article content.')
+        console.log('+ Calling Feishu Aily to translate article content.')
         console.log('Sending prompt:\n' + TRANSLATE_LITERAL + '#' + titleChinese + '\n\n' + contentChinese)
-        const translateResp = await fetch('https://api.deepseek.com/chat/completions', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${process.env.DEEPSEEK_API_KEY}`
-            },
-            body: JSON.stringify({
-                model: 'deepseek-chat',
-                messages: [
-                    {
-                        role: 'user',
-                        content: TRANSLATE_LITERAL + '#' + titleChinese + '\n\n' + contentChinese
-                    }
-                ],
-                stream: false
-            })
-        })
-        console.log('+ DeepSeek responded with translated content.')
-        const trj = await translateResp.json()
-        const trRawContent = trj.choices[0].message.content
+        const trRawContent = await callFeishuAily(TRANSLATE_LITERAL + '#' + titleChinese + '\n\n' + contentChinese)
+        console.log('+ Feishu Aily responded with translated content.')
         const trStrippedContent = trRawContent.replace(/^```json\s*/, '').replace(/```$/, '')
         const tr = JSON.parse(trStrippedContent)
 

@@ -8,7 +8,9 @@ import {
     TimelineContent,
     TimelineItem,
     TimelinePoint,
-    TimelineTitle
+    TimelineTitle,
+    Toast,
+    ToastToggle
 } from 'flowbite-react'
 import { HiPencil } from 'react-icons/hi2'
 import If from '@/app/lib/If'
@@ -21,7 +23,7 @@ import {
     getApprovalNames,
     meetsThresholds
 } from '@/app/lib/approval/approval-actions'
-import { HiCloudUpload } from 'react-icons/hi'
+import { HiCheck, HiCloudUpload } from 'react-icons/hi'
 import { useEffect, useState } from 'react'
 import { getMyUser } from '@/app/login/login-actions'
 import { useRouter } from 'next/navigation'
@@ -46,6 +48,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
     const [ needsApproval, setNeedsApproval ] = useState(false)
     const [ notificationRecipients, setNotificationRecipients ] = useState<ApprovalNotificationRecipients | null>(null)
     const [ notificationError, setNotificationError ] = useState<string | null>(null)
+    const [ notificationSuccess, setNotificationSuccess ] = useState<{ count: number } | null>(null)
     const {
         permissionDenied,
         showPermissionDenied,
@@ -68,6 +71,14 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
         })()
     }, [ entityId, entityType ])
 
+    useEffect(() => {
+        if (!notificationSuccess) {
+            return
+        }
+        const timeout = setTimeout(() => setNotificationSuccess(null), 5000)
+        return () => clearTimeout(timeout)
+    }, [ notificationSuccess ])
+
     async function refresh() {
         const state = await meetsThresholds({ entityType, entityId })
         setApprovalsThreshold(state.thresholds)
@@ -77,11 +88,21 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+        <div className="fixed bottom-5 right-5 z-[60] max-w-[calc(100vw-2.5rem)]" role="status" aria-live="polite" aria-atomic="true">
+            {notificationSuccess && <Toast>
+                <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200">
+                    <HiCheck className="h-5 w-5" aria-hidden="true"/>
+                </div>
+                <div className="ml-3 text-sm font-normal">已成功发送 {notificationSuccess.count} 条飞书审核通知。</div>
+                <ToastToggle aria-label="关闭通知" onDismiss={() => setNotificationSuccess(null)}/>
+            </Toast>}
+        </div>
         {notificationRecipients && <ApprovalNotificationDialog
             entityType={entityType}
             entityId={entityId}
             initialRecipients={notificationRecipients}
             onClose={() => setNotificationRecipients(null)}
+            onSent={count => setNotificationSuccess({ count })}
             onRefresh={async () => {
                 await refresh()
                 router.refresh()

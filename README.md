@@ -46,7 +46,9 @@ Certain pages have hardcoded constants associated with them; for example, header
 | `ONELOGIN_HOST`          | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes. |
 | `ONELOGIN_CLIENT_ID`     | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                            |
 | `ONELOGIN_CLIENT_SECRET` | OneLogin client secret.                                                                                         |
-| `DEEPSEEK_API_KEY`       | Used for sanitizing articles automatically.                                                                     |
+| `FEISHU_AI_ID`           | Feishu app ID used for article sanitization and translation through Aily.                                       |
+| `FEISHU_AI_SECRET`       | Feishu app secret used to obtain the Aily tenant access token.                                                  |
+| `FEISHU_AILY_APP_ID`     | Aily application ID used to process articles.                                                                   |
 | `FEISHU_CLIENT_ID`       | Feishu app ID used for account binding and approval notifications.                                              |
 | `FEISHU_CLIENT_SECRET`   | Feishu app secret used for account binding and approval notifications.                                          |
 

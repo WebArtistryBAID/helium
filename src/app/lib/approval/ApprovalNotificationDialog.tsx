@@ -9,11 +9,12 @@ import {
     requestContentReview
 } from '@/app/lib/approval/approval-actions'
 
-export default function ApprovalNotificationDialog({ entityType, entityId, initialRecipients, onClose, onRefresh, onPermissionError }: {
+export default function ApprovalNotificationDialog({ entityType, entityId, initialRecipients, onClose, onSent, onRefresh, onPermissionError }: {
     entityType: EntityType
     entityId: number
     initialRecipients: ApprovalNotificationRecipients
     onClose: () => void
+    onSent: (count: number) => void
     onRefresh: () => Promise<void>
     onPermissionError: (error: unknown) => boolean
 }) {
@@ -32,6 +33,9 @@ export default function ApprovalNotificationDialog({ entityType, entityId, initi
             const result = await requestContentReview({ entityType, entityId, role: options.role, recipientIds: selectedIds })
             // Remove successful recipients before refreshing so retries only send failures.
             setSelectedIds(ids => ids.filter(id => !result.sentUserIds.includes(id)))
+            if (result.sentUserIds.length > 0) {
+                onSent(result.sentUserIds.length)
+            }
             if (!result.error) {
                 onClose()
                 await onRefresh()
