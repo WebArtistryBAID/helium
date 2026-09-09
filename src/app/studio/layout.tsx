@@ -73,9 +73,14 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                         媒体库
                                     </SidebarItem>
                                 </Link>
-                                <Link href="/studio/settings/website-metadata">
+                                <Link href="/studio/metadata">
                                     <SidebarItem as="div" icon={HiGlobeAlt}>
                                         网站信息
+                                    </SidebarItem>
+                                </Link>
+                                <Link href="/studio/settings/feishu">
+                                    <SidebarItem as="div" icon={HiGlobeAlt}>
+                                        飞书设置
                                     </SidebarItem>
                                 </Link>
                                 <If condition={myUser?.roles.includes(Role.admin)}>

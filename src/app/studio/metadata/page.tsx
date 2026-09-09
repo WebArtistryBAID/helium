@@ -2,11 +2,11 @@ import { redirect } from 'next/navigation'
 import { requireUser } from '@/app/login/login-actions'
 import { tryAcquireLock } from '@/app/lib/lock/lock-typicals'
 import { EntityType } from '@/generated/prisma/client'
-import WebsiteMetadataEditor from '@/app/studio/settings/website-metadata/WebsiteMetadataEditor'
+import WebsiteMetadataEditor from '@/app/studio/metadata/WebsiteMetadataEditor'
 import {
     getWebsiteMetadataEditorState,
     getWebsitePageOptions
-} from '@/app/studio/settings/website-metadata/website-metadata-actions'
+} from '@/app/studio/metadata/website-metadata-actions'
 import { WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/website-metadata-types'
 
 export default async function WebsiteMetadataPage({ searchParams }: {

@@ -3,7 +3,7 @@ import type { HydratedContentEntity } from '@/app/lib/data-types'
 export const WEBSITE_METADATA_SLUG = '__website-metadata'
 export const WEBSITE_METADATA_ENTITY_TITLE_EN = 'Website Metadata'
 export const WEBSITE_METADATA_ENTITY_TITLE_ZH = '网站信息'
-export const WEBSITE_METADATA_STUDIO_PATH = '/studio/settings/website-metadata'
+export const WEBSITE_METADATA_STUDIO_PATH = '/studio/metadata'
 
 export type WebsiteLink = {
     id: string

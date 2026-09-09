@@ -1,7 +1,4 @@
-'use server'
-
 import { prisma } from '@/app/lib/prisma'
-import { Role } from '@/generated/prisma/enums'
 
 const FEISHU_API = 'https://open.feishu.cn/open-apis'
 
@@ -69,75 +66,6 @@ function buildApprovalCard(data: NotificationData & { requestedBy: string }) {
     }
 }
 
-function buildProgressCard(data: NotificationData & {
-    actionBy: string
-    approvedRole?: string
-    statusText: string
-    editorCount: number
-    editorThreshold: number
-    adminCount: number
-    adminThreshold: number
-}) {
-    const entityType = getEntityTypeLabel(data.entityType)
-    const role = data.approvedRole === 'editor'
-        ? '编辑员审核'
-        : data.approvedRole === 'admin' ? '管理员审核' : '发布'
-
-    return {
-        config: { wide_screen_mode: true, enable_forward: true },
-        header: {
-            template: data.approvedRole === 'editor' ? 'blue' : 'green',
-            title: { tag: 'plain_text', content: '审核进度更新' }
-        },
-        elements: [
-            {
-                tag: 'div',
-                text: { tag: 'lark_md', content: `**${data.title}**\n${data.statusText}` }
-            },
-            {
-                tag: 'div',
-                fields: [
-                    { is_short: true, text: { tag: 'lark_md', content: `**内容类型**\n${entityType}` } },
-                    { is_short: true, text: { tag: 'lark_md', content: `**当前步骤**\n${role}` } },
-                    { is_short: true, text: { tag: 'lark_md', content: `**操作人**\n${data.actionBy}` } },
-                    { is_short: true, text: { tag: 'lark_md', content: `**内容 ID**\n${data.entityId}` } }
-                ]
-            },
-            {
-                tag: 'div',
-                fields: [
-                    {
-                        is_short: true,
-                        text: {
-                            tag: 'lark_md',
-                            content: `**编辑员审核**\n${data.editorCount}/${data.editorThreshold}`
-                        }
-                    },
-                    {
-                        is_short: true,
-                        text: {
-                            tag: 'lark_md',
-                            content: `**管理员审核**\n${data.adminCount}/${data.adminThreshold}`
-                        }
-                    }
-                ]
-            },
-            {
-                tag: 'action',
-                actions: [
-                    { tag: 'button', text: { tag: 'plain_text', content: '查看预览' }, url: data.previewUrl },
-                    {
-                        tag: 'button',
-                        style: 'primary',
-                        text: { tag: 'plain_text', content: '查看审核进度' },
-                        url: data.approvalUrl
-                    }
-                ]
-            }
-        ]
-    }
-}
-
 async function getAccessToken() {
     if (accessToken && Date.now() < tokenExpiry) {
         return accessToken
@@ -191,87 +119,44 @@ async function sendCard(openId: string, card: object) {
     }
 }
 
-async function deliver(type: string, card: object, recipients: {
+// Called only by the authenticated review action with validated recipients.
+export async function sendApprovalNotification(data: NotificationData & { requestedBy: string }, recipients: {
+    id: number
     name: string
     feishuOpenId: string | null
 }[]) {
-    let sentCount = 0
+    const card = buildApprovalCard(data)
+    const sentUserIds: number[] = []
 
     for (const recipient of recipients) {
         if (!recipient.feishuOpenId) {
             continue
         }
 
+        let deliveryError: string | null = null
         try {
             await sendCard(recipient.feishuOpenId, card)
-            sentCount += 1
+            sentUserIds.push(recipient.id)
+        } catch (error) {
+            deliveryError = error instanceof Error ? error.message : '发送失败'
+            console.error(`Failed to send Feishu notification to ${recipient.name}:`, error)
+        }
+        try {
             await prisma.feishuMessage.create({
                 data: {
-                    type,
+                    type: 'approval_request',
                     recipient: recipient.name,
                     recipientId: recipient.feishuOpenId,
                     content: JSON.stringify(card),
-                    status: 'sent',
-                    sentAt: new Date()
+                    status: deliveryError ? 'failed' : 'sent',
+                    sentAt: deliveryError ? null : new Date(),
+                    error: deliveryError
                 }
             })
         } catch (error) {
-            const detail = error instanceof Error ? error.message : '发送失败'
-            await prisma.feishuMessage.create({
-                data: {
-                    type,
-                    recipient: recipient.name,
-                    recipientId: recipient.feishuOpenId,
-                    content: JSON.stringify(card),
-                    status: 'failed',
-                    error: detail
-                }
-            })
-            console.error(`Failed to send Feishu notification to ${recipient.name}:`, error)
+            console.error('Failed to record Feishu notification:', error)
         }
     }
 
-    return { ok: sentCount > 0, sentCount }
-}
-
-export async function sendApprovalNotification(data: NotificationData & { requestedBy: string }) {
-    try {
-        const recipients = await prisma.user.findMany({
-            where: {
-                OR: [
-                    { roles: { has: Role.admin } },
-                    { roles: { has: Role.editor } }
-                ],
-                feishuOpenId: { not: null }
-            },
-            select: { name: true, feishuOpenId: true }
-        })
-
-        return await deliver('approval_request', buildApprovalCard(data), recipients)
-    } catch (error) {
-        console.error('Failed to send approval notification:', error)
-        return { ok: false, sentCount: 0 }
-    }
-}
-
-export async function sendApprovalProgressNotification(data: NotificationData & {
-    actionBy: string
-    approvedRole?: string
-    statusText: string
-    editorCount: number
-    editorThreshold: number
-    adminCount: number
-    adminThreshold: number
-}) {
-    try {
-        const recipients = await prisma.user.findMany({
-            where: { feishuOpenId: { not: null } },
-            select: { name: true, feishuOpenId: true }
-        })
-
-        return await deliver('approval_progress', buildProgressCard(data), recipients)
-    } catch (error) {
-        console.error('Failed to send approval progress notification:', error)
-        return { ok: false, sentCount: 0 }
-    }
+    return { sentUserIds }
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { Button } from 'flowbite-react'
 import { HiCheckCircle, HiLink } from 'react-icons/hi2'
-import { getFeishuAuthUrl } from '@/app/studio/settings/feishu-actions'
+import { getFeishuAuthUrl } from '@/app/studio/settings/feishu/feishu-actions'
 
 export default function FeishuSettings({ isLinked, result }: {
     isLinked: boolean
@@ -33,7 +33,7 @@ export default function FeishuSettings({ isLinked, result }: {
     const feedback = result?.success === 'linked'
         ? { success: true, message: '飞书账号绑定成功。' }
         : result?.error
-            ? { success: false, message: '飞书账号绑定失败，请重试或检查应用配置。' }
+            ? { success: false, message: '飞书账号绑定失败，请重试。' }
             : authError
                 ? { success: false, message: '飞书应用配置不完整。' }
                 : null

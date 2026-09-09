@@ -42,7 +42,7 @@ import {
 import {
     getWebsiteMetadataEditorState,
     saveWebsiteMetadata
-} from '@/app/studio/settings/website-metadata/website-metadata-actions'
+} from '@/app/studio/metadata/website-metadata-actions'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 

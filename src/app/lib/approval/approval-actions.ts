@@ -3,7 +3,7 @@
 import { EntityType, Role } from '@/generated/prisma/client'
 import { requireUserWithRole } from '@/app/login/login-actions'
 import { prisma } from '@/app/lib/prisma'
-import { sendApprovalNotification, sendApprovalProgressNotification } from '@/app/lib/feishu-approval'
+import { sendApprovalNotification } from '@/app/lib/feishu-approval'
 import {
     WEBSITE_METADATA_SLUG,
     WEBSITE_METADATA_STUDIO_PATH
@@ -41,38 +41,10 @@ export async function addApproval(params: {
 }) {
     const { entityType, entityId, role } = params
     const user = await requireUserWithRole(role)
-    const existing = await prisma.approval.findUnique({
-        where: { entityType_entityId_role_userId: { entityType, entityId, role, userId: user.id } }
-    })
     await prisma.approval.upsert({
         where: { entityType_entityId_role_userId: { entityType, entityId, role, userId: user.id } },
         create: { entityType, entityId, role, userId: user.id },
         update: {}
-    })
-    if (existing) {
-        return
-    }
-
-    const entity = await prisma.contentEntity.findUnique({
-        where: { id: entityId },
-        select: { titleDraftEN: true, titleDraftZH: true, slug: true }
-    })
-    const approvalState = await meetsThresholds({ entityType, entityId })
-    const { previewUrl, approvalUrl } = getStudioReviewUrls(entityType, entityId, entity?.slug)
-
-    await sendApprovalProgressNotification({
-        entityId,
-        entityType,
-        title: entity?.titleDraftEN || entity?.titleDraftZH || `Entity #${entityId}`,
-        previewUrl,
-        approvalUrl,
-        actionBy: user.name,
-        approvedRole: role,
-        statusText: `${user.name} 已通过${role === Role.editor ? '编辑员' : '管理员'}审核。`,
-        editorCount: approvalState.counts[Role.editor] ?? 0,
-        editorThreshold: approvalState.thresholds[Role.editor] ?? 1,
-        adminCount: approvalState.counts[Role.admin] ?? 0,
-        adminThreshold: approvalState.thresholds[Role.admin] ?? 1
     })
 }
 
@@ -91,7 +63,7 @@ export async function getApprovalCounts(entityType: EntityType, entityId: number
         _count: { role: true }
     })
     const map: Record<Role, number> = {
-        admin: 0, editor: 1, writer: 2
+        admin: 0, editor: 0, writer: 0
     }
     rows.forEach(r => {
         map[r.role as Role] = r._count.role
@@ -134,30 +106,92 @@ export async function meetsThresholds(params: {
     return { editorOk, adminOk, counts, thresholds }
 }
 
+export type ApprovalNotificationRecipients = {
+    role: typeof Role.editor | typeof Role.admin | null
+    recipients: { id: number; name: string; disabled: boolean }[]
+}
+
+export async function getApprovalNotificationRecipients(params: {
+    entityType: EntityType
+    entityId: number
+}): Promise<ApprovalNotificationRecipients> {
+    await requireUserWithRole(Role.writer)
+    const state = await meetsThresholds(params)
+    const role = !state.editorOk ? Role.editor : !state.adminOk ? Role.admin : null
+    if (!role) {
+        return { role, recipients: [] }
+    }
+
+    const [ users, approvals ] = await Promise.all([
+        prisma.user.findMany({
+            where: { roles: { has: role } },
+            select: { id: true, name: true, feishuOpenId: true },
+            orderBy: [ { pinyin: 'asc' }, { name: 'asc' }, { id: 'asc' } ]
+        }),
+        prisma.approval.findMany({
+            where: { ...params, role },
+            select: { userId: true }
+        })
+    ])
+    const approvedIds = new Set(approvals.map(approval => approval.userId))
+    return {
+        role,
+        recipients: users.map(user => ({
+            id: user.id,
+            name: user.name,
+            disabled: !user.feishuOpenId || approvedIds.has(user.id)
+        }))
+    }
+}
+
 export async function requestContentReview(params: {
     entityType: EntityType
     entityId: number
-}) {
+    role: typeof Role.editor | typeof Role.admin
+    recipientIds: number[]
+}): Promise<{ sentUserIds: number[]; error: string | null }> {
     const user = await requireUserWithRole(Role.writer)
     const entity = await prisma.contentEntity.findUnique({
-        where: { id: params.entityId },
+        where: { id: params.entityId, type: params.entityType },
         select: { titleDraftEN: true, titleDraftZH: true, slug: true }
     })
     if (!entity) {
         throw new Error('Content entity not found')
     }
 
-    await prisma.approval.deleteMany({
-        where: { entityType: params.entityType, entityId: params.entityId }
+    const recipientIds = [ ...new Set(params.recipientIds) ]
+    if (recipientIds.length === 0) {
+        return { sentUserIds: [], error: '请选择通知对象。' }
+    }
+    const current = await getApprovalNotificationRecipients({
+        entityType: params.entityType,
+        entityId: params.entityId
     })
+    const eligibleIds = new Set(current.recipients.filter(recipient => !recipient.disabled).map(recipient => recipient.id))
+    if (current.role !== params.role || recipientIds.some(id => !eligibleIds.has(id))) {
+        return { sentUserIds: [], error: '审核状态或通知对象已更新，请重新选择。' }
+    }
+    const recipients = await prisma.user.findMany({
+        where: { id: { in: recipientIds }, roles: { has: params.role }, feishuOpenId: { not: null } },
+        select: { id: true, name: true, feishuOpenId: true }
+    })
+    if (recipients.length !== recipientIds.length || recipients.some(recipient => !recipient.feishuOpenId)) {
+        return { sentUserIds: [], error: '通知对象已更新，请重新选择。' }
+    }
 
     const { previewUrl, approvalUrl } = getStudioReviewUrls(params.entityType, params.entityId, entity.slug)
-    await sendApprovalNotification({
+    const result = await sendApprovalNotification({
         entityId: params.entityId,
         entityType: params.entityType,
         title: entity.titleDraftEN || entity.titleDraftZH || `Entity #${params.entityId}`,
         previewUrl,
         approvalUrl,
         requestedBy: user.name
-    })
+    }, recipients)
+    return {
+        sentUserIds: result.sentUserIds,
+        error: result.sentUserIds.length === recipientIds.length
+            ? null
+            : `已发送 ${result.sentUserIds.length} 条通知，${recipientIds.length - result.sentUserIds.length} 条发送失败，请重试。`
+    }
 }

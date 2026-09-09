@@ -20,11 +20,7 @@ import { pkgUp } from 'pkg-up'
 import { prisma } from '@/app/lib/prisma'
 import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
-import { sendApprovalProgressNotification } from '@/app/lib/feishu-approval'
-import {
-    WEBSITE_METADATA_SLUG,
-    WEBSITE_METADATA_STUDIO_PATH
-} from '@/app/lib/website-metadata-types'
+import { WEBSITE_METADATA_SLUG } from '@/app/lib/website-metadata-types'
 
 const PAGE_SIZE = 24
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
@@ -438,32 +434,6 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
             userId: user.id,
             values: [ post.id.toString(), post.titleDraftEN ]
         }
-    })
-    const approvalState = await meetsThresholds({ entityType: post.type, entityId: id })
-    const baseUrl = process.env.HOST || 'http://localhost:3000'
-    const isWebsiteMetadata = post.slug === WEBSITE_METADATA_SLUG
-    const previewUrl = isWebsiteMetadata
-        ? `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}`
-        : post.type === EntityType.page
-        ? `${baseUrl}/studio/pages/${id}/preview`
-        : `${baseUrl}/studio/editor/${id}#preview`
-    const approvalUrl = isWebsiteMetadata
-        ? `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}#approval`
-        : post.type === EntityType.page
-        ? `${baseUrl}/studio/pages/${id}/approval`
-        : `${baseUrl}/studio/editor/${id}#approval`
-    await sendApprovalProgressNotification({
-        entityId: id,
-        entityType: post.type,
-        title: post.titleDraftEN || post.titleDraftZH || `Entity #${id}`,
-        previewUrl,
-        approvalUrl,
-        actionBy: user.name,
-        statusText: `${user.name} 已发布内容。审核流程已完成。`,
-        editorCount: approvalState.counts[Role.editor] ?? 0,
-        editorThreshold: approvalState.thresholds[Role.editor] ?? 1,
-        adminCount: approvalState.counts[Role.admin] ?? 0,
-        adminThreshold: approvalState.thresholds[Role.admin] ?? 1
     })
     return AlignEntityResponse.success
 }

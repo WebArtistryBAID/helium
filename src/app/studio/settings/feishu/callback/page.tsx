@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/app/login/login-actions'
-import { exchangeFeishuCode, linkFeishuAccount } from '@/app/studio/settings/feishu-actions'
+import { exchangeFeishuCode, linkFeishuAccount } from '@/app/studio/settings/feishu/feishu-actions'
 
 function isNextRedirect(error: unknown): error is { digest: string } {
     return typeof error === 'object' &&
@@ -17,21 +17,21 @@ export default async function FeishuCallback({ searchParams }: {
     const { code, error } = await searchParams
 
     if (error) {
-        redirect('/studio/settings?error=feishu_auth_failed')
+        redirect('/studio/settings/feishu?error=feishu_auth_failed')
     }
     if (!code) {
-        redirect('/studio/settings?error=no_code')
+        redirect('/studio/settings/feishu?error=no_code')
     }
 
     try {
         const openId = await exchangeFeishuCode(code)
         await linkFeishuAccount(user.id, openId)
-        redirect('/studio/settings?success=linked')
+        redirect('/studio/settings/feishu?success=linked')
     } catch (error) {
         if (isNextRedirect(error)) {
             throw error
         }
         console.error('Feishu linking failed:', error)
-        redirect('/studio/settings?error=linking_failed')
+        redirect('/studio/settings/feishu?error=linking_failed')
     }
 }

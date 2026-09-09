@@ -1,6 +1,7 @@
 'use client'
 
 import {
+    Alert,
     Button,
     Timeline,
     TimelineBody,
@@ -14,10 +15,11 @@ import If from '@/app/lib/If'
 import { EntityType, Role, User } from '@/generated/prisma/browser'
 import {
     addApproval,
+    ApprovalNotificationRecipients,
     ApprovalThresholds,
+    getApprovalNotificationRecipients,
     getApprovalNames,
-    getThresholds,
-    requestContentReview
+    meetsThresholds
 } from '@/app/lib/approval/approval-actions'
 import { HiCloudUpload } from 'react-icons/hi'
 import { useEffect, useState } from 'react'
@@ -25,6 +27,7 @@ import { getMyUser } from '@/app/login/login-actions'
 import { useRouter } from 'next/navigation'
 import { HydratedContentEntity, isAligned } from '@/app/lib/data-types'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+import ApprovalNotificationDialog from '@/app/lib/approval/ApprovalNotificationDialog'
 
 export default function ApprovalProcess({ entityType, entityId, entity, doAlign, showPageNavigation = true }: {
     entityType: EntityType,
@@ -40,7 +43,9 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
     const [ publishConfirm, setPublishConfirm ] = useState(false)
     const [ approvalConfirm, setApprovalConfirm ] = useState(false)
     const [ approvalConfirm2, setApprovalConfirm2 ] = useState(false)
-    const [ requestConfirm, setRequestConfirm ] = useState(false)
+    const [ needsApproval, setNeedsApproval ] = useState(false)
+    const [ notificationRecipients, setNotificationRecipients ] = useState<ApprovalNotificationRecipients | null>(null)
+    const [ notificationError, setNotificationError ] = useState<string | null>(null)
     const {
         permissionDenied,
         showPermissionDenied,
@@ -56,18 +61,33 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
     useEffect(() => {
         (async () => {
             setUser((await getMyUser())!)
-            setApprovalsThreshold(await getThresholds(entityType))
+            const state = await meetsThresholds({ entityType, entityId })
+            setApprovalsThreshold(state.thresholds)
+            setNeedsApproval(!state.editorOk || !state.adminOk)
             setApprovalNames(await getApprovalNames(entityType, entityId))
         })()
     }, [ entityId, entityType ])
 
     async function refresh() {
-        setApprovalsThreshold(await getThresholds(entityType))
+        const state = await meetsThresholds({ entityType, entityId })
+        setApprovalsThreshold(state.thresholds)
+        setNeedsApproval(!state.editorOk || !state.adminOk)
         setApprovalNames(await getApprovalNames(entityType, entityId))
     }
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+        {notificationRecipients && <ApprovalNotificationDialog
+            entityType={entityType}
+            entityId={entityId}
+            initialRecipients={notificationRecipients}
+            onClose={() => setNotificationRecipients(null)}
+            onRefresh={async () => {
+                await refresh()
+                router.refresh()
+            }}
+            onPermissionError={handlePermissionError}
+        />}
         <div className="p-8">
         <h2 className="text-2xl font-bold mb-5">
             审核与发布流程<If condition={entityType === EntityType.page}>: &#34;{entity.titleDraftZH}&#34; 页面</If>
@@ -88,31 +108,31 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
                                     onClick={() => router.push(`/studio/pages/${entityId}/editor`)}>返回编辑器</Button>
                         </div>
                     </If>
-                    <If condition={canWrite}>
+                    <If condition={canWrite && needsApproval}>
                         <div className="mt-3">
                             <Button disabled={loading} pill color="blue" onClick={async () => {
                                 if (!canWrite) {
                                     showPermissionDenied()
                                     return
                                 }
-                                if (!requestConfirm) {
-                                    setRequestConfirm(true)
-                                    return
-                                }
                                 setLoading(true)
+                                setNotificationError(null)
                                 try {
-                                    await requestContentReview({ entityType, entityId })
-                                    setRequestConfirm(false)
+                                    const recipients = await getApprovalNotificationRecipients({ entityType, entityId })
+                                    if (recipients.role) {
+                                        setNotificationRecipients(recipients)
+                                    }
                                     await refresh()
-                                    router.refresh()
                                 } catch (error) {
                                     if (!handlePermissionError(error)) {
-                                        console.error('Failed to request content review:', error)
+                                        setNotificationError('加载通知对象失败，请稍后重试。')
+                                        console.error('Failed to load review recipients:', error)
                                     }
                                 } finally {
                                     setLoading(false)
                                 }
-                            }}>{requestConfirm ? '确认发送?' : '发送飞书审核通知'}</Button>
+                            }}>发送飞书审核通知</Button>
+                            {notificationError && <Alert color="failure" className="mt-3">{notificationError}</Alert>}
                         </div>
                     </If>
                 </TimelineContent>

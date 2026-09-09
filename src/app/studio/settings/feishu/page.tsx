@@ -1,5 +1,5 @@
 import { requireUser } from '@/app/login/login-actions'
-import FeishuSettings from '@/app/studio/settings/FeishuSettings'
+import FeishuSettings from '@/app/studio/settings/feishu/FeishuSettings'
 
 export default async function SettingsPage({ searchParams }: {
     searchParams: Promise<{ success?: string; error?: string }>
