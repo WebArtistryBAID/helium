@@ -79,7 +79,7 @@ export default function StudioLayout({ children }: { children: ReactNode }) {
                                     </SidebarItem>
                                 </Link>
                                 <Link href="/studio/settings/feishu">
-                                    <SidebarItem as="div" icon={HiGlobeAlt}>
+                                    <SidebarItem as="div" icon={HiCog}>
                                         飞书设置
                                     </SidebarItem>
                                 </Link>

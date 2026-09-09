@@ -1,7 +1,9 @@
 import { randomUUID } from 'node:crypto'
+import { setTimeout as delay } from 'node:timers/promises'
 
 const FEISHU_API = 'https://open.feishu.cn/open-apis'
 const POLL_INTERVAL_MS = 3000
+const POLL_TIMEOUT_MS = 10 * 60 * 1000
 
 type FeishuResponse = {
     code: number
@@ -74,28 +76,42 @@ export async function callFeishuAily(content: string): Promise<string> {
         throw new Error('Feishu Aily response is missing the run ID')
     }
 
-    while (true) {
-        await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL_MS))
-        const result = await requestFeishu<FeishuResponse & { data?: { run?: Run } }>(
-            `${sessionPath}/runs/${encodeURIComponent(runId)}`, { method: 'GET', headers }
-        )
-        const run = result.data?.run
-        if (!run?.status) {
-            throw new Error('Feishu Aily response is missing the run status')
-        }
-        if (run.status === 'COMPLETED') break
-        if (run.error?.code || [ 'FAILED', 'CANCELLED', 'EXPIRED' ].includes(run.status)) {
-            throw new Error(`Feishu Aily run ${runId} ended: ${run.error?.message ?? run.status}`)
-        }
-    }
+    const controller = new AbortController()
+    const timeoutError = new Error(`Feishu Aily run ${runId} timed out after 10 minutes`)
+    const timeout = setTimeout(() => controller.abort(timeoutError), POLL_TIMEOUT_MS)
+    const signal = controller.signal
 
-    const messages = await requestFeishu<FeishuResponse & { data?: { messages?: { content: string }[] } }>(
-        `${sessionPath}/messages?run_id=${encodeURIComponent(runId)}&with_partial_messages=false`,
-        { method: 'GET', headers }
-    )
-    const result = messages.data?.messages?.[0]?.content
-    if (typeof result !== 'string' || !result.trim()) {
-        throw new Error('Feishu Aily response is missing the message content')
+    try {
+        while (true) {
+            await delay(POLL_INTERVAL_MS, undefined, { signal })
+            const result = await requestFeishu<FeishuResponse & { data?: { run?: Run } }>(
+                `${sessionPath}/runs/${encodeURIComponent(runId)}`, { method: 'GET', headers, signal }
+            )
+            const run = result.data?.run
+            if (!run?.status) {
+                throw new Error('Feishu Aily response is missing the run status')
+            }
+            if (run.status === 'COMPLETED') break
+            if (run.error?.code || [ 'FAILED', 'CANCELLED', 'EXPIRED' ].includes(run.status)) {
+                throw new Error(`Feishu Aily run ${runId} ended: ${run.error?.message ?? run.status}`)
+            }
+        }
+
+        const messages = await requestFeishu<FeishuResponse & { data?: { messages?: { content: string }[] } }>(
+            `${sessionPath}/messages?run_id=${encodeURIComponent(runId)}&with_partial_messages=false`,
+            { method: 'GET', headers, signal }
+        )
+        const result = messages.data?.messages?.[messages.data?.messages?.length - 1]?.content
+        if (typeof result !== 'string' || !result.trim()) {
+            throw new Error('Feishu Aily response is missing the message content')
+        }
+        return result
+    } catch (error) {
+        if (signal.aborted) {
+            throw timeoutError
+        }
+        throw error
+    } finally {
+        clearTimeout(timeout)
     }
-    return result
 }
