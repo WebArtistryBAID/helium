@@ -659,7 +659,6 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
                 + markdownContent
         )
         console.log('+ Feishu Aily responded with sanitized content.')
-        console.log(srRawContent)
         const srStrippedContent = stripMarkdownJsonFence(srRawContent)
         const sr = JSON.parse(srStrippedContent)
 
