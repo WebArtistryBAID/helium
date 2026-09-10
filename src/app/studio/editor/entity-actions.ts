@@ -32,6 +32,12 @@ function stripMarkdownJsonFence(content: string): string {
     return fenced ? fenced[2].trim() : trimmed
 }
 
+function spaceChineseAlphanumericBoundaries(content: string): string {
+    return content
+        .replace(/(\p{Script=Han})([A-Za-z0-9])/gu, '$1 $2')
+        .replace(/([A-Za-z0-9])(\p{Script=Han})/gu, '$1 $2')
+}
+
 function createAutomaticSlug(title: string): string {
     return title
         .toLowerCase()
@@ -662,8 +668,8 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         const srStrippedContent = stripMarkdownJsonFence(srRawContent)
         const sr = JSON.parse(srStrippedContent)
 
-        const titleChinese = sr.title
-        const contentChinese = sr.content
+        const titleChinese = spaceChineseAlphanumericBoundaries(sr.title)
+        const contentChinese = spaceChineseAlphanumericBoundaries(sr.content)
         const date = sr.date
 
         // STEP 3: Translate content
