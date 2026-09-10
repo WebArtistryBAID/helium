@@ -802,7 +802,8 @@ const TRANSLATE_LITERAL = `
 专有名词:
 北京中学 Beijing Academy
 北京中学国际部 Beijing Academy International Division (尽量缩写为 BAID)
-北中国籍: BAID
+北中外籍人员子女学校: International School of Beijing Academy (尽量缩写为 ISBA)
+北中国际: BAID
 BA 大讲堂: BA Lectures
 北中小讲师: BAID Speaker
 世界大课堂: BA Global Classroom
@@ -840,7 +841,7 @@ BA 大讲堂: BA Lectures
 沟通技能 (指课程): Communication Skills
 学术写作 (指课程): Academic Writing
 跨文化交际 (指课程): Intercultural Communications
-人文社科 (指课程): Social Studies Course Set (必须包含 Course Set)
+人文社科 (指课程): Social Studies Course Set (必须包含 Course Set)，注意禁止出现 AP European History、AP US History、Pre-AP World History、AP Human Geography 等历史类、政治类课程名称
 EOT 经济竞赛 (指课程): Economics Olympiad Team
 植物知道生命的答案 (指课程): Plants Know the Truth of Life
 「丝绸之路」之跨学科探索 (指课程): Silk Road Exploration

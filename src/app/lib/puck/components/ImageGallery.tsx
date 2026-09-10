@@ -40,7 +40,7 @@ export default function ImageGallery({ title, slides, uploadPrefix }: {
         return null
     }
 
-    return <section aria-label={title} className="w-full overflow-hidden">
+    return <section data-surface="gradient" aria-label={title} className="w-full overflow-hidden">
         <h2 className="sr-only">{title}</h2>
 
         <Swiper aria-live="polite" spaceBetween={0} slidesPerView={1}
