@@ -26,6 +26,12 @@ import { callFeishuAily } from '@/app/lib/feishu-aily'
 const PAGE_SIZE = 24
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
 
+function stripMarkdownJsonFence(content: string): string {
+    const trimmed = content.trim()
+    const fenced = trimmed.match(/^(`{3,}|~{3,})[ \t]*(?:json)?\s*([\s\S]*?)\s*\1$/i)
+    return fenced ? fenced[2].trim() : trimmed
+}
+
 function createAutomaticSlug(title: string): string {
     return title
         .toLowerCase()
@@ -642,17 +648,19 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
             }
         }
         console.log('+ Removed decorative images: ' + toRemove.toString())
+        console.log('+ Keeping images: ' + toKeep.toString())
 
         // Call Feishu Aily to process the article
         // STEP 2: Sanitize content
         wechatWorkerRunning = WeChatWorkerStatus.sanitization
         console.log('+ Calling Feishu Aily to sanitize article content.')
         const srRawContent = await callFeishuAily(
-            SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', post.id.toString()).replace('{{IMAGE_BLACKLIST}}', toRemove.toString())
+            SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', post.id.toString()).replace('{{IMAGE_BLACKLIST}}', toRemove.length > 0 ? toRemove.toString() : '本次操作不需要移除任何图片')
                 + markdownContent
         )
         console.log('+ Feishu Aily responded with sanitized content.')
-        const srStrippedContent = srRawContent.replace(/^```json\s*/, '').replace(/```$/, '')
+        console.log(srRawContent)
+        const srStrippedContent = stripMarkdownJsonFence(srRawContent)
         const sr = JSON.parse(srStrippedContent)
 
         const titleChinese = sr.title
@@ -664,7 +672,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         console.log('+ Calling Feishu Aily to translate article content.')
         const trRawContent = await callFeishuAily(TRANSLATE_LITERAL + '#' + titleChinese + '\n\n' + contentChinese)
         console.log('+ Feishu Aily responded with translated content.')
-        const trStrippedContent = trRawContent.replace(/^```json\s*/, '').replace(/```$/, '')
+        const trStrippedContent = stripMarkdownJsonFence(trRawContent)
         const tr = JSON.parse(trStrippedContent)
 
         const title = tr.title
@@ -853,7 +861,7 @@ const SANITIZE_LITERAL = `
 
 ## 图片处理
 - 删除所有 **SVG** 与 **GIF** 图片。
-- 删除在 {{IMAGE_BLACKLIST}} 中给出的图片文件 (如果存在)。
+- 删除这些图片文件: {{IMAGE_BLACKLIST}}
 
 ## 提取字段
 - **title**：从原文中提取的文章标题 (不出现在 content 内)。
@@ -871,13 +879,14 @@ const SANITIZE_LITERAL = `
 在处理前，先根据以上规则完成图片筛除与链接前缀替换，再进行字段提取与排版。
 `
 
-const NOTIFICATION_LITERAL = `**文章已下载完毕，请检查以下内容:**
+const NOTIFICATION_LITERAL = `**文章已下载完毕，请检查以下内容，检查后请删除本段文字:**
 1. 是否有内容缺失，排版错误? 请在 "预览" 中检查，中文和英文内容都需要检查。
 2. 部分文内图片由于微信限制无法自动下载，请手动添加。
 3. 请添加文章封面图。
 4. 英文翻译是否有专有名词不准确?
+
 `
 
 const ENGLISH_TRANSLATION_LITERAL = `
 
-*AI translation, provided for reference only. Please verify with original Chinese version.*`
+*This AI translation is provided for reference only. Please verify with original Chinese version.*`
