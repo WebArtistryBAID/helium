@@ -183,7 +183,7 @@ export async function requestContentReview(params: {
     const result = await sendApprovalNotification({
         entityId: params.entityId,
         entityType: params.entityType,
-        title: entity.titleDraftEN || entity.titleDraftZH || `Entity #${params.entityId}`,
+        title: entity.titleDraftZH || entity.titleDraftEN`Entity #${params.entityId}`,
         previewUrl,
         approvalUrl,
         requestedBy: user.name

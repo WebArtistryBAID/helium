@@ -1,4 +1,5 @@
 import { prisma } from '@/app/lib/prisma'
+import { getPublishedWebsiteMetadata } from '@/app/lib/website-metadata.server'
 
 const FEISHU_API = 'https://open.feishu.cn/open-apis'
 
@@ -20,12 +21,12 @@ function getEntityTypeLabel(entityType: string) {
         club: '社团',
         activity: '校园活动',
         project: '自主项目',
-        course: '课程',
-        faculty: '教职工'
+        course: '课程介绍',
+        faculty: '教职工介绍'
     } as Record<string, string>)[entityType] ?? entityType
 }
 
-function buildApprovalCard(data: NotificationData & { requestedBy: string }) {
+function buildApprovalCard(data: NotificationData & { requestedBy: string; websiteTitle: string }) {
     const entityType = getEntityTypeLabel(data.entityType)
 
     return {
@@ -39,15 +40,16 @@ function buildApprovalCard(data: NotificationData & { requestedBy: string }) {
                 tag: 'div',
                 text: {
                     tag: 'lark_md',
-                    content: `**${data.title}**\n有一条新的${entityType}内容正在等待审核。`
+                    content: `有一条新的${entityType}内容正在等待审核，请及时查看。`
                 }
             },
             {
                 tag: 'div',
                 fields: [
+                    { is_short: false, text: { tag: 'lark_md', content: `**网站**\n${data.websiteTitle}` } },
+                    { is_short: false, text: { tag: 'lark_md', content: `**标题**\n${data.title}` } },
                     { is_short: true, text: { tag: 'lark_md', content: `**内容类型**\n${entityType}` } },
-                    { is_short: true, text: { tag: 'lark_md', content: `**内容 ID**\n${data.entityId}` } },
-                    { is_short: true, text: { tag: 'lark_md', content: `**提交人**\n${data.requestedBy}` } }
+                    { is_short: true, text: { tag: 'lark_md', content: `**请求人**\n${data.requestedBy}` } }
                 ]
             },
             {
@@ -125,7 +127,8 @@ export async function sendApprovalNotification(data: NotificationData & { reques
     name: string
     feishuOpenId: string | null
 }[]) {
-    const card = buildApprovalCard(data)
+    const websiteMetadata = await getPublishedWebsiteMetadata()
+    const card = buildApprovalCard({ ...data, websiteTitle: websiteMetadata.zh.title })
     const sentUserIds: number[] = []
 
     for (const recipient of recipients) {
