@@ -2,6 +2,7 @@
 
 import { ContentEntity, EntityType, Role, User, UserAuditLogType } from '@/generated/prisma/client'
 import {
+    getContentEntityURI,
     HYDRATED_CONTENT_ENTITY_SELECT,
     HydratedContentEntity,
     Paginated,
@@ -22,6 +23,7 @@ import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { WEBSITE_METADATA_SLUG } from '@/app/lib/website-metadata-types'
 import { callFeishuAily } from '@/app/lib/feishu-aily'
+import { sendPublicationNotification } from '@/app/lib/feishu-approval'
 
 const PAGE_SIZE = 24
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
@@ -448,6 +450,21 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
             values: [ post.id.toString(), post.titleDraftEN ]
         }
     })
+    const livePath = post.slug === WEBSITE_METADATA_SLUG
+        ? '/'
+        : post.type === EntityType.page
+            ? `/${post.slug.replace(/^\/+/, '')}`
+            : getContentEntityURI(post.createdAt, post.slug)
+    try {
+        await sendPublicationNotification({
+            entityType: post.type,
+            title: post.titleDraftZH || post.titleDraftEN,
+            publishedBy: user.name,
+            url: `${(process.env.HOST || 'http://localhost:3000').replace(/\/+$/, '')}${livePath}`
+        })
+    } catch (error) {
+        console.error('Failed to send Feishu publication notification:', error)
+    }
     return AlignEntityResponse.success
 }
 
@@ -889,7 +906,7 @@ const NOTIFICATION_LITERAL = `**文章已下载完毕，请检查以下内容，
 1. 是否有内容缺失，排版错误? 请在 "预览" 中检查，中文和英文内容都需要检查。
 2. 部分文内图片由于微信限制无法自动下载，请手动添加。
 3. 请添加文章封面图。
-4. 英文翻译是否有专有名词不准确?
+4. 英文翻译是否有专有名词不准确? 专有名词必须统一。
 
 `
 

@@ -44,7 +44,7 @@ export default function FeishuSettings({ isLinked, result }: {
         <div className="bg-gray-50 rounded-3xl p-8 space-y-6 max-w-2xl">
             <div>
                 <p className="secondary mt-2">
-                    绑定飞书账号后，你可以收到内容审核请求、审核进度和发布状态通知。
+                    授权后，您将可以在飞书上收到内容审核请求及发布通知。
                 </p>
             </div>
 
@@ -56,27 +56,27 @@ export default function FeishuSettings({ isLinked, result }: {
             ) : null}
 
             <div>
-                <p className="font-bold text-sm secondary mb-2">绑定状态</p>
+                <p className="font-bold text-sm secondary mb-2">授权状态</p>
                 {isLinked ? (
                     <div className="flex items-center gap-3">
                         <HiCheckCircle className="text-green-600 text-2xl"/>
                         <div>
-                            <p className="text-xl">已绑定</p>
+                            <p className="text-xl">已授权</p>
                             <p className="text-sm secondary">当前账号已关联飞书通知。</p>
                         </div>
                     </div>
                 ) : (
                     <div>
-                        <p className="text-xl mb-3">未绑定</p>
+                        <p className="text-xl mb-3">未授权</p>
                         {authUrl ? (
-                            <Button as="a" href={authUrl} pill color="blue">
+                            <Button as="a" className="inline-flex" href={authUrl} pill color="blue">
                                 <HiLink className="mr-2"/>
-                                绑定飞书账号
+                                授权飞书账号
                             </Button>
                         ) : (
                             <Button pill color="blue" disabled>
                                 <HiLink className="mr-2"/>
-                                正在准备绑定...
+                                正在准备授权...
                             </Button>
                         )}
                     </div>

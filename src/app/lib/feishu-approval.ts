@@ -1,5 +1,6 @@
 import { prisma } from '@/app/lib/prisma'
 import { getPublishedWebsiteMetadata } from '@/app/lib/website-metadata.server'
+import { Role } from '@/generated/prisma/client'
 
 const FEISHU_API = 'https://open.feishu.cn/open-apis'
 
@@ -68,6 +69,52 @@ function buildApprovalCard(data: NotificationData & { requestedBy: string; websi
     }
 }
 
+type PublicationData = {
+    entityType: string
+    title: string
+    publishedBy: string
+    url: string
+}
+
+function buildPublicationCard(data: PublicationData & { websiteTitle: string }) {
+    const entityType = getEntityTypeLabel(data.entityType)
+    return {
+        config: { wide_screen_mode: true, enable_forward: true },
+        header: {
+            template: 'orange',
+            title: { tag: 'plain_text', content: '内容已发布' }
+        },
+        elements: [
+            { tag: 'div', text: { tag: 'lark_md', content: `一条${entityType}内容已经发布。` } },
+            {
+                tag: 'div',
+                fields: [
+                    { is_short: false, text: { tag: 'lark_md', content: `**网站**\n${data.websiteTitle}` } },
+                    { is_short: false, text: { tag: 'lark_md', content: `**标题**\n${data.title}` } },
+                    { is_short: true, text: { tag: 'lark_md', content: `**内容类型**\n${entityType}` } },
+                    { is_short: true, text: { tag: 'lark_md', content: `**发布人**\n${data.publishedBy}` } }
+                ]
+            },
+            {
+                tag: 'action',
+                actions: [
+                    { tag: 'button', text: { tag: 'plain_text', content: '查看' }, url: data.url, style: 'primary' }
+                ]
+            }
+        ]
+    }
+}
+
+export async function sendPublicationNotification(data: PublicationData) {
+    const recipients = await prisma.user.findMany({
+        where: { roles: { has: Role.admin }, feishuOpenId: { not: null } },
+        select: { id: true, name: true, feishuOpenId: true }
+    })
+    if (recipients.length === 0) return { sentUserIds: [] }
+    const metadata = await getPublishedWebsiteMetadata()
+    return sendCards(buildPublicationCard({ ...data, websiteTitle: metadata.zh.title }), recipients, 'publication')
+}
+
 async function getAccessToken() {
     if (accessToken && Date.now() < tokenExpiry) {
         return accessToken
@@ -129,6 +176,14 @@ export async function sendApprovalNotification(data: NotificationData & { reques
 }[]) {
     const websiteMetadata = await getPublishedWebsiteMetadata()
     const card = buildApprovalCard({ ...data, websiteTitle: websiteMetadata.zh.title })
+    return sendCards(card, recipients, 'approval_request')
+}
+
+async function sendCards(card: object, recipients: {
+    id: number
+    name: string
+    feishuOpenId: string | null
+}[], type: 'approval_request' | 'publication') {
     const sentUserIds: number[] = []
 
     for (const recipient of recipients) {
@@ -147,7 +202,7 @@ export async function sendApprovalNotification(data: NotificationData & { reques
         try {
             await prisma.feishuMessage.create({
                 data: {
-                    type: 'approval_request',
+                    type,
                     recipient: recipient.name,
                     recipientId: recipient.feishuOpenId,
                     content: JSON.stringify(card),
