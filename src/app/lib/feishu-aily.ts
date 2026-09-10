@@ -11,10 +11,10 @@ type FeishuResponse = {
 
 async function requestFeishu<T extends FeishuResponse>(endpoint: string, init: RequestInit): Promise<T> {
     const response = await fetch(`${FEISHU_API}${endpoint}`, { ...init, cache: 'no-store' })
+    const result: T = await response.json()
     if (!response.ok) {
         throw new Error(`Feishu Aily request failed (${endpoint}): HTTP ${response.status}`)
     }
-    const result: T = await response.json()
     if (result.code !== 0) {
         throw new Error(`Feishu Aily request failed (${endpoint}): ${result.msg ?? result.code}`)
     }

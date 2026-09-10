@@ -180,8 +180,8 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                             idle: '同步微信公众号文章',
                             download: '正在下载文章...',
                             imageClassification: '正在分类图片...',
-                            sanitization: '正在清理内容...',
-                            translation: '正在翻译内容...',
+                            sanitization: '正在清理内容 (可能需要数分钟，请耐心等待)...',
+                            translation: '正在翻译内容 (可能需要数分钟，请耐心等待)...',
                             savingImages: '正在保存图片...',
                             creatingPost: '正在创建文章...'
                         }[wechatStatus]}

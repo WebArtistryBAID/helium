@@ -610,7 +610,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         console.log(`+ Starting article download from ${link}.`)
         // STEP 0: Download the article
         await fs.mkdir(`/tmp/article-build-${post.id}`)
-        await runCommand(path.join(path.dirname(await pkgUp() ?? ''), 'blobs', 'downloader-macos'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
+        await runCommand(path.join(path.dirname(await pkgUp() ?? ''), 'blobs', process.platform === 'darwin' ? 'downloader-macos' : 'downloader'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
 
         // Move from /tmp/article-build-${build.id}/(...) to /tmp/article-build-${build.id}/article
         const files = await fs.readdir(`/tmp/article-build-${post.id}`)
@@ -647,8 +647,6 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         // STEP 2: Sanitize content
         wechatWorkerRunning = WeChatWorkerStatus.sanitization
         console.log('+ Calling Feishu Aily to sanitize article content.')
-        console.log('Sending prompt:\n' + SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', post.id.toString()).replace('{{IMAGE_BLACKLIST}}', toRemove.toString())
-            + markdownContent)
         const srRawContent = await callFeishuAily(
             SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', post.id.toString()).replace('{{IMAGE_BLACKLIST}}', toRemove.toString())
                 + markdownContent
@@ -664,7 +662,6 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         // STEP 3: Translate content
         wechatWorkerRunning = WeChatWorkerStatus.translation
         console.log('+ Calling Feishu Aily to translate article content.')
-        console.log('Sending prompt:\n' + TRANSLATE_LITERAL + '#' + titleChinese + '\n\n' + contentChinese)
         const trRawContent = await callFeishuAily(TRANSLATE_LITERAL + '#' + titleChinese + '\n\n' + contentChinese)
         console.log('+ Feishu Aily responded with translated content.')
         const trStrippedContent = trRawContent.replace(/^```json\s*/, '').replace(/```$/, '')
@@ -722,8 +719,8 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
 
         // STEP 5: Create posts for review
         wechatWorkerRunning = WeChatWorkerStatus.creatingPost
-        let finalContentEN = content
-        let finalContentZH = contentChinese
+        let finalContentEN = NOTIFICATION_LITERAL + content + ENGLISH_TRANSLATION_LITERAL
+        let finalContentZH = NOTIFICATION_LITERAL + contentChinese
 
         for (const [ file, id ] of mapping) {
             const escapeRegExp = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
@@ -873,3 +870,14 @@ const SANITIZE_LITERAL = `
 必须直接输出文本 JSON 对象，禁止生成文件。
 在处理前，先根据以上规则完成图片筛除与链接前缀替换，再进行字段提取与排版。
 `
+
+const NOTIFICATION_LITERAL = `**文章已下载完毕，请检查以下内容:**
+1. 是否有内容缺失，排版错误? 请在 "预览" 中检查，中文和英文内容都需要检查。
+2. 部分文内图片由于微信限制无法自动下载，请手动添加。
+3. 请添加文章封面图。
+4. 英文翻译是否有专有名词不准确?
+`
+
+const ENGLISH_TRANSLATION_LITERAL = `
+
+*AI translation, provided for reference only. Please verify with original Chinese version.*`

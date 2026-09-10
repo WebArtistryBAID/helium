@@ -34,23 +34,23 @@ Certain pages have hardcoded constants associated with them; for example, header
 
 ## Environment Variables
 
-| Name                      | Description                                                                                                                      |
-|---------------------------|----------------------------------------------------------------------------------------------------------------------------------|
-| `DATABASE_URI`            | The database URI to use. PostgreSQL is required.                                                                                 |
-| `JWT_SECRET`              | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.                                                     |
-| `HOST`                    | The location where this service is hosted. No trailing slashes.                                                                  |
-| `UPLOAD_PATH`             | The directory where uploaded files are stored. In development, this is `public/uploads`.                                         |
-| `UPLOAD_SERVE_PATH`       | The path where uploaded files are served. In development, this is `uploads`.                                                     |
-| `CRON_KEY`                | Secret key required by cron-only API endpoints. Generate one with `openssl rand -hex 32`.                                        |
-| `BOTTOM_TEXT`             | In case you need this.                                                                                                           |
-| `ONELOGIN_HOST`           | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                  |
-| `ONELOGIN_CLIENT_ID`      | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                             |
-| `ONELOGIN_CLIENT_SECRET`  | OneLogin client secret.                                                                                                          |
-| `FEISHU_CLIENT_ID`        | Feishu app ID used for account binding and approval notifications.                                                               |
-| `FEISHU_CLIENT_SECRET`    | Feishu app secret used for account binding and approval notifications.                                                           |
-| `FEISHU_AI_CLIENT_ID`     | Another Feishu app dedicated to translating and sanitizing WeChat imports.                                                       |
-| `FEISHU_AI_CLIENT_SECRET` | Another Feishu app dedicated to translating and sanitizing WeChat imports.                                                       |
-| `FEISHU_AILY_AGENT_ID`    | Another Feishu app dedicated to translating and sanitizing WeChat imports. You must create an agent and paste the agent ID here. |
+| Name                      | Description                                                                                                                                                                             |
+|---------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DATABASE_URI`            | The database URI to use. PostgreSQL is required.                                                                                                                                        |
+| `JWT_SECRET`              | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.                                                                                                            |
+| `HOST`                    | The location where this service is hosted. No trailing slashes.                                                                                                                         |
+| `UPLOAD_PATH`             | The directory where uploaded files are stored. In development, this is `public/uploads`.                                                                                                |
+| `UPLOAD_SERVE_PATH`       | The path where uploaded files are served. In development, this is `uploads`.                                                                                                            |
+| `CRON_KEY`                | Secret key required by cron-only API endpoints. Generate one with `openssl rand -hex 32`.                                                                                               |
+| `BOTTOM_TEXT`             | In case you need this.                                                                                                                                                                  |
+| `ONELOGIN_HOST`           | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                                                                         |
+| `ONELOGIN_CLIENT_ID`      | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                                                                                    |
+| `ONELOGIN_CLIENT_SECRET`  | OneLogin client secret.                                                                                                                                                                 |
+| `FEISHU_CLIENT_ID`        | Feishu app ID used for account binding and approval notifications.                                                                                                                      |
+| `FEISHU_CLIENT_SECRET`    | Feishu app secret used for account binding and approval notifications.                                                                                                                  |
+| `FEISHU_AI_CLIENT_ID`     | Another Feishu app dedicated to translating and sanitizing WeChat imports. Starts with `cli_`.                                                                                          |
+| `FEISHU_AI_CLIENT_SECRET` | Another Feishu app dedicated to translating and sanitizing WeChat imports.                                                                                                              |
+| `FEISHU_AILY_AGENT_ID`    | Another Feishu app dedicated to translating and sanitizing WeChat imports. You must create an agent and paste the agent ID here. Starts with `agent_`. It's in the browser address bar. |
 
 ## Backups
 
