@@ -40,7 +40,7 @@ function buildApprovalCard(data: NotificationData & { requestedBy: string; websi
                 tag: 'div',
                 text: {
                     tag: 'lark_md',
-                    content: `有一条新的${entityType}内容正在等待审核，请及时查看。`
+                    content: `有一条新的${entityType}内容待审核，请及时查看。`
                 }
             },
             {
