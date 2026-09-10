@@ -863,9 +863,9 @@ const SANITIZE_LITERAL = `
 - 删除这些图片文件: {{IMAGE_BLACKLIST}}
 
 ## 提取字段
-- **title**：从原文中提取的文章标题 (不出现在 content 内)。
+- **title**：从原文中提取的文章标题 (不出现在 content 内)。注意，必须在中文与英文、数字之间添加空格。
 - **date**：从文本**开头部分**提取的日期，格式为 yyyy-MM-dd。
-- **content**：清理与排版后的 Markdown 正文 (不含主标题；保留合规图片的 Markdown 语法与其他结构)。
+- **content**：清理与排版后的 Markdown 正文 (不含主标题；保留合规图片的 Markdown 语法与其他结构)。注意，必须在中文与英文、数字之间添加空格。
 
 ## 输出格式（必须是一个 JSON 对象）
 {
