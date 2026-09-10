@@ -18,20 +18,6 @@ To run in development:
 * Run `npm run dev`.
 * Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier).
 
-## Expected Pages
-
-* `/`
-* `/about`
-* `/academics`
-* `/life`
-* `/projects`
-* `/admissions`
-* `/news`
-
-Certain pages have hardcoded constants associated with them; for example, header transparency.
-
-`/content/yyyy/MM/dd/slug` is used for showing details of content entities.
-
 ## Environment Variables
 
 | Name                      | Description                                                                                                                                                                             |
