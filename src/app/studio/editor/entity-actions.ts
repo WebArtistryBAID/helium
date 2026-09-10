@@ -610,7 +610,7 @@ async function workOnWeChat(link: string, coverImageId: number | null, user: Use
         console.log(`+ Starting article download from ${link}.`)
         // STEP 0: Download the article
         await fs.mkdir(`/tmp/article-build-${post.id}`)
-        await runCommand(path.join(path.dirname(await pkgUp() ?? ''), 'blobs', 'downloader'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
+        await runCommand(path.join(path.dirname(await pkgUp() ?? ''), 'blobs', 'downloader-macos'), [ link, `/tmp/article-build-${post.id}`, '--image=save' ], `/tmp/article-build-${post.id}`)
 
         // Move from /tmp/article-build-${build.id}/(...) to /tmp/article-build-${build.id}/article
         const files = await fs.readdir(`/tmp/article-build-${post.id}`)
@@ -782,6 +782,7 @@ const TRANSLATE_LITERAL = `
   "content": "...Markdown in English...",
   "title": "English Title"
 }
+必须直接输出文本 JSON 对象，禁止生成文件。
 
 ## 重要禁止项
 - 不要输出任何解释性文字、提示或多余字符。  
@@ -869,5 +870,6 @@ const SANITIZE_LITERAL = `
   "date": "yyyy-MM-dd"
 }
 **仅输出 JSON，不要包含解释或多余文本。**
+必须直接输出文本 JSON 对象，禁止生成文件。
 在处理前，先根据以上规则完成图片筛除与链接前缀替换，再进行字段提取与排版。
 `
