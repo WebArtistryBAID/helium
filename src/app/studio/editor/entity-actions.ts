@@ -820,6 +820,10 @@ const TRANSLATE_LITERAL = `
 北京中学 Beijing Academy
 北京中学国际部 Beijing Academy International Division (尽量缩写为 BAID)
 北中外籍人员子女学校: International School of Beijing Academy (尽量缩写为 ISBA)
+毕业生故事: #GraduateStory
+毕业生特辑: #GraduateFeature
+喜报: #Congrats
+BAID 故事: #BAIDStory
 北中国际: BAID
 BA 大讲堂: BA Lectures
 北中小讲师: BAID Speaker
