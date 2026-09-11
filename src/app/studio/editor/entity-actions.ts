@@ -460,7 +460,7 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
             entityType: post.type,
             title: post.titleDraftZH || post.titleDraftEN,
             publishedBy: user.name,
-            url: `${(process.env.HOST || 'http://localhost:3000').replace(/\/+$/, '')}${livePath}`
+            url: `${(process.env.HOST!).replace(/\/+$/, '')}${livePath}`
         })
     } catch (error) {
         console.error('Failed to send Feishu publication notification:', error)

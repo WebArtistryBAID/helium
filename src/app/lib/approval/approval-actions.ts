@@ -15,7 +15,7 @@ export type ApprovalThresholds = {
 }
 
 function getStudioReviewUrls(entityType: EntityType, entityId: number, slug?: string) {
-    const baseUrl = process.env.HOST || 'http://localhost:3000'
+    const baseUrl = process.env.HOST!
     if (slug === WEBSITE_METADATA_SLUG) {
         return {
             previewUrl: `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}`,

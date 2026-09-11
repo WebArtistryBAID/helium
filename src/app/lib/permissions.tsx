@@ -44,7 +44,7 @@ export function PermissionDeniedDialog({ show, onClose }: {
         <ModalHeader/>
         <ModalBody>
             <div className="space-y-3">
-                <h3 className="text-xl font-bold">权限不足</h3>
+                <h3 className="text-xl font-bold">账号未配置</h3>
                 <p className="text-sm text-gray-600">
                     此账号无法执行此操作。
                 </p>

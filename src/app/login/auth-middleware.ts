@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
 import { jwtVerify } from 'jose'
-import { getLoginTarget } from '@/app/login/login-actions'
+import { getLoginTarget, getMyUser } from '@/app/login/login-actions'
+import { Role } from '@/generated/prisma/client'
 
 const protectedRoutes = [
     '/login'
@@ -32,5 +33,19 @@ export default async function authMiddleware(req: NextRequest): Promise<NextResp
         return NextResponse.redirect(new URL(await getLoginTarget(req.nextUrl.pathname + req.nextUrl.search), req.nextUrl))
     }
 
+    const pathname = req.nextUrl.pathname
+    if (pathname === '/studio' || pathname.startsWith('/studio/')) {
+        const user = await getMyUser()
+        const adminOnly = ['/studio/users', '/studio/backups'].some(path => pathname === path || pathname.startsWith(`${path}/`))
+        if (!user?.roles.includes(Role.writer) || (adminOnly && !user.roles.includes(Role.admin))) {
+            if (req.method !== 'GET' && req.method !== 'HEAD') {
+                return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
+            }
+            const deniedUrl = req.nextUrl.clone()
+            deniedUrl.pathname = '/permission-denied'
+            deniedUrl.search = ''
+            return NextResponse.rewrite(deniedUrl, { status: 403 })
+        }
+    }
     return null
 }
