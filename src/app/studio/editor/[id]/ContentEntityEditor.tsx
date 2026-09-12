@@ -92,10 +92,22 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     })
 
     useEffect(() => {
-        if (location.hash === '#approval') {
-            setActiveTab(2)
-        } else if (location.hash === '#preview') {
-            setActiveTab(1)
+        const handleHashChange = () => {
+            if (window.location.hash === '#approval') {
+                tabsRef.current?.setActiveTab(2)
+            } else if (window.location.hash === '#preview') {
+                tabsRef.current?.setActiveTab(1)
+            } else if (window.location.hash === '#editor') {
+                tabsRef.current?.setActiveTab(0)
+            }
+        }
+
+        handleHashChange()
+
+        window.addEventListener('hashchange', handleHashChange)
+
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange)
         }
     }, [])
 
@@ -384,8 +396,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                              coverImageDraft: image!,
                              coverImageDraftId: image!.id
                          }))
-            setShowMediaLibrary(false)
-        }}/>
+                         setShowMediaLibrary(false)
+                     }}/>
 
         <div className="mx-auto max-w-[1600px] pb-12">
             <header className="mb-6 pb-6">
@@ -697,7 +709,9 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                     <If condition={post.type !== EntityType.post}>
                                         <h1 className="text-center text-5xl">{displayedTitle}</h1>
                                     </If>
-                                    <ContentEntityBody content={markdownContent} images={Array.from(cachedImages.values())} uploadPrefix={uploadPrefix}/>
+                                    <ContentEntityBody content={markdownContent}
+                                                       images={Array.from(cachedImages.values())}
+                                                       uploadPrefix={uploadPrefix}/>
                                 </article>
                             </div>
                         </div>

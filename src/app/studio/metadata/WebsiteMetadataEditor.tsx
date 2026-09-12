@@ -257,8 +257,20 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
     })
 
     useEffect(() => {
-        if (location.hash === '#approval') {
-            tabsRef.current?.setActiveTab(1)
+        const handleHashChange = () => {
+            if (window.location.hash === '#approval') {
+                tabsRef.current?.setActiveTab(1)
+            } else if (window.location.hash === '#editor') {
+                tabsRef.current?.setActiveTab(0)
+            }
+        }
+
+        handleHashChange()
+
+        window.addEventListener('hashchange', handleHashChange)
+
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange)
         }
     }, [])
 
