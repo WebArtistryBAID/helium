@@ -33,7 +33,7 @@ import { HiCloudUpload, HiSearch } from 'react-icons/hi'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
-import Markdown from 'react-markdown'
+import ContentEntityBody from '@/app/lib/ContentEntityBody'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
@@ -86,7 +86,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         handlePermissionError
     } = usePermissionDialog()
 
-    const { previewContent } = useImagePlaceholders({
+    const { cachedImages } = useImagePlaceholders({
         markdown: markdownContent,
         uploadPrefix
     })
@@ -701,7 +701,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                     <If condition={post.type !== EntityType.post}>
                                         <h1 className="text-center text-5xl">{displayedTitle}</h1>
                                     </If>
-                                    <Markdown>{previewContent}</Markdown>
+                                    <ContentEntityBody content={markdownContent} images={Array.from(cachedImages.values())} uploadPrefix={uploadPrefix}/>
                                 </article>
                             </div>
                         </div>

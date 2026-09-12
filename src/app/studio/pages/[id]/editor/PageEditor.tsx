@@ -152,7 +152,7 @@ export default function PageEditor({ init, lockToken, user, host }: {
         <LockBrokenPrompt show={showLockBroken} returnUri="/studio/pages"/>
 
         <Modal show={showMetadata} size="xl" popup onClose={() => setShowMetadata(false)}>
-            <ModalHeader>页面信息</ModalHeader>
+            <ModalHeader className="px-6 pt-6 pb-4">页面信息</ModalHeader>
             <ModalBody>
                 <div className="space-y-5">
                     <div className="grid gap-5 sm:grid-cols-2">

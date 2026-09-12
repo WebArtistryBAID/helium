@@ -264,7 +264,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
                         </If>
                         <If condition={approvalsNames.editor.length >= (approvalsThreshold?.editor ?? 1) && approvalsNames.admin.length >= (approvalsThreshold?.admin ?? 1) &&
                             !isAligned(entity)}>
-                            <p>内容已审核完成，可以发表。</p>
+                            <p className="mb-3">内容已审核完成，可以发表。</p>
                             <If condition={canApproveAsAdmin}>
                                 <Button disabled={loading} pill color="blue"
                                         onClick={async () => {

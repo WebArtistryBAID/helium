@@ -154,7 +154,7 @@ export default function BackupManager({ initialBackups }: { initialBackups: Back
 
         <div>
             <div className="mb-6 flex items-center gap-3">
-                <Button color="blue" onClick={createBackup} disabled={isPending}>
+                <Button color="blue" onClick={createBackup} pill disabled={isPending}>
                     {pendingAction === 'create' ? '正在创建...' : '创建手动备份'}
                 </Button>
             </div>

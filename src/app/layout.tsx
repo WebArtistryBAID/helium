@@ -4,6 +4,7 @@ import { ReactNode } from 'react'
 import NextTopLoader from 'nextjs-toploader'
 import { ThemeInit } from '../../.flowbite-react/init'
 import { cookies, headers } from 'next/headers'
+import { ThemeProvider } from 'flowbite-react'
 
 export const metadata: Metadata = {
     title: 'Beijing Academy International Division',
@@ -23,7 +24,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <head><ThemeInit/></head>
         <body className="antialiased">
         <NextTopLoader showSpinner={false}/>
-        {children}
+        <ThemeProvider theme={{ modal: {
+            content: { inner: 'rounded-3xl' },
+            header: { base: 'rounded-t-3xl' },
+            footer: { base: 'rounded-b-3xl' }
+        } }}>
+            {children}
+        </ThemeProvider>
         <p className="fixed bottom-2 right-2 secondary text-xs"><a
             href="https://beian.miit.gov.cn">{process.env.BOTTOM_TEXT}</a></p>
         </body>

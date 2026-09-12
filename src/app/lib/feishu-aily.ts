@@ -21,7 +21,8 @@ async function requestFeishu<T extends FeishuResponse>(endpoint: string, init: R
     return result
 }
 
-export async function callFeishuAily(content: string): Promise<string> {
+export async function callFeishuAily(content: string, cancellationSignal?: AbortSignal): Promise<string> {
+    cancellationSignal?.throwIfAborted()
     const appId = process.env.FEISHU_AI_CLIENT_ID
     const appSecret = process.env.FEISHU_AI_CLIENT_SECRET
     const ailyAppId = process.env.FEISHU_AILY_AGENT_ID
@@ -32,6 +33,7 @@ export async function callFeishuAily(content: string): Promise<string> {
     const token = await requestFeishu<FeishuResponse & { tenant_access_token: string }>(
         '/auth/v3/tenant_access_token/internal', {
             method: 'POST',
+            signal: cancellationSignal,
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify({ app_id: appId, app_secret: appSecret })
         }
@@ -48,6 +50,7 @@ export async function callFeishuAily(content: string): Promise<string> {
     const chat = await requestFeishu<FeishuResponse & { data?: { agent_chat_id?: string } }>(
         chatsPath, {
             method: 'POST',
+            signal: cancellationSignal,
             headers,
             body: JSON.stringify({ user_message: { content: [ { text: content, type: 'text' } ] } })
         }
@@ -60,7 +63,7 @@ export async function callFeishuAily(content: string): Promise<string> {
     const controller = new AbortController()
     const timeoutError = new Error(`Feishu Aily chat ${chatId} timed out after 10 minutes`)
     const timeout = setTimeout(() => controller.abort(timeoutError), POLL_TIMEOUT_MS)
-    const signal = controller.signal
+    const signal = cancellationSignal ? AbortSignal.any([controller.signal, cancellationSignal]) : controller.signal
 
     try {
         while (true) {
@@ -79,7 +82,8 @@ export async function callFeishuAily(content: string): Promise<string> {
             }
         }
     } catch (error) {
-        if (signal.aborted) {
+        if (cancellationSignal?.aborted) throw cancellationSignal.reason
+        if (controller.signal.aborted) {
             throw timeoutError
         }
         throw error
