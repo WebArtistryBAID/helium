@@ -90,7 +90,8 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
         <div className="fixed bottom-5 right-5 z-[60] max-w-[calc(100vw-2.5rem)]" role="status" aria-live="polite" aria-atomic="true">
             {notificationSuccess && <Toast>
-                <div className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500 dark:bg-green-800 dark:text-green-200">
+                <div
+                    className="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-green-100 text-green-500">
                     <HiCheck className="h-5 w-5" aria-hidden="true"/>
                 </div>
                 <div className="ml-3 text-sm font-normal">已成功发送 {notificationSuccess.count} 条飞书审核通知。</div>
@@ -259,7 +260,7 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
                 <TimelineContent>
                     <TimelineTitle>发布</TimelineTitle>
                     <TimelineBody>
-                        <If condition={approvalsNames.editor.length < (approvalsThreshold?.editor ?? 1) || approvalsNames.admin.length < (approvalsThreshold?.admin ?? 1)}>
+                        <If condition={(approvalsNames.editor.length < (approvalsThreshold?.editor ?? 1) || approvalsNames.admin.length < (approvalsThreshold?.admin ?? 1)) && !isAligned(entity)}>
                             <p>完成前序步骤后即可发布。</p>
                         </If>
                         <If condition={approvalsNames.editor.length >= (approvalsThreshold?.editor ?? 1) && approvalsNames.admin.length >= (approvalsThreshold?.admin ?? 1) &&

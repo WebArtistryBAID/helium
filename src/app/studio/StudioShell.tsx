@@ -39,7 +39,7 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
         <a className="sr-only" href="#main-content">跳至主内容</a>
         <div
             role="status"
-            className="sm:hidden absolute w-screen h-screen z-50 top-0 left-0 bg-white dark:bg-gray-700 p-5 flex justify-center items-center flex-col">
+            className="sm:hidden absolute w-screen h-screen z-50 top-0 left-0 bg-white p-5 flex justify-center items-center flex-col">
             <p className="text-center">请在大屏幕设备上使用 Helium Studio。</p>
         </div>
 

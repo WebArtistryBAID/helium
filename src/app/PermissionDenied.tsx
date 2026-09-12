@@ -7,7 +7,7 @@ export default function PermissionDenied() {
     const router = useRouter()
     const leave = () => router.replace('/')
 
-    return <main className="min-h-screen bg-gray-100 dark:bg-gray-900">
+    return <main className="min-h-screen bg-gray-100">
         <Modal show size="md" popup onClose={leave}>
             <ModalHeader/>
             <ModalBody>

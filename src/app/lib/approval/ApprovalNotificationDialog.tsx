@@ -66,7 +66,7 @@ export default function ApprovalNotificationDialog({ entityType, entityId, initi
             <div className="space-y-6">
                 <h3 className="text-xl font-bold">选择通知对象</h3>
                 {options.role ? <>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                    <p className="text-sm text-gray-600">
                         {options.role === Role.editor ? '编辑员审核' : '管理员审核'}
                     </p>
                     <div className="space-y-3">
@@ -82,14 +82,14 @@ export default function ApprovalNotificationDialog({ entityType, entityId, initi
                                       }}/>
                             <Label htmlFor={`approval-notification-${recipient.id}`}
                                    className={recipient.disabled
-                                       ? 'cursor-not-allowed text-gray-400 dark:text-gray-500'
+                                       ? 'cursor-not-allowed text-gray-400'
                                        : 'cursor-pointer'}>
                                 {recipient.name}
                             </Label>
                         </div>)}
                         {options.recipients.length === 0 && <p className="text-sm text-gray-500">暂无通知对象。</p>}
                     </div>
-                </> : <p className="text-sm text-gray-600 dark:text-gray-400">审核已完成。</p>}
+                </> : <p className="text-sm text-gray-600">审核已完成。</p>}
                 {error && <Alert color="failure">{error}</Alert>}
             </div>
         </ModalBody>

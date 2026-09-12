@@ -66,7 +66,7 @@ export default function UploadAreaClient({ uploadPrefix, onDone }: {
                 void upload(e.currentTarget.files[0])
             }
         }}/>
-        <HiUpload aria-hidden="true" className="text-blue-400 dark:text-blue-300 text-4xl mb-3"/>
+        <HiUpload aria-hidden="true" className="text-blue-400 text-4xl mb-3"/>
         <p className="text-xl font-bold">上传</p>
         <div aria-live="polite" className="mt-1 text-sm">
             <If condition={loading}>
