@@ -56,7 +56,11 @@ export default function GlobalFooter({ websiteMetadata }: {
 
             <p>{content.footer.copyrightText}</p>
             <p className="break-words"><a href={content.footer.chineseWebsiteUrl}>{content.footer.chineseWebsiteText}</a></p>
-            <p><a href="https://beian.miit.gov.cn">{content.footer.icpNumber}</a></p>
+            <p className="mb-5"><a href="https://beian.miit.gov.cn">{content.footer.icpNumber}</a></p>
+
+            <p className="text-xs">This website is created by <a href="https://dreta.dev">Lin Donglai</a> with input
+                from the Beijing Academy team. Contents are provided by Beijing Academy students & faculty. Thank you to
+                all contributors.</p>
         </div>
     </footer>
 }

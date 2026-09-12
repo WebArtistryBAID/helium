@@ -435,10 +435,6 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                 <div>
                                     <h2 className="font-semibold text-gray-900">正文</h2>
                                 </div>
-                                <span
-                                    className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm">
-                                    {inEnglish ? 'EN' : '中文'}
-                                </span>
                             </div>
                             <SimpleMarkdownEditor
                                 className="rounded-xl shadow-none"
