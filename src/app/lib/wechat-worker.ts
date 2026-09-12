@@ -121,7 +121,8 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
         }
         stage(WeChatWorkerStatus.sanitization)
         const sanitized = parseResponse(await callFeishuAily(
-            SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', task.id).replace('{{IMAGE_BLACKLIST}}', toRemove.length ? toRemove.toString() : '本次操作不需要移除任何图片') + markdownContent,
+            SANITIZE_LITERAL.replace('{{PLACEHOLDER}}', task.id).replace('{{IMAGE_BLACKLIST}}', toRemove.length ? toRemove.toString() : '本次操作不需要移除任何图片'),
+            markdownContent,
             signal
         ))
         const titleChinese = spaceChineseAlphanumericBoundaries(sanitized.title)
@@ -130,7 +131,7 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
         const date = new Date(sanitized.date ?? '')
         if (Number.isNaN(date.getTime())) throw new Error('AI 返回的文章日期无效')
         stage(WeChatWorkerStatus.translation)
-        const translated = parseResponse(await callFeishuAily(TRANSLATE_LITERAL + '#' + titleChinese + '\n\n' + contentChinese, signal))
+        const translated = parseResponse(await callFeishuAily(TRANSLATE_LITERAL, '#' + titleChinese + '\n\n' + contentChinese, signal))
         stage(WeChatWorkerStatus.savingImages)
         const images: { file: string; hash: string; width: number; height: number; sizeKB: number }[] = []
         for (const file of toKeep) {

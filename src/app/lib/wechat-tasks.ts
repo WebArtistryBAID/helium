@@ -10,7 +10,6 @@ export type RunningWeChatTask = Omit<WeChatTask, 'canCancel'> & {
     cleanup?: () => Promise<void>
 }
 
-// One registry per server process, retained across development module reloads.
 const state = globalThis as typeof globalThis & {
     heliumWeChatTasks?: Map<string, RunningWeChatTask>
     heliumWeChatSaveQueue?: Promise<void>

@@ -158,7 +158,8 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                                    onChange={e => setWeChatLink(e.currentTarget.value)}
                                    required/>
                     </div>
-                    <p className="text-sm">同步需要5到10分钟。同步完成后，请检查排版、中文内容及自动翻译。图片会自动放入媒体库。</p>
+                    <p className="text-sm">同步需要 5 到 10
+                        分钟。同步完成后，请检查排版、中文内容及自动翻译。图片会自动放入媒体库。</p>
                 </div>
             </ModalBody>
             <ModalFooter>
@@ -214,7 +215,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                         } }}>
                             <div className="flex items-start justify-between gap-4">
                                 <div className="min-w-0 flex-1">
-                                    <h3 className="break-words font-semibold text-gray-900">{task.title || `任务 ${task.id}`}</h3>
+                                    <h3 className="break-words font-semibold text-gray-900">{task.title || `无标题`}</h3>
                                     <p className="text-sm text-gray-500">{new Date(task.startedAt).toLocaleString('zh-CN')}</p>
                                 </div>
                             <div className="shrink-0">
