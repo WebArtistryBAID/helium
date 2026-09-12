@@ -34,7 +34,7 @@ export default function LockOverridePrompt({ entityType, entityId, returnUri }: 
                 const destination = returnUri ?? (entityType === EntityType.page
                     ? `/studio/pages/${entityId}/editor`
                     : `/studio/editor/${entityId}`)
-                router.replace(`${destination}?token=${lock.token}`)
+                router.replace(`${destination}?token=${lock.token}${location.hash}`)
             }}>覆盖并继续</Button>
             <Button disabled={loading} pill color="alternative" onClick={() => router.push('/studio')}>
                 取消
