@@ -56,9 +56,9 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                                         主页
                                     </SidebarItem>
                                 </Link>
-                                <Link href="/studio/pages">
-                                    <SidebarItem as="div" icon={HiBookmarkSquare}>
-                                        页面
+                                <Link href="/studio/metadata">
+                                    <SidebarItem as="div" icon={HiGlobeAlt}>
+                                        网站信息
                                     </SidebarItem>
                                 </Link>
                                 <Link href="/studio/media">
@@ -66,28 +66,11 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                                         媒体库
                                     </SidebarItem>
                                 </Link>
-                                <Link href="/studio/metadata">
-                                    <SidebarItem as="div" icon={HiGlobeAlt}>
-                                        网站信息
+                                <Link href="/studio/pages">
+                                    <SidebarItem as="div" icon={HiBookmarkSquare}>
+                                        页面
                                     </SidebarItem>
                                 </Link>
-                                <Link href="/studio/settings/feishu">
-                                    <SidebarItem as="div" icon={HiCog}>
-                                        飞书设置
-                                    </SidebarItem>
-                                </Link>
-                                <If condition={myUser?.roles.includes(Role.admin)}>
-                                    <Link href="/studio/users">
-                                        <SidebarItem as="div" icon={HiUsers}>
-                                            用户管理
-                                        </SidebarItem>
-                                    </Link>
-                                    <Link href="/studio/backups">
-                                        <SidebarItem as="div" icon={HiArchiveBox}>
-                                            备份管理
-                                        </SidebarItem>
-                                    </Link>
-                                </If>
                                 <SidebarCollapse label="内容" icon={HiShare}>
                                     <Link href="/studio/posts">
                                         <SidebarItem as="div" icon={HiNewspaper}>
@@ -125,6 +108,23 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                                         </SidebarItem>
                                     </Link>
                                 </SidebarCollapse>
+                                <Link href="/studio/settings/feishu">
+                                    <SidebarItem as="div" icon={HiCog}>
+                                        飞书设置
+                                    </SidebarItem>
+                                </Link>
+                                <If condition={myUser?.roles.includes(Role.admin)}>
+                                    <Link href="/studio/users">
+                                        <SidebarItem as="div" icon={HiUsers}>
+                                            用户管理
+                                        </SidebarItem>
+                                    </Link>
+                                    <Link href="/studio/backups">
+                                        <SidebarItem as="div" icon={HiArchiveBox}>
+                                            备份管理
+                                        </SidebarItem>
+                                    </Link>
+                                </If>
                             </SidebarItemGroup>
                         </SidebarItems>
                         <div className="mr-3 mb-3 absolute bottom-0">
