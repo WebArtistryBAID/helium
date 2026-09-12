@@ -4,7 +4,7 @@ import { SimplifiedContentEntity } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { EntityType } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
-import { WEBSITE_METADATA_SLUG, WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/website-metadata-types'
+import { WEBSITE_METADATA_SLUG, WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/metadata/website-metadata-types'
 
 export default function StudioHome({ pages, posts, pendingApprovals, uploadServePath }: {
     pages: SimplifiedContentEntity[],

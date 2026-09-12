@@ -1,6 +1,6 @@
 export async function register() {
     if (process.env.NEXT_RUNTIME !== 'nodejs' || !process.env.DATABASE_URI) return
 
-    const { ensureWebsiteMetadataEntity } = await import('@/app/lib/website-metadata.server')
+    const { ensureWebsiteMetadataEntity } = await import('@/app/lib/metadata/website-metadata.server')
     await ensureWebsiteMetadataEntity()
 }

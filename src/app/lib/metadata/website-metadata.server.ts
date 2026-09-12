@@ -9,7 +9,7 @@ import {
     WEBSITE_METADATA_ENTITY_TITLE_ZH,
     WEBSITE_METADATA_SLUG,
     WebsiteMetadataDraft
-} from '@/app/lib/website-metadata-types'
+} from '@/app/lib/metadata/website-metadata-types'
 
 function isUniqueConstraintError(error: unknown) {
     return error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002'

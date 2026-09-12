@@ -38,7 +38,7 @@ import {
     WebsiteMetadataDraft,
     WebsiteMetadataEditorState,
     WebsitePageOption
-} from '@/app/lib/website-metadata-types'
+} from '@/app/lib/metadata/website-metadata-types'
 import {
     getWebsiteMetadataEditorState,
     saveWebsiteMetadata

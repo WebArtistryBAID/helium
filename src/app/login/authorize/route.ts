@@ -4,7 +4,7 @@ import { createSecretKey } from 'node:crypto'
 import { SignJWT } from 'jose'
 import { cookies } from 'next/headers'
 import { prisma } from '@/app/lib/prisma'
-import { ensureWebsiteMetadataEntity } from '@/app/lib/website-metadata.server'
+import { ensureWebsiteMetadataEntity } from '@/app/lib/metadata/website-metadata.server'
 
 const secret = createSecretKey(process.env.JWT_SECRET!, 'utf-8')
 

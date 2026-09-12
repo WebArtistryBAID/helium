@@ -3,11 +3,11 @@
 import { EntityType, Role } from '@/generated/prisma/client'
 import { requireUserWithRole } from '@/app/login/login-actions'
 import { prisma } from '@/app/lib/prisma'
-import { sendApprovalNotification } from '@/app/lib/feishu-approval'
+import { sendApprovalNotification } from '@/app/lib/feishu/feishu-approval'
 import {
     WEBSITE_METADATA_SLUG,
     WEBSITE_METADATA_STUDIO_PATH
-} from '@/app/lib/website-metadata-types'
+} from '@/app/lib/metadata/website-metadata-types'
 
 export type ApprovalThresholds = {
     [Role.editor]?: number

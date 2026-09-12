@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
-import { resolveWebsiteHref, WebsiteLink } from '@/app/lib/website-metadata-types'
+import { resolveWebsiteHref, WebsiteLink } from '@/app/lib/metadata/website-metadata-types'
 
 export default function RouterLinks({ items }: {
     items: WebsiteLink[]

@@ -6,7 +6,7 @@ import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import SchoolLogo from '@/app/[[...slug]]/SchoolLogo'
 import RouterLinks from '@/app/[[...slug]]/RouterLinks'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
-import { shouldUseTransparentNavbar, WebsiteMetadataDraft } from '@/app/lib/website-metadata-types'
+import { shouldUseTransparentNavbar, WebsiteMetadataDraft } from '@/app/lib/metadata/website-metadata-types'
 
 const locales = {
     en: {

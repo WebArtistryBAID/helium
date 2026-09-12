@@ -7,10 +7,15 @@ import sharp from 'sharp'
 import { pkgUp } from 'pkg-up'
 import { EntityType, User, UserAuditLogType } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
-import { callFeishuAily } from '@/app/lib/feishu-aily'
-import { RunningWeChatTask, withWeChatSaveLock } from '@/app/lib/wechat-tasks'
+import { callFeishuAily } from '@/app/lib/feishu/feishu-aily'
+import { RunningWeChatTask, withWeChatSaveLock } from '@/app/lib/wechat/wechat-tasks'
 import { WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
-import { TRANSLATE_LITERAL, SANITIZE_LITERAL, NOTIFICATION_LITERAL, ENGLISH_TRANSLATION_LITERAL } from '@/app/lib/wechat-prompts'
+import {
+    TRANSLATE_LITERAL,
+    SANITIZE_LITERAL,
+    NOTIFICATION_LITERAL,
+    ENGLISH_TRANSLATION_LITERAL
+} from '@/app/lib/wechat/wechat-prompts'
 
 async function download(command: string, args: string[], cwd: string, signal: AbortSignal) {
     signal.throwIfAborted()

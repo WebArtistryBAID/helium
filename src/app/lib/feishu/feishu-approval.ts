@@ -1,5 +1,5 @@
 import { prisma } from '@/app/lib/prisma'
-import { getPublishedWebsiteMetadata } from '@/app/lib/website-metadata.server'
+import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 import { Role } from '@/generated/prisma/client'
 
 const FEISHU_API = 'https://open.feishu.cn/open-apis'

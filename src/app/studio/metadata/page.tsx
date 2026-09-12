@@ -7,7 +7,7 @@ import {
     getWebsiteMetadataEditorState,
     getWebsitePageOptions
 } from '@/app/studio/metadata/website-metadata-actions'
-import { WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/website-metadata-types'
+import { WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/metadata/website-metadata-types'
 
 export default async function WebsiteMetadataPage({ searchParams }: {
     searchParams: Promise<{ token?: string | null }>

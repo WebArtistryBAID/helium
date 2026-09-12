@@ -9,7 +9,7 @@ import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
 import { retrieveMetadata } from '@/app/[[...slug]]/metadata-utils'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { Metadata } from 'next'
-import { getPublishedWebsiteMetadata } from '@/app/lib/website-metadata.server'
+import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 
 export async function generateMetadata({ params }: {
     params: Promise<{ slug: string[] | undefined }>

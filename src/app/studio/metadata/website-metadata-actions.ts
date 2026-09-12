@@ -4,7 +4,7 @@ import { EntityType, Role, UserAuditLogType } from '@/generated/prisma/client'
 import { HYDRATED_CONTENT_ENTITY_SELECT } from '@/app/lib/data-types'
 import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import { prisma } from '@/app/lib/prisma'
-import { ensureWebsiteMetadataEntity } from '@/app/lib/website-metadata.server'
+import { ensureWebsiteMetadataEntity } from '@/app/lib/metadata/website-metadata.server'
 import {
     normalizeWebsiteMetadataContent,
     parseWebsiteMetadataContent,
@@ -15,7 +15,7 @@ import {
     WebsiteMetadataDraft,
     WebsiteMetadataEditorState,
     WebsitePageOption
-} from '@/app/lib/website-metadata-types'
+} from '@/app/lib/metadata/website-metadata-types'
 
 function editorState(entity: WebsiteMetadataEditorState['entity']): WebsiteMetadataEditorState {
     return {

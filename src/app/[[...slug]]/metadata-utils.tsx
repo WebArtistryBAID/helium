@@ -1,5 +1,5 @@
 import { getContentEntityBySlug } from '@/app/studio/editor/entity-actions'
-import { getPublishedWebsiteMetadata } from '@/app/lib/website-metadata.server'
+import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 
 export async function retrieveMetadata(slugs: string[] | null, preferredLanguage?: 'en' | 'zh'): Promise<{
     title: string,

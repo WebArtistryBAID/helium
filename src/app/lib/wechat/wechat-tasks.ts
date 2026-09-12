@@ -1,7 +1,7 @@
 import { randomUUID } from 'node:crypto'
 import { Role, User } from '@/generated/prisma/client'
 import { WeChatTask, WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
-import { synchronizeWeChatArticle } from '@/app/lib/wechat-worker'
+import { synchronizeWeChatArticle } from '@/app/lib/wechat/wechat-worker'
 
 export type RunningWeChatTask = Omit<WeChatTask, 'canCancel'> & {
     userId: number

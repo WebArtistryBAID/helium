@@ -2,7 +2,7 @@
 
 import Link from 'next/link'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
-import { resolveWebsiteHref, WebsiteMetadataDraft } from '@/app/lib/website-metadata-types'
+import { resolveWebsiteHref, WebsiteMetadataDraft } from '@/app/lib/metadata/website-metadata-types'
 
 const locales = {
     en: {

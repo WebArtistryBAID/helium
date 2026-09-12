@@ -15,8 +15,8 @@ import { getThresholds, meetsThresholds } from '@/app/lib/approval/approval-acti
 import { prisma } from '@/app/lib/prisma'
 import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
-import { WEBSITE_METADATA_SLUG } from '@/app/lib/website-metadata-types'
-import { sendPublicationNotification } from '@/app/lib/feishu-approval'
+import { WEBSITE_METADATA_SLUG } from '@/app/lib/metadata/website-metadata-types'
+import { sendPublicationNotification } from '@/app/lib/feishu/feishu-approval'
 
 const PAGE_SIZE = 24
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
