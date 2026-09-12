@@ -406,10 +406,11 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
     if (post == null) {
         return AlignEntityResponse.notFound
     }
-    if (!(await meetsThresholds({
+    const thresholds = await meetsThresholds({
         entityType: post.type,
         entityId: id
-    }))) {
+    })
+    if (!thresholds.adminOk || !thresholds.editorOk) {
         return AlignEntityResponse.insufficientApprovals
     }
     await prisma.contentEntity.update({
