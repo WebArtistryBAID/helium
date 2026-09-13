@@ -442,7 +442,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                   onActiveTabChange={(tab) => setActiveTab(tab)}>
                 <TabItem active title="内容" icon={HiNewspaper}>
                     <div className="mt-5 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-                        <section className="min-w-0 rounded-2xl border border-gray-200 bg-gray-50 p-4">
+                        <section className="min-w-0 rounded-3xl border border-gray-200 bg-gray-50 p-4">
                             <div className="mb-3 flex items-center justify-between px-1">
                                 <div>
                                     <h2 className="font-semibold text-gray-900">正文</h2>
@@ -467,7 +467,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                         </section>
 
                         <aside className="space-y-4">
-                            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <div className="mb-5 flex items-start justify-between gap-4">
                                     <div className="min-w-0">
                                         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -535,7 +535,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                 </div>
                             </section>
 
-                            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <h2 className="mb-4 font-semibold text-gray-900">发布信息</h2>
                                 <div className="space-y-4">
                                     <div className="flex gap-3">
@@ -578,7 +578,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                 </div>
                             </section>
 
-                            <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                            <section className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
                                 <div className="flex items-center justify-between p-5 pb-3">
                                     <div>
                                         <h2 className="font-semibold text-gray-900">封面图片</h2>
@@ -623,7 +623,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                             </section>
 
                             <If condition={canModerate}>
-                                <section className="rounded-2xl border border-red-100 bg-red-50/50 p-5">
+                                <section className="rounded-3xl border border-red-100 bg-red-50/50 p-5">
                                     <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">
                                         内容管理
                                     </p>
@@ -688,7 +688,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                         <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
                             <If condition={post.coverImageDraft != null}>
                                 <div className="mx-auto w-full max-w-5xl px-4 pt-6 sm:px-8">
-                                    <img className="h-auto max-h-[24rem] w-full rounded-2xl object-cover"
+                                    <img className="h-auto max-h-[24rem] w-full rounded-3xl object-cover"
                                          alt={post.coverImageDraft?.altText ?? ''}
                                          src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
                                 </div>
@@ -718,7 +718,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                     </div>
                 </TabItem>
                 <TabItem title="审核与发布" icon={HiCloudUpload}>
-                    <div className="mt-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
+                    <div className="mt-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
                         <ApprovalProcess entityType={init.type} entityId={post.id} entity={post} doAlign={async () => {
                             await alignContentEntity(post.id)
                             await refresh()
