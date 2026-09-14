@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useId, useState } from 'react'
+import { useCallback, useEffect, useId, useRef, useState } from 'react'
 import Editor from 'react-simple-code-editor'
 import Prism from 'prismjs'
 import 'prismjs/components/prism-markdown'
@@ -30,6 +30,21 @@ export default function SimpleMarkdownEditor({
         uploadServePath: ''
     })
     const editorId = useId()
+    const insertionRange = useRef({ start: 0, end: 0 })
+    const pendingCaret = useRef<number | null>(null)
+
+    useEffect(() => {
+        if (showMediaLibrary || pendingCaret.current === null) return
+        const frame = requestAnimationFrame(() => {
+            const textarea = document.getElementById(editorId)
+            if (textarea instanceof HTMLTextAreaElement && pendingCaret.current !== null) {
+                textarea.focus({ preventScroll: true })
+                textarea.setSelectionRange(pendingCaret.current, pendingCaret.current)
+                pendingCaret.current = null
+            }
+        })
+        return () => cancelAnimationFrame(frame)
+    }, [showMediaLibrary, editorId])
 
     // Get media library data
     useEffect(() => {
@@ -108,11 +123,15 @@ export default function SimpleMarkdownEditor({
         <Modal show={showMediaLibrary} size="5xl" onClose={() => setShowMediaLibrary(false)} className="relative">
             <ModalHeader className="border-none absolute z-50 right-0"/>
             <MediaLibrary init={mediaLibraryContent} pickMode={true} onPick={image => {
-                if (image == null) {
+                if (image == null || readOnly) {
                     return
                 }
+                const start = Math.min(insertionRange.current.start, value.length)
+                const end = Math.min(insertionRange.current.end, value.length)
+                const insert = `\n[IMAGE: ${image.id}]\n`
+                handleChange(value.slice(0, start) + insert + value.slice(end))
+                pendingCaret.current = start + insert.length
                 setShowMediaLibrary(false)
-                handleChange(`${value}\n[IMAGE: ${image.id}]\n`)
             }}/>
         </Modal>
 
@@ -139,7 +158,13 @@ export default function SimpleMarkdownEditor({
             <div className="shrink-0 px-4 py-2 text-xs text-gray-500 flex">
                 <p className="flex-grow mr-auto">{value.length} 字符 · Markdown</p>
                 {!readOnly && <button type="button" className="text-blue-600 hover:underline"
-                                      onClick={() => setShowMediaLibrary(true)}>插入图片</button>}
+                                      onClick={() => {
+                                          const textarea = document.getElementById(editorId)
+                                          if (textarea instanceof HTMLTextAreaElement) {
+                                              insertionRange.current = { start: textarea.selectionStart, end: textarea.selectionEnd }
+                                          }
+                                          setShowMediaLibrary(true)
+                                      }}>插入图片</button>}
             </div>
         </div>
     </>
