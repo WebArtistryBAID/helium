@@ -98,9 +98,12 @@ export async function createImage(data: {
 
 export async function deleteImage(id: number): Promise<void> {
     const user = await requireUserWithRole(Role.writer)
-    const image = await prisma.image.delete({
+    const image = await prisma.image.findUniqueOrThrow({
         where: { id }
     })
+    await fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '.webp'), { force: true })
+    await fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '_thumb.webp'), { force: true })
+    await prisma.image.delete({ where: { id } })
     await prisma.userAuditLog.create({
         data: {
             type: UserAuditLogType.deleteImage,

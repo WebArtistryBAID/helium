@@ -5,6 +5,7 @@ import sharp from 'sharp'
 import crypto from 'crypto'
 import { requireUserWithRole } from '@/app/login/login-actions'
 import { Role } from '@/generated/prisma/client'
+import { prisma } from '@/app/lib/prisma'
 
 function getPath(relative: string): string {
     return path.join(process.env.UPLOAD_PATH!, relative)
@@ -38,10 +39,9 @@ export async function POST(req: NextRequest): Promise<Response> {
     }).webp().toBuffer()
     const hash = crypto.createHash('sha1').update(webpBuffer).digest('hex')
     const outputPath = getPath(hash + '.webp')
-    try {
-        await fs.stat(outputPath)
+    const existingImage = await prisma.image.findUnique({ where: { sha1: hash }, select: { id: true } })
+    if (existingImage) {
         return NextResponse.json({ error: 'duplicate' })
-    } catch {
     }
 
     await fs.writeFile(outputPath, webpBuffer)
