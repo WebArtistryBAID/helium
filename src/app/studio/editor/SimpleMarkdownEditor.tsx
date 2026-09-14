@@ -116,24 +116,27 @@ export default function SimpleMarkdownEditor({
             }}/>
         </Modal>
 
-        <div className={container} style={{ height: '32rem' }}>
+        <div className={`flex h-[32rem] flex-col ${container}`}>
             <label className="sr-only" htmlFor={editorId}>Markdown 正文编辑器</label>
-            <Editor
-                value={value}
-                onValueChange={handleChange}
-                highlight={highlight}
-                padding={16}
-                tabSize={2}
-                readOnly={readOnly}
-                textareaId={editorId}
-                textareaClassName={editorBox}
-                placeholder={placeholder}
-                autoFocus={autoFocus}
-                onKeyDown={handleKeyDown}
-                preClassName="language-markdown"
-                style={{ height: '30rem', overflowY: 'auto' }}
-            />
-            <div className="px-4 py-2 text-xs text-gray-500 flex">
+            <div className="min-h-0 flex-1 overflow-y-auto">
+                <Editor
+                    value={value}
+                    onValueChange={handleChange}
+                    highlight={highlight}
+                    padding={16}
+                    tabSize={2}
+                    readOnly={readOnly}
+                    textareaId={editorId}
+                    className={editorBox}
+                    textareaClassName="caret-black selection:bg-black/10 focus:outline-none focus:ring-0"
+                    placeholder={placeholder}
+                    autoFocus={autoFocus}
+                    onKeyDown={handleKeyDown}
+                    preClassName="language-markdown"
+                    style={{ minHeight: '100%' }}
+                />
+            </div>
+            <div className="shrink-0 px-4 py-2 text-xs text-gray-500 flex">
                 <p className="flex-grow mr-auto">{value.length} 字符 · Markdown</p>
                 {!readOnly && <button type="button" className="text-blue-600 hover:underline"
                                       onClick={() => setShowMediaLibrary(true)}>插入图片</button>}
