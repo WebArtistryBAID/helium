@@ -8,6 +8,7 @@ import { pkgUp } from 'pkg-up'
 import { EntityType, User, UserAuditLogType } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
 import { callFeishuAily } from '@/app/lib/feishu/feishu-aily'
+import { parseAilyJson } from '@/app/lib/feishu/parse-aily-json'
 import { RunningWeChatTask, withWeChatSaveLock } from '@/app/lib/wechat/wechat-tasks'
 import { WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
 import {
@@ -52,9 +53,7 @@ async function download(command: string, args: string[], cwd: string, signal: Ab
 }
 
 function parseResponse(raw: string) {
-    const trimmed = raw.trim()
-    const fenced = trimmed.match(/^(`{3,}|~{3,})[ \t]*(?:json)?\s*([\s\S]*?)\s*\1$/i)
-    const value = JSON.parse(fenced ? fenced[2].trim() : trimmed)
+    const value = parseAilyJson(raw)
     if (typeof value.title !== 'string' || typeof value.content !== 'string') throw new Error('AI 返回的标题或正文格式错误')
     return value as { title: string; content: string; date?: string }
 }
