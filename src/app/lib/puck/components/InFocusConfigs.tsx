@@ -267,8 +267,10 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (props.projects ?? []).map(async (p: any) => {
                 if (!p?.project?.id) return null
+                const entity = await getPublishedContentEntity(p.project.id)
+                if (!entity) return null
                 return {
-                    project: convertDatesToStrings(await getPublishedContentEntity(p.project.id)),
+                    project: convertDatesToStrings(entity),
                     discipline: p.discipline
                 }
             })
@@ -431,8 +433,10 @@ export const InFocusProjectsConfig: ComponentConfig = {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 resolvedProjects: await Promise.all((props.projects ?? []).map(async (item: any) => {
                     if (!item?.project?.id) return null
+                    const entity = await getPublishedContentEntity(item.project.id)
+                    if (!entity) return null
                     return {
-                        project: convertDatesToStrings(await getPublishedContentEntity(item.project.id)),
+                        project: convertDatesToStrings(entity),
                         discipline: item.discipline,
                         description: item.description,
                         linkText: item.linkText

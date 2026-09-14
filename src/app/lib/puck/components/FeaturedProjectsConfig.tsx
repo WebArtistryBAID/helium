@@ -1,5 +1,5 @@
 import { ComponentConfig } from '@measured/puck'
-import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
@@ -72,16 +72,18 @@ const FeaturedProjectsConfig: ComponentConfig = {
         return {
             props: {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                resolvedProjects: await Promise.all((props.projects ?? []).map(async (item: any) => {
+                resolvedProjects: (await Promise.all((props.projects ?? []).map(async (item: any) => {
                     if (!item?.project?.id) return null
+                    const entity = await getPublishedContentEntity(item.project.id)
+                    if (!entity) return null
                     return {
                         quote: item.quote,
                         name: item.name,
-                        link: getContentEntityURI(item.project.createdAt, item.project.slug),
+                        link: getContentEntityURI(entity.createdAt, entity.slug),
                         linkText: item.linkText,
                         image: item.image == null ? null : convertDatesToStrings(await getImage(parseInt(item.image)))
                     }
-                })),
+                }))).filter(item => item != null),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

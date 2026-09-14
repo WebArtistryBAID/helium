@@ -36,6 +36,7 @@ export async function getWebsitePageOptions(): Promise<WebsitePageOption[]> {
     await requireUser()
     const pages = await prisma.contentEntity.findMany({
         where: {
+            linkOnly: false,
             type: EntityType.page,
             NOT: { slug: WEBSITE_METADATA_SLUG }
         },

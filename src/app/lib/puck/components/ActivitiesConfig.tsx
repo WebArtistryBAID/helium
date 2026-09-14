@@ -62,8 +62,10 @@ const ActivitiesConfig: ComponentConfig = {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 resolvedActivities: await Promise.all((props.activities ?? []).map(async (item: any) => {
                     if (!item?.activity?.id) return null
+                    const entity = await getPublishedContentEntity(item.activity.id)
+                    if (!entity) return null
                     return {
-                        activity: convertDatesToStrings(await getPublishedContentEntity(item.activity.id))
+                        activity: convertDatesToStrings(entity)
                     }
                 })),
                 resolvedUploadPrefix: await getUploadServePath()

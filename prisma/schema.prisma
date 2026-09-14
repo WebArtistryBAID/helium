@@ -83,6 +83,7 @@ model UserAuditLog {
 model ContentEntity {
   id                      Int          @id @default(autoincrement())
   type                    EntityType
+  linkOnly                Boolean      @default(false)
   titlePublishedEN        String?
   titlePublishedZH        String?
   titleDraftEN            String

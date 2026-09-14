@@ -33,7 +33,7 @@ function createAutomaticSlug(title: string): string {
 
 export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
-        where: { type, NOT: { slug: WEBSITE_METADATA_SLUG } },
+        where: { linkOnly: false, type, NOT: { slug: WEBSITE_METADATA_SLUG } },
         orderBy: { updatedAt: 'desc' },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT,
         take: 3
@@ -56,6 +56,7 @@ export async function getMyPendingApprovals(): Promise<SimplifiedContentEntity[]
                                SUM(CASE WHEN a."role" = 'admin' THEN 1 ELSE 0 END)  AS admin_count
                         FROM "ContentEntity" ce
                                  LEFT JOIN "Approval" a ON a."entityId" = ce.id
+                        WHERE ce."linkOnly" = false
                         GROUP BY ce.id, ce."type")
         SELECT id, type, editor_count, admin_count
         FROM counts
@@ -113,7 +114,7 @@ export async function getMyPendingApprovals(): Promise<SimplifiedContentEntity[]
 
     const limited = ids.slice(0, 24)
     return prisma.contentEntity.findMany({
-        where: { id: { in: limited } },
+        where: { linkOnly: false, id: { in: limited } },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT,
         orderBy: { updatedAt: 'desc' }
     })
@@ -122,6 +123,7 @@ export async function getMyPendingApprovals(): Promise<SimplifiedContentEntity[]
 export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
         where: {
+            linkOnly: false,
             type: EntityType.course
         },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT
@@ -164,9 +166,11 @@ export async function getContentEntityBySlug(slug: string): Promise<HydratedCont
     })
 }
 
+// Used by component selections; direct public routes use getContentEntityBySlug.
 export async function getPublishedContentEntity(id: number): Promise<HydratedContentEntity | null> {
     return prisma.contentEntity.findFirst({
         where: {
+            linkOnly: false,
             id,
             NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null }
@@ -178,6 +182,7 @@ export async function getPublishedContentEntity(id: number): Promise<HydratedCon
 export async function getPublishedProjectsByCategory(page: number, category: string): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
+            linkOnly: false,
             type: EntityType.project,
             contentPublishedEN: { not: null },
             OR: [
@@ -188,6 +193,7 @@ export async function getPublishedProjectsByCategory(page: number, category: str
     }) / PAGE_SIZE)
     const posts = await prisma.contentEntity.findMany({
         where: {
+            linkOnly: false,
             type: EntityType.project,
             contentPublishedEN: { not: null },
             OR: [
@@ -211,6 +217,7 @@ export async function getPublishedProjectsByCategoriesForInit(): Promise<{
 }[]> {
     const categories = await prisma.contentEntity.findMany({
         where: {
+            linkOnly: false,
             type: EntityType.project,
             contentPublishedEN: { not: null },
             categoryEN: { not: null },
@@ -236,6 +243,7 @@ export async function getPublishedProjectsByCategoriesForInit(): Promise<{
 export async function getAllPublishedContentEntities(): Promise<SimplifiedContentEntity[]> {
     return prisma.contentEntity.findMany({
         where: {
+            linkOnly: false,
             NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null }
         },
@@ -246,6 +254,7 @@ export async function getAllPublishedContentEntities(): Promise<SimplifiedConten
 export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
+            linkOnly: false,
             type,
             NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null },
@@ -259,6 +268,7 @@ export async function getPublishedContentEntities(page: number, type: EntityType
     }) / PAGE_SIZE)
     const posts = await prisma.contentEntity.findMany({
         where: {
+            linkOnly: false,
             type,
             NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null },
@@ -298,14 +308,16 @@ export async function getContentEntities(page: number, type: EntityType, query: 
                               setweight(to_tsvector('simple', coalesce(ce."contentDraftEN", '')), 'B') ||
                               setweight(to_tsvector('simple', coalesce(ce."contentDraftZH", '')), 'B') AS doc
                        FROM "ContentEntity" ce
-                       WHERE ce."type" = ${type}::"EntityType"
+                       WHERE ce."linkOnly" = false
+                         AND ce."type" = ${type}::"EntityType"
                          AND ce."slug" <> ${WEBSITE_METADATA_SLUG}), m AS (
             SELECT ce.id, ts_rank_cd(t.doc, websearch_to_tsquery('simple', ${q})) AS rank
             FROM "ContentEntity" ce
                 JOIN t
             ON t.id = ce.id
                 LEFT JOIN "User" u ON u.id = ce."creatorId"
-            WHERE ce."type" = ${type}::"EntityType"
+            WHERE ce."linkOnly" = false
+              AND ce."type" = ${type}::"EntityType"
               AND ce."slug" <> ${WEBSITE_METADATA_SLUG}
               AND (
                 t.doc @@ websearch_to_tsquery('simple'
@@ -328,7 +340,7 @@ export async function getContentEntities(page: number, type: EntityType, query: 
         const ids = rows.map(r => r.id)
 
         const itemsRaw = ids.length === 0 ? [] : await prisma.contentEntity.findMany({
-            where: { id: { in: ids } },
+            where: { linkOnly: false, id: { in: ids } },
             select: SIMPLIFIED_CONTENT_ENTITY_SELECT
         })
         const rankMap = new Map(ids.map((id, i) => [ id, i ]))
@@ -339,12 +351,14 @@ export async function getContentEntities(page: number, type: EntityType, query: 
     // No-query
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
+            linkOnly: false,
             type,
             NOT: { slug: WEBSITE_METADATA_SLUG }
         }
     }) / PAGE_SIZE)
     const posts = await prisma.contentEntity.findMany({
         where: {
+            linkOnly: false,
             type,
             NOT: { slug: WEBSITE_METADATA_SLUG }
         },

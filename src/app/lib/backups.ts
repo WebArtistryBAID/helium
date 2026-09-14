@@ -15,6 +15,7 @@ const RETENTION_MS = 5 * 24 * 60 * 60 * 1000
 const BACKUP_CONTENT_ENTITY_SELECT = {
     id: true,
     type: true,
+    linkOnly: true,
     titlePublishedEN: true,
     titlePublishedZH: true,
     titleDraftEN: true,
@@ -41,7 +42,8 @@ type BackupContentEntityRow = Prisma.ContentEntityGetPayload<{
     select: typeof BACKUP_CONTENT_ENTITY_SELECT
 }>
 
-type BackupContentEntity = Omit<BackupContentEntityRow, 'createdAt' | 'updatedAt'> & {
+type BackupContentEntity = Omit<BackupContentEntityRow, 'createdAt' | 'updatedAt' | 'linkOnly'> & {
+    linkOnly?: boolean
     createdAt: string
     updatedAt: string
 }
@@ -258,6 +260,7 @@ function readStoredZipEntries(buffer: Buffer): ZipEntry[] {
 function serializeEntity(entity: BackupContentEntityRow): BackupContentEntity {
     return {
         ...entity,
+        linkOnly: entity.linkOnly ?? false,
         createdAt: entity.createdAt.toISOString(),
         updatedAt: entity.updatedAt.toISOString()
     }
@@ -281,6 +284,7 @@ function isBackupContentEntity(value: unknown): value is BackupContentEntity {
         && typeof entity.titleDraftEN === 'string'
         && typeof entity.titleDraftZH === 'string'
         && typeof entity.slug === 'string'
+        && (entity.linkOnly === undefined || typeof entity.linkOnly === 'boolean')
         && isNullableString(entity.contentPublishedEN)
         && isNullableString(entity.contentPublishedZH)
         && typeof entity.contentDraftEN === 'string'
@@ -301,6 +305,7 @@ function isBackupContentEntity(value: unknown): value is BackupContentEntity {
 function toRestoreData(entity: BackupContentEntity): Prisma.ContentEntityCreateManyInput {
     return {
         ...entity,
+        linkOnly: entity.linkOnly ?? false,
         createdAt: new Date(entity.createdAt),
         updatedAt: new Date(entity.updatedAt)
     }

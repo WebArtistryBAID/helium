@@ -62,7 +62,7 @@ export default function Activities({ title, resolvedActivities, uploadPrefix }: 
     uploadPrefix: string | undefined
 }) {
     const language = useLanguage()
-    const activities = resolvedActivities?.map(a => a?.activity).filter(a => a !== undefined) ?? [] as HydratedContentEntity[]
+    const activities = resolvedActivities?.map(a => a?.activity).filter(a => a != null) ?? [] as HydratedContentEntity[]
     return <section aria-labelledby="activities-heading" className="section container">
         <div className="flex justify-end">
             <h2 id="activities-heading" className="text-4xl font-bold mb-5">

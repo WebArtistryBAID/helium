@@ -1,7 +1,7 @@
 import People from '@/app/lib/puck/components/People'
 import { convertDatesToStrings, getContentEntityURI } from '@/app/lib/data-types'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
-import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@measured/puck'
 
@@ -58,19 +58,21 @@ const PeopleConfig: ComponentConfig = {
         return {
             props: {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                resolvedPeople: await Promise.all((props.people ?? []).map(async (item: any) => {
+                resolvedPeople: (await Promise.all((props.people ?? []).map(async (item: any) => {
                     if (!item?.person?.id) return null
+                    const entity = await getPublishedContentEntity(item.person.id)
+                    if (!entity) return null
                     return {
                         id: item.person.id,
-                        nameEN: item.person.data.titlePublishedEN ?? '',
-                        nameZH: item.person.data.titlePublishedZH ?? '',
+                        nameEN: entity.titlePublishedEN ?? '',
+                        nameZH: entity.titlePublishedZH ?? '',
                         title: item.title,
-                        descriptionEN: item.person.data.shortContentPublishedEN ?? '',
-                        descriptionZH: item.person.data.shortContentPublishedZH ?? '',
-                        link: getContentEntityURI(item.person.createdAt, item.person.slug),
-                        image: convertDatesToStrings(item.person.data.coverImagePublished)
+                        descriptionEN: entity.shortContentPublishedEN ?? '',
+                        descriptionZH: entity.shortContentPublishedZH ?? '',
+                        link: getContentEntityURI(entity.createdAt, entity.slug),
+                        image: convertDatesToStrings(entity.coverImagePublished)
                     }
-                })),
+                }))).filter(item => item != null),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

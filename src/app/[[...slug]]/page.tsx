@@ -1,6 +1,6 @@
 import { cookies, headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
-import { Render } from '@measured/puck'
+import { Render, resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { getContentEntityBySlug, refreshPageData } from '@/app/studio/editor/entity-actions'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
@@ -153,8 +153,8 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
             <main id="main-content" tabIndex={-1}>
                 <Render config={PUCK_CONFIG}
                         data={finalLocale === 'en'
-                            ? JSON.parse(entity.contentPublishedEN!)
-                            : JSON.parse(entity.contentPublishedZH!)}/>
+                            ? await resolveAllData(JSON.parse(entity.contentPublishedEN!), PUCK_CONFIG)
+                            : await resolveAllData(JSON.parse(entity.contentPublishedZH!), PUCK_CONFIG)}/>
             </main>
             <GlobalFooter websiteMetadata={websiteMetadata}/>
         </>
