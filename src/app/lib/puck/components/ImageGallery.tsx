@@ -2,7 +2,7 @@
 
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { A11y, Pagination } from 'swiper/modules'
+import { A11y, Autoplay, Pagination } from 'swiper/modules'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 
 const TITLE_SIZE_CLASSES: Record<string, string> = {
@@ -27,14 +27,18 @@ export interface GallerySlide {
     image: Image | null
 }
 
-export default function ImageGallery({ title, slides, uploadPrefix }: {
+export default function ImageGallery({ title, slides, uploadPrefix, autoplay = false, autoplayDuration = 5 }: {
     title: string | undefined,
     slides: (GallerySlide | null | undefined)[] | undefined,
-    uploadPrefix: string | undefined
+    uploadPrefix: string | undefined,
+    autoplay?: boolean,
+    autoplayDuration?: number
 }) {
     const resolvedSlides = (slides ?? []).filter((slide): slide is GallerySlide =>
         slide != null && slide.image != null
     )
+    const autoplayEnabled = autoplay && resolvedSlides.length > 1
+    const delay = (Number.isFinite(autoplayDuration) ? Math.max(1, autoplayDuration) : 5) * 1000
 
     if (resolvedSlides.length === 0) {
         return null
@@ -43,8 +47,9 @@ export default function ImageGallery({ title, slides, uploadPrefix }: {
     return <section data-surface="gradient" aria-label={title} className="w-full overflow-hidden">
         <h2 className="sr-only">{title}</h2>
 
-        <Swiper aria-live="polite" spaceBetween={0} slidesPerView={1}
-                modules={[ A11y, Pagination ]} pagination={{ clickable: true }} grabCursor={true}>
+        <Swiper key={`${autoplayEnabled}-${delay}`} aria-live={autoplayEnabled ? 'off' : 'polite'} spaceBetween={0} slidesPerView={1}
+                modules={[ A11y, Autoplay, Pagination ]} pagination={{ clickable: true }} grabCursor={true}
+                autoplay={autoplayEnabled ? { delay, disableOnInteraction: false, pauseOnMouseEnter: true } : false}>
             {resolvedSlides.map((slide, index) =>
                 <SwiperSlide key={index}>
                     <div className="relative h-[70svh] min-h-[28rem] w-full md:h-screen">

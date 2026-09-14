@@ -12,6 +12,20 @@ const ImageGalleryConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
+        autoplay: {
+            label: '自动播放',
+            type: 'radio',
+            options: [
+                { label: '关闭', value: false },
+                { label: '开启', value: true }
+            ]
+        },
+        autoplayDuration: {
+            label: '自动播放间隔（秒）',
+            type: 'number',
+            min: 1,
+            step: 1
+        },
         slides: {
             label: '幻灯片',
             type: 'array',
@@ -84,6 +98,8 @@ const ImageGalleryConfig: ComponentConfig = {
     },
     defaultProps: {
         title: '图片轮播',
+        autoplay: false,
+        autoplayDuration: 5,
         slides: [
             {
                 title: '在这里填写标题',
@@ -117,8 +133,9 @@ const ImageGalleryConfig: ComponentConfig = {
             }
         }
     },
-    render: ({ title, resolvedSlides, resolvedUploadPrefix }) =>
-        <ImageGallery title={title} slides={resolvedSlides} uploadPrefix={resolvedUploadPrefix}/>
+    render: ({ title, resolvedSlides, resolvedUploadPrefix, autoplay, autoplayDuration }) =>
+        <ImageGallery title={title} slides={resolvedSlides} uploadPrefix={resolvedUploadPrefix}
+                      autoplay={autoplay} autoplayDuration={autoplayDuration}/>
 }
 
 export default ImageGalleryConfig
