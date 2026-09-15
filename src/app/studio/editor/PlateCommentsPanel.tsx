@@ -161,16 +161,13 @@ export default function PlateCommentsPanel({
     const sortedThreads = useMemo(() => [ ...threads ].sort((first, second) =>
         new Date(second.createdAt).getTime() - new Date(first.createdAt).getTime()), [ threads ])
 
-    return <aside className="max-h-[60rem] space-y-4 overflow-y-auto rounded-3xl border border-gray-200 bg-white p-4">
+    return <aside className="max-h-[50rem] space-y-4 overflow-y-auto rounded-3xl border border-gray-200 bg-white p-4">
         <div className="flex items-center gap-2">
             <h3 className="font-bold text-gray-900">评论</h3>
             <Badge color={unresolvedCount === 0 ? 'success' : 'failure'}>{unresolvedCount}</Badge>
             <Button pill size="xs" color="alternative" className="ml-auto" aria-label="关闭评论"
                     onClick={onClose}><HiXMark className="size-4" aria-hidden="true"/></Button>
         </div>
-
-        {!pendingQuote && canComment &&
-            <p className="text-sm text-gray-500">选择正文后即可添加评论。</p>}
 
         {pendingQuote && canComment && <div className="space-y-3">
             <blockquote className="border-l-2 border-gray-300 pl-3 text-xs text-gray-500">{pendingQuote}</blockquote>

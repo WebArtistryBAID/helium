@@ -16,6 +16,7 @@ import type { Image } from '@/generated/prisma/browser'
 import { Button } from 'flowbite-react'
 import { HiTrash } from 'react-icons/hi2'
 import { getCommentKeyId, getCommentKeys } from '@platejs/comment'
+import { getInlineSuggestionData } from '@platejs/suggestion'
 
 const PlateMediaContext = createContext<{
     images: Map<number, Image>
@@ -27,6 +28,11 @@ const PlateCommentContext = createContext<{
     onActivate: (threadId: string) => void
     unresolvedIds: Set<string>
 }>({ activeId: null, onActivate: () => undefined, unresolvedIds: new Set() })
+
+const PlateSuggestionContext = createContext<{
+    activeId: string | null
+    onActivate: (suggestionId: string) => void
+}>({ activeId: null, onActivate: () => undefined })
 
 export function PlateMediaProvider({ children, images, uploadPrefix }: {
     children: ReactNode
@@ -47,30 +53,67 @@ export function PlateCommentProvider({ activeId, children, onActivate, unresolve
     </PlateCommentContext.Provider>
 }
 
-export const ParagraphElement = (props: PlateElementProps) =>
-    <PlateElement {...props} as="p" className="mb-4 w-full leading-7 last:mb-0"/>
+export function PlateSuggestionProvider({ activeId, children, onActivate }: {
+    activeId: string | null
+    children: ReactNode
+    onActivate: (suggestionId: string) => void
+}) {
+    return <PlateSuggestionContext.Provider value={{ activeId, onActivate }}>
+        {children}
+    </PlateSuggestionContext.Provider>
+}
 
-export const BlockquoteElement = (props: PlateElementProps) =>
-    <PlateElement {...props} as="blockquote"
-                  className="my-5 w-full border-l-4 border-gray-300 pl-4 text-gray-600"/>
+function useBlockSuggestion(element: PlateElementProps['element']) {
+    const { activeId, onActivate } = useContext(PlateSuggestionContext)
+    const suggestion = 'suggestion' in element && typeof element.suggestion === 'object' && element.suggestion != null
+        ? element.suggestion as { id: string, type: string }
+        : null
+    if (suggestion == null) return { className: '', attributes: {} }
+
+    return {
+        className: suggestion.type === 'remove'
+            ? `cursor-pointer bg-red-100 text-red-700 line-through ${activeId === suggestion.id ? 'ring-2 ring-red-400' : ''}`
+            : `cursor-pointer bg-green-100 text-green-700 ${activeId === suggestion.id ? 'ring-2 ring-green-400' : ''}`,
+        attributes: {
+            onClick: () => onActivate(suggestion.id),
+            'data-suggestion-id': suggestion.id
+        }
+    }
+}
+
+export const ParagraphElement = (props: PlateElementProps) => {
+    const suggestion = useBlockSuggestion(props.element)
+    return <PlateElement {...props} as="p" attributes={{ ...props.attributes, ...suggestion.attributes }}
+                         className={`mb-4 w-full leading-7 last:mb-0 ${suggestion.className}`}/>
+}
+
+export const BlockquoteElement = (props: PlateElementProps) => {
+    const suggestion = useBlockSuggestion(props.element)
+    return <PlateElement {...props} as="blockquote" attributes={{ ...props.attributes, ...suggestion.attributes }}
+                         className={`my-5 w-full border-l-4 border-gray-300 pl-4 text-gray-600 ${suggestion.className}`}/>
+}
+
+function HeadingElement({ as, className, ...props }: PlateElementProps & {
+    as: 'h1' | 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
+    className: string
+}) {
+    const suggestion = useBlockSuggestion(props.element)
+    return <PlateElement {...props} as={as} attributes={{ ...props.attributes, ...suggestion.attributes }}
+                         className={`${className} ${suggestion.className}`}/>
+}
 
 export const H1Element = (props: PlateElementProps) =>
-    <PlateElement {...props} as="h1" className="mb-4 mt-8 w-full text-3xl font-bold first:mt-0"/>
-
+    <HeadingElement {...props} as="h1" className="mb-4 mt-8 w-full text-3xl font-bold first:mt-0"/>
 export const H2Element = (props: PlateElementProps) =>
-    <PlateElement {...props} as="h2" className="mb-3 mt-7 w-full text-2xl font-bold first:mt-0"/>
-
+    <HeadingElement {...props} as="h2" className="mb-3 mt-7 w-full text-2xl font-bold first:mt-0"/>
 export const H3Element = (props: PlateElementProps) =>
-    <PlateElement {...props} as="h3" className="mb-3 mt-6 w-full text-xl font-bold first:mt-0"/>
-
+    <HeadingElement {...props} as="h3" className="mb-3 mt-6 w-full text-xl font-bold first:mt-0"/>
 export const H4Element = (props: PlateElementProps) =>
-    <PlateElement {...props} as="h4" className="mb-2 mt-5 w-full text-lg font-bold first:mt-0"/>
-
+    <HeadingElement {...props} as="h4" className="mb-2 mt-5 w-full text-lg font-bold first:mt-0"/>
 export const H5Element = (props: PlateElementProps) =>
-    <PlateElement {...props} as="h5" className="mb-2 mt-5 w-full font-bold first:mt-0"/>
-
+    <HeadingElement {...props} as="h5" className="mb-2 mt-5 w-full font-bold first:mt-0"/>
 export const H6Element = (props: PlateElementProps) =>
-    <PlateElement {...props} as="h6" className="mb-2 mt-5 w-full font-semibold first:mt-0"/>
+    <HeadingElement {...props} as="h6" className="mb-2 mt-5 w-full font-semibold first:mt-0"/>
 
 export const HorizontalRuleElement = ({ children, ...props }: PlateElementProps) =>
     <PlateElement {...props} as="div" className="my-6 w-full">
@@ -164,6 +207,26 @@ export const StrikethroughLeaf = (props: PlateLeafProps) => <PlateLeaf {...props
 export const SubscriptLeaf = (props: PlateLeafProps) => <PlateLeaf {...props} as="sub"/>
 export const SuperscriptLeaf = (props: PlateLeafProps) => <PlateLeaf {...props} as="sup"/>
 export const UnderlineLeaf = (props: PlateLeafProps) => <PlateLeaf {...props} as="u"/>
+
+export const SuggestionLeaf = (props: PlateLeafProps) => {
+    const { activeId, onActivate } = useContext(PlateSuggestionContext)
+    const suggestion = getInlineSuggestionData(props.leaf)
+    if (suggestion == null) return <PlateLeaf {...props}/>
+
+    const active = activeId === suggestion.id
+    const className = suggestion.type === 'remove'
+        ? `cursor-pointer bg-red-100 text-red-700 line-through ${active ? 'ring-2 ring-red-400' : ''}`
+        : suggestion.type === 'update'
+            ? `cursor-pointer bg-amber-100 text-amber-800 ${active ? 'ring-2 ring-amber-400' : ''}`
+            : `cursor-pointer bg-green-100 text-green-700 underline decoration-green-500 ${active ? 'ring-2 ring-green-400' : ''}`
+
+    return <PlateLeaf {...props} className={className}
+                      attributes={{
+                          ...props.attributes,
+                          onClick: () => onActivate(suggestion.id),
+                          'data-suggestion-id': suggestion.id
+                      }}/>
+}
 
 export const CommentLeaf = (props: PlateLeafProps) => {
     const { activeId, onActivate, unresolvedIds } = useContext(PlateCommentContext)

@@ -2,6 +2,7 @@ import Markdown from 'react-markdown'
 import { PlateStatic } from 'platejs/static'
 import { createHeliumPlateStaticEditor } from '@/app/lib/plate/plate-static-config'
 import { isPlateValue, type HeliumPlateValue } from '@/app/lib/plate/plate-types'
+import { rejectAllPlateSuggestions } from '@/app/lib/plate/plate-suggestions'
 
 type ContentBlock =
     | { type: 'markdown', content: string }
@@ -16,7 +17,7 @@ export default function ContentEntityBody({ content, images, uploadPrefix }: {
         const parsed: unknown = JSON.parse(content)
         if (isPlateValue(parsed)) {
             const imageMap = new Map(images.map(image => [ image.id, image ]))
-            const value = structuredClone(parsed) as HeliumPlateValue
+            const value = rejectAllPlateSuggestions(structuredClone(parsed) as HeliumPlateValue)
             const hydrateImages = (node: unknown) => {
                 if (node == null || typeof node !== 'object') return
                 const record = node as Record<string, unknown>

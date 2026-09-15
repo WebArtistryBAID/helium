@@ -491,6 +491,8 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                                 commentThreads={displayedCommentThreads}
                                 canComment={canWrite}
                                 canDeleteComments={canDeleteComments}
+                                currentUserId={String(user.id)}
+                                currentUserName={user.name}
                                 images={cachedImages}
                                 readOnly={!canWrite}
                                 uploadPrefix={uploadPrefix}

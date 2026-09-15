@@ -1,30 +1,34 @@
 'use client'
 
 import { useEffect, useMemo, useState } from 'react'
-import { Plate, PlateContent, usePlateEditor, type PlateEditor } from 'platejs/react'
-import { isSlateText, KEYS, RangeApi, TextApi, type TRange } from 'platejs'
+import { Plate, PlateContent, type PlateEditor, usePlateEditor } from 'platejs/react'
+import { KEYS, RangeApi, TextApi, type TRange } from 'platejs'
 import { MarkdownPlugin } from '@platejs/markdown'
 import { getCommentKey, getDraftCommentKey } from '@platejs/comment'
 import { CommentPlugin } from '@platejs/comment/react'
 import { TextAlignPlugin } from '@platejs/basic-styles/react'
+import { SuggestionPlugin } from '@platejs/suggestion/react'
+import { acceptSuggestion, rejectSuggestion } from '@platejs/suggestion'
 import { toggleBulletedList, toggleNumberedList } from '@platejs/list-classic'
 import { upsertLink } from '@platejs/link'
 import type { Image } from '@/generated/prisma/browser'
-import { Button, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
+import { Button, Dropdown, DropdownItem, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
 import {
     HiBars3,
-    HiBars3CenterLeft,
     HiBars3BottomLeft,
     HiBars3BottomRight,
+    HiBars3CenterLeft,
     HiBold,
     HiChatBubbleLeftRight,
     HiH1,
     HiH2,
     HiH3,
     HiItalic,
+    HiLightBulb,
     HiLink,
     HiListBullet,
     HiNumberedList,
+    HiPencilSquare,
     HiPhoto,
     HiStrikethrough,
     HiUnderline
@@ -32,14 +36,16 @@ import {
 import { HELIUM_PLATE_EDITOR_PLUGINS } from '@/app/lib/plate/plate-editor-config'
 import {
     EMPTY_PLATE_VALUE,
+    type HeliumPlateValue,
     isPlateValue,
-    serializePlateValue,
-    type HeliumPlateValue
+    serializePlateValue
 } from '@/app/lib/plate/plate-types'
-import { PlateCommentProvider, PlateMediaProvider } from '@/app/lib/plate/plate-elements'
+import { PlateCommentProvider, PlateMediaProvider, PlateSuggestionProvider } from '@/app/lib/plate/plate-elements'
 import MediaPicker from '@/app/studio/media/MediaPicker'
 import PlateCommentsPanel from '@/app/studio/editor/PlateCommentsPanel'
+import PlateSuggestionsPanel from '@/app/studio/editor/PlateSuggestionsPanel'
 import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
+import { collectPlateSuggestions, rejectAllPlateSuggestions } from '@/app/lib/plate/plate-suggestions'
 
 function convertLegacyImagePlaceholders(value: HeliumPlateValue): HeliumPlateValue {
     return value.map(node => {
@@ -111,6 +117,8 @@ export default function PlateRichTextEditor({
                                                 commentThreads = [],
                                                 canComment = false,
                                                 canDeleteComments = false,
+                                                currentUserId = '',
+                                                currentUserName = '',
                                                 documentKey,
                                                 images,
                                                 onCreateComment,
@@ -125,6 +133,8 @@ export default function PlateRichTextEditor({
     commentThreads?: PuckCommentThread[]
     canComment?: boolean
     canDeleteComments?: boolean
+    currentUserId?: string
+    currentUserName?: string
     documentKey: string
     images: Map<number, Image>
     onCreateComment?: (quotedText: string, body: string) => Promise<PuckCommentThread>
@@ -138,25 +148,38 @@ export default function PlateRichTextEditor({
     const [ showLinkForm, setShowLinkForm ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
     const [ showComments, setShowComments ] = useState(false)
+    const [ showSuggestions, setShowSuggestions ] = useState(false)
     const [ activeThreadId, setActiveThreadId ] = useState<string | null>(null)
+    const [ activeSuggestionId, setActiveSuggestionId ] = useState<string | null>(null)
+    const [ isSuggesting, setIsSuggesting ] = useState(false)
+    const [ suggestionRevision, setSuggestionRevision ] = useState(0)
     const [ pendingRange, setPendingRange ] = useState<TRange | null>(null)
     const [ pendingQuote, setPendingQuote ] = useState<string | null>(null)
     const [ linkUrl, setLinkUrl ] = useState('')
     const editor = usePlateEditor({
         id: documentKey,
         plugins: HELIUM_PLATE_EDITOR_PLUGINS,
-        value: editor => getInitialValue(content, editor).value
+        value: editor => {
+            const value = getInitialValue(content, editor).value
+            return readOnly ? rejectAllPlateSuggestions(value) : value
+        }
     }, [ documentKey, readOnly ? content : null ])
     const initial = useMemo(() => getInitialValue(content, editor), [ content, editor ])
     const unresolvedCommentIds = useMemo(() => new Set(commentThreads
         .filter(thread => thread.resolvedAt == null)
         .map(thread => thread.id)), [ commentThreads ])
+    const suggestions = useMemo(() => collectPlateSuggestions(editor), [ editor, suggestionRevision ])
 
     useEffect(() => {
         if (!readOnly && initial.converted && onChange) {
             onChange(serializePlateValue(editor.children as HeliumPlateValue))
         }
     }, [ editor, initial.converted, onChange, readOnly ])
+
+    useEffect(() => {
+        editor.setOption(SuggestionPlugin, 'currentUserId', currentUserId)
+        editor.setOption(SuggestionPlugin, 'isSuggesting', isSuggesting)
+    }, [ currentUserId, editor, isSuggesting ])
 
     const toggleMark = (key: string) => {
         editor.tf.toggleMark(key)
@@ -185,6 +208,8 @@ export default function PlateRichTextEditor({
             clearCommentSelection()
             return
         }
+        setShowSuggestions(false)
+        setActiveSuggestionId(null)
         setActiveThreadId(null)
         if (editor.selection && RangeApi.isExpanded(editor.selection)) {
             useSelectionForComment(editor.selection)
@@ -197,6 +222,16 @@ export default function PlateRichTextEditor({
     const clearCommentSelection = () => {
         editor.tf.deselect()
         editor.tf.deselectDOM()
+    }
+    const setEditingMode = (suggesting: boolean) => {
+        setIsSuggesting(suggesting)
+        editor.setOption(SuggestionPlugin, 'isSuggesting', suggesting)
+        editor.tf.focus()
+    }
+    const toggleSuggestions = () => {
+        setShowSuggestions(value => !value)
+        setShowComments(false)
+        setActiveThreadId(null)
     }
 
     return <>
@@ -236,99 +271,137 @@ export default function PlateRichTextEditor({
                                       setPendingQuote(null)
                                       setShowComments(true)
                                   }}>
-                <div className={showComments && !readOnly
+                <div className={(showComments || showSuggestions) && !readOnly
                     ? 'grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]'
                     : ''}>
-                    <Plate editor={editor} readOnly={readOnly}
-                           onSelectionChange={({ selection }) => {
-                               if (showComments && selection && RangeApi.isExpanded(selection)) {
-                                   useSelectionForComment(selection)
-                               }
-                           }}
-                           onValueChange={({ value }) => {
-                               onChange?.(serializePlateValue(value as HeliumPlateValue))
-                           }}>
-                        <div
-                            className={readOnly ? '' : 'flex h-[60rem] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white'}>
-                            {!readOnly && <div className="flex shrink-0 flex-wrap gap-2 p-3" role="toolbar"
-                                               aria-label="正文格式工具栏">
-                                <ToolbarButton label="正文" onClick={() => toggleBlock(KEYS.p)}>
-                                    <HiBars3CenterLeft className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="一级标题" onClick={() => toggleBlock(KEYS.h1)}>
-                                    <HiH1 className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="二级标题" onClick={() => toggleBlock(KEYS.h2)}>
-                                    <HiH2 className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="三级标题" onClick={() => toggleBlock(KEYS.h3)}>
-                                    <HiH3 className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="左对齐" onClick={() => setTextAlignment('left')}>
-                                    <HiBars3BottomLeft className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="居中对齐" onClick={() => setTextAlignment('center')}>
-                                    <CenterAlignmentIcon/>
-                                </ToolbarButton>
-                                <ToolbarButton label="右对齐" onClick={() => setTextAlignment('right')}>
-                                    <HiBars3BottomRight className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="两端对齐" onClick={() => setTextAlignment('justify')}>
-                                    <HiBars3 className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="粗体" onClick={() => toggleMark(KEYS.bold)}>
-                                    <HiBold className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="斜体" onClick={() => toggleMark(KEYS.italic)}>
-                                    <HiItalic className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="下划线" onClick={() => toggleMark(KEYS.underline)}>
-                                    <HiUnderline className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="删除线" onClick={() => toggleMark(KEYS.strikethrough)}>
-                                    <HiStrikethrough className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="引用" onClick={() => toggleBlock(KEYS.blockquote)}>
-                                    <QuotationMarksIcon/>
-                                </ToolbarButton>
-                                <ToolbarButton label="项目符号列表" onClick={() => {
-                                    toggleBulletedList(editor)
-                                    editor.tf.focus()
-                                }}><HiListBullet className="h-4 w-4" aria-hidden="true"/></ToolbarButton>
-                                <ToolbarButton label="编号列表" onClick={() => {
-                                    toggleNumberedList(editor)
-                                    editor.tf.focus()
-                                }}><HiNumberedList className="h-4 w-4" aria-hidden="true"/></ToolbarButton>
-                                <ToolbarButton label="添加链接" onClick={() => setShowLinkForm(true)}>
-                                    <HiLink className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                <ToolbarButton label="插入图片" onClick={() => setShowMediaLibrary(true)}>
-                                    <HiPhoto className="h-4 w-4" aria-hidden="true"/>
-                                </ToolbarButton>
-                                {canComment && <ToolbarButton
-                                    highlighted={unresolvedCommentIds.size > 0}
-                                    label={unresolvedCommentIds.size > 0
-                                        ? `评论, ${unresolvedCommentIds.size} 条未解决`
-                                        : '评论, 没有未解决评论'}
-                                    onClick={toggleComments}>
+                    <PlateSuggestionProvider activeId={activeSuggestionId} onActivate={suggestionId => {
+                        setActiveSuggestionId(suggestionId)
+                        setShowSuggestions(true)
+                        setShowComments(false)
+                        setActiveThreadId(null)
+                    }}>
+                        <Plate editor={editor} readOnly={readOnly}
+                               onSelectionChange={({ selection }) => {
+                                   if (showComments && selection && RangeApi.isExpanded(selection)) {
+                                       useSelectionForComment(selection)
+                                   }
+                               }}
+                               onValueChange={({ value }) => {
+                                   setSuggestionRevision(revision => revision + 1)
+                                   onChange?.(serializePlateValue(value as HeliumPlateValue))
+                               }}>
+                            <div
+                                className={readOnly ? '' : 'flex h-[50rem] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white'}>
+                                {!readOnly && <div className="flex shrink-0 flex-wrap gap-2 p-3" role="toolbar"
+                                                   aria-label="正文格式工具栏">
+                                    <ToolbarButton label="正文" onClick={() => toggleBlock(KEYS.p)}>
+                                        <HiBars3CenterLeft className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="一级标题" onClick={() => toggleBlock(KEYS.h1)}>
+                                        <HiH1 className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="二级标题" onClick={() => toggleBlock(KEYS.h2)}>
+                                        <HiH2 className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="三级标题" onClick={() => toggleBlock(KEYS.h3)}>
+                                        <HiH3 className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="左对齐" onClick={() => setTextAlignment('left')}>
+                                        <HiBars3BottomLeft className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="居中对齐" onClick={() => setTextAlignment('center')}>
+                                        <CenterAlignmentIcon/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="右对齐" onClick={() => setTextAlignment('right')}>
+                                        <HiBars3BottomRight className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="两端对齐" onClick={() => setTextAlignment('justify')}>
+                                        <HiBars3 className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="粗体" onClick={() => toggleMark(KEYS.bold)}>
+                                        <HiBold className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="斜体" onClick={() => toggleMark(KEYS.italic)}>
+                                        <HiItalic className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="下划线" onClick={() => toggleMark(KEYS.underline)}>
+                                        <HiUnderline className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="删除线" onClick={() => toggleMark(KEYS.strikethrough)}>
+                                        <HiStrikethrough className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="引用" onClick={() => toggleBlock(KEYS.blockquote)}>
+                                        <QuotationMarksIcon/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="项目符号列表" onClick={() => {
+                                        toggleBulletedList(editor)
+                                        editor.tf.focus()
+                                    }}><HiListBullet className="h-4 w-4" aria-hidden="true"/></ToolbarButton>
+                                    <ToolbarButton label="编号列表" onClick={() => {
+                                        toggleNumberedList(editor)
+                                        editor.tf.focus()
+                                    }}><HiNumberedList className="h-4 w-4" aria-hidden="true"/></ToolbarButton>
+                                    <ToolbarButton label="添加链接" onClick={() => setShowLinkForm(true)}>
+                                        <HiLink className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton label="插入图片" onClick={() => setShowMediaLibrary(true)}>
+                                        <HiPhoto className="h-4 w-4" aria-hidden="true"/>
+                                    </ToolbarButton>
+                                    <ToolbarButton highlighted={suggestions.length > 0}
+                                                   label={`建议, ${suggestions.length} 条待处理`}
+                                                   onClick={toggleSuggestions}>
+                        <span className="flex items-center gap-1">
+                            <HiLightBulb className="size-4" aria-hidden="true"/>
+                            {suggestions.length > 0 && <span aria-hidden="true">{suggestions.length}</span>}
+                        </span>
+                                    </ToolbarButton>
+                                    {canComment && <ToolbarButton
+                                        highlighted={unresolvedCommentIds.size > 0}
+                                        label={unresolvedCommentIds.size > 0
+                                            ? `评论, ${unresolvedCommentIds.size} 条未解决`
+                                            : '评论, 没有未解决评论'}
+                                        onClick={toggleComments}>
                         <span className="flex items-center gap-1">
                             <HiChatBubbleLeftRight className="h-4 w-4" aria-hidden="true"/>
                             {unresolvedCommentIds.size > 0 &&
                                 <span aria-hidden="true">{unresolvedCommentIds.size}</span>}
                         </span>
-                                </ToolbarButton>}
-                            </div>}
-                            <PlateContent
-                                readOnly={readOnly}
-                                aria-label={readOnly ? '正文预览' : '富文本正文编辑器'}
-                                placeholder={readOnly ? undefined : '输入正文...'}
-                                style={readOnly ? undefined : { boxShadow: 'none', outline: 'none' }}
-                                className={readOnly
-                                    ? 'flex min-h-0 flex-wrap content-start px-0 py-0 outline-none'
-                                    : 'flex min-h-0 flex-1 flex-wrap content-start overflow-y-auto px-5 py-4 text-gray-900 outline-none focus-visible:outline-none'}
-                            />
-                        </div>
-                    </Plate>
+                                    </ToolbarButton>}
+                                    <Dropdown pill size="xs" color="alternative" dismissOnClick className="rounded-3xl"
+                                              theme={{
+                                                  content: 'p-0 focus:outline-none',
+                                                  floating: { base: 'overflow-hidden rounded-3xl' }
+                                              }}
+                                              label={<span className="inline-flex items-center gap-1 text-sm">
+                        {isSuggesting
+                            ? <HiLightBulb className="size-4" aria-hidden="true"/>
+                            : <HiPencilSquare className="size-4" aria-hidden="true"/>}
+                                                  {isSuggesting ? '建议模式' : '编辑模式'}
+                    </span>}>
+                                        <DropdownItem className="rounded-3xl" icon={HiPencilSquare}
+                                                      onClick={() => setEditingMode(false)}>
+                            <span className="text-left"><span className="block font-bold">编辑模式</span>
+                                <span className="block text-xs text-gray-500">直接编辑正文</span></span>
+                                        </DropdownItem>
+                                        <DropdownItem className="rounded-3xl" icon={HiLightBulb}
+                                                      onClick={() => setEditingMode(true)}>
+                            <span className="text-left"><span className="block font-bold">建议模式</span>
+                                <span className="block text-xs text-gray-500">更改将记录为建议</span></span>
+                                        </DropdownItem>
+                                    </Dropdown>
+                                </div>}
+                                <PlateContent
+                                    readOnly={readOnly}
+                                    aria-label={readOnly ? '正文预览' : '富文本正文编辑器'}
+                                    placeholder={readOnly ? undefined : '输入正文...'}
+                                    style={readOnly ? undefined : { boxShadow: 'none', outline: 'none' }}
+                                    className={readOnly
+                                        ? 'flex min-h-0 flex-wrap content-start px-0 py-0 outline-none'
+                                        : 'flex min-h-0 flex-1 flex-wrap content-start overflow-y-auto px-5 py-4 text-gray-900 outline-none focus-visible:outline-none'}
+                                />
+                            </div>
+                        </Plate>
+                    </PlateSuggestionProvider>
                     {showComments && !readOnly && onCreateComment && onReplyComment && onSetCommentResolved &&
                         <PlateCommentsPanel
                             activeThreadId={activeThreadId}
@@ -396,6 +469,26 @@ export default function PlateRichTextEditor({
                                 if (resolved) clearCommentSelection()
                             }}
                         />}
+                    {showSuggestions && !readOnly && <PlateSuggestionsPanel
+                        activeId={activeSuggestionId}
+                        currentUserId={currentUserId}
+                        currentUserName={currentUserName}
+                        suggestions={suggestions}
+                        onClose={() => {
+                            setShowSuggestions(false)
+                            setActiveSuggestionId(null)
+                        }}
+                        onAccept={suggestion => {
+                            acceptSuggestion(editor, suggestion)
+                            setActiveSuggestionId(null)
+                            setSuggestionRevision(revision => revision + 1)
+                        }}
+                        onReject={suggestion => {
+                            rejectSuggestion(editor, suggestion)
+                            setActiveSuggestionId(null)
+                            setSuggestionRevision(revision => revision + 1)
+                        }}/>
+                    }
                 </div>
             </PlateCommentProvider>
         </PlateMediaProvider>

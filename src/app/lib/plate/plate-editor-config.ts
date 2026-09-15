@@ -1,6 +1,7 @@
 'use client'
 
 import { createPlateEditor, ParagraphPlugin } from 'platejs/react'
+import { createBlockStartInputRule } from 'platejs'
 import {
     BlockquotePlugin,
     BoldPlugin,
@@ -27,9 +28,11 @@ import {
     ListPlugin,
     NumberedListPlugin
 } from '@platejs/list-classic/react'
+import { toggleBulletedList, toggleNumberedList } from '@platejs/list-classic'
 import { MarkdownPlugin } from '@platejs/markdown'
 import { ImagePlugin } from '@platejs/media/react'
 import { CommentPlugin } from '@platejs/comment/react'
+import { SuggestionPlugin } from '@platejs/suggestion/react'
 import {
     FontBackgroundColorPlugin,
     FontColorPlugin,
@@ -60,13 +63,56 @@ import {
     ParagraphElement,
     StrikethroughLeaf,
     SubscriptLeaf,
+    SuggestionLeaf,
     SuperscriptLeaf,
     UnderlineLeaf
 } from '@/app/lib/plate/plate-elements'
 import { EMPTY_PLATE_VALUE, type HeliumPlateValue } from '@/app/lib/plate/plate-types'
 
 export const HELIUM_PLATE_EDITOR_PLUGINS = [
-    ParagraphPlugin.withComponent(ParagraphElement),
+    ParagraphPlugin.withComponent(ParagraphElement).configure({
+        inputRules: [
+            createBlockStartInputRule({
+                match: '*',
+                trigger: ' ',
+                apply: ({ editor }, { range }) => {
+                    editor.tf.delete({ at: range })
+                    toggleBulletedList(editor)
+                    return true
+                }
+            }),
+            createBlockStartInputRule({
+                match: '1.',
+                trigger: ' ',
+                apply: ({ editor }, { range }) => {
+                    editor.tf.delete({ at: range })
+                    toggleNumberedList(editor)
+                    return true
+                }
+            }),
+            createBlockStartInputRule({
+                match: '|',
+                node: 'blockquote',
+                trigger: ' ',
+                apply: ({ editor }, { range }) => {
+                    const block = editor.api.block({ at: range.anchor })
+                    if (block == null) return false
+                    const blockPath = block[1]
+
+                    editor.tf.withoutNormalizing(() => {
+                        editor.tf.delete({ at: range })
+                        editor.tf.setNodes({ type: editor.getType('blockquote') }, { at: blockPath })
+                        const point = editor.api.start(blockPath)
+                        if (point != null) {
+                            editor.tf.deselect()
+                            editor.tf.select(point)
+                        }
+                    })
+                    return true
+                }
+            })
+        ]
+    }),
     BlockquotePlugin.withComponent(BlockquoteElement),
     H1Plugin.withComponent(H1Element),
     H2Plugin.withComponent(H2Element),
@@ -86,6 +132,7 @@ export const HELIUM_PLATE_EDITOR_PLUGINS = [
     LinkPlugin.withComponent(LinkElement),
     ImagePlugin.withComponent(ImageElement),
     CommentPlugin.withComponent(CommentLeaf),
+    SuggestionPlugin.withComponent(SuggestionLeaf),
     ListPlugin,
     BulletedListPlugin.withComponent(BulletedListElement),
     NumberedListPlugin.withComponent(NumberedListElement),

@@ -60,6 +60,7 @@ import {
     UnderlineStatic
 } from '@/app/lib/plate/plate-static-elements'
 import { EMPTY_PLATE_VALUE, type HeliumPlateValue } from '@/app/lib/plate/plate-types'
+import { BaseSuggestionPlugin } from '@platejs/suggestion'
 
 export const HELIUM_PLATE_STATIC_PLUGINS = [
     BaseParagraphPlugin.withComponent(ParagraphStatic),
@@ -90,7 +91,8 @@ export const HELIUM_PLATE_STATIC_PLUGINS = [
     BaseFontColorPlugin,
     BaseFontSizePlugin,
     BaseLineHeightPlugin,
-    BaseTextAlignPlugin
+    BaseTextAlignPlugin,
+    BaseSuggestionPlugin
 ]
 
 export function createHeliumPlateStaticEditor(value: HeliumPlateValue = structuredClone(EMPTY_PLATE_VALUE)) {

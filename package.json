@@ -10,7 +10,6 @@
   },
   "dependencies": {
     "@floating-ui/react": "^0.27.20",
-    "@puckeditor/core": "^0.23.0",
     "@platejs/basic-nodes": "^53.0.0",
     "@platejs/basic-styles": "^53.0.0",
     "@platejs/comment": "^53.0.0",
@@ -18,8 +17,10 @@
     "@platejs/list-classic": "^53.0.0",
     "@platejs/markdown": "^53.3.12",
     "@platejs/media": "^53.1.4",
+    "@platejs/suggestion": "^53.2.3",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
+    "@puckeditor/core": "^0.23.0",
     "@radix-ui/react-dropdown-menu": "^2.1.24",
     "@radix-ui/react-popover": "^1.1.23",
     "accept-language": "^3.0.20",
