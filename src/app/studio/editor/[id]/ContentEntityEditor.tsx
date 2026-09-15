@@ -46,6 +46,7 @@ import {
     alignContentEntity,
     deleteContentEntity,
     getContentEntity,
+    restoreContentEntityDraftFromPublished,
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
@@ -71,6 +72,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ showCategoryForm, setShowCategoryForm ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
+    const [ restoreConfirm, setRestoreConfirm ] = useState(false)
     const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
     const [ inEnglish, setInEnglish ] = useState(false)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -622,13 +624,39 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                 </If>
                             </section>
 
-                            <If condition={canModerate}>
+                            <If condition={canWrite || canModerate}>
                                 <section className="rounded-3xl border border-red-100 bg-red-50/50 p-5">
                                     <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">
                                         内容管理
                                     </p>
                                     <div className="flex flex-wrap gap-2">
-                                        <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
+                                        <If condition={canWrite && post.titlePublishedEN != null && post.titlePublishedZH != null &&
+                                            post.contentPublishedEN != null && post.contentPublishedZH != null}>
+                                            <Button disabled={loadingAdditional}
+                                                    size="xs" color="red" outline onClick={async () => {
+                                                if (!restoreConfirm) {
+                                                    setRestoreConfirm(true)
+                                                    return
+                                                }
+                                                setLoadingAdditional(true)
+                                                try {
+                                                    const restored = await restoreContentEntityDraftFromPublished(post.id)
+                                                    setPost(restored)
+                                                    setMarkdownContent(inEnglish
+                                                        ? restored.contentDraftEN
+                                                        : restored.contentDraftZH)
+                                                    setRestoreConfirm(false)
+                                                    router.refresh()
+                                                } catch (error) {
+                                                    if (!handlePermissionError(error)) {
+                                                        console.error('Failed to restore published content:', error)
+                                                    }
+                                                } finally {
+                                                    setLoadingAdditional(false)
+                                                }
+                                            }}>{restoreConfirm ? '确认退回?' : '退回到线上版'}</Button>
+                                        </If>
+                                        <If condition={canModerate && (post.contentPublishedEN != null || post.contentPublishedZH != null)}>
                                             <Button disabled={loadingAdditional}
                                                     size="xs" color="red" outline onClick={async () => {
                                                 if (!canModerate) {
@@ -655,7 +683,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                 {unpublishConfirm ? '确认撤回?' : '撤回发布'}
                                             </Button>
                                         </If>
-                                        <Button disabled={loadingAdditional}
+                                        <If condition={canModerate}>
+                                            <Button disabled={loadingAdditional}
                                                 size="xs" color="red" outline onClick={async () => {
                                             if (!canModerate) {
                                                 showPermissionDenied()
@@ -676,7 +705,8 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                             } finally {
                                                 setLoadingAdditional(false)
                                             }
-                                        }}>{deleteConfirm ? '确认删除?' : '删除内容'}</Button>
+                                            }}>{deleteConfirm ? '确认删除?' : '删除内容'}</Button>
+                                        </If>
                                     </div>
                                 </section>
                             </If>

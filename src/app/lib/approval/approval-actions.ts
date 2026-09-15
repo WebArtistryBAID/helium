@@ -18,17 +18,20 @@ function getStudioReviewUrls(entityType: EntityType, entityId: number, slug?: st
     const baseUrl = process.env.HOST!
     if (slug === WEBSITE_METADATA_SLUG) {
         return {
+            editorUrl: `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}`,
             previewUrl: `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}`,
             approvalUrl: `${baseUrl}${WEBSITE_METADATA_STUDIO_PATH}#approval`
         }
     }
     if (entityType === EntityType.page) {
         return {
+            editorUrl: `${baseUrl}/studio/pages/${entityId}/editor`,
             previewUrl: `${baseUrl}/studio/pages/${entityId}/preview`,
             approvalUrl: `${baseUrl}/studio/pages/${entityId}/approval`
         }
     }
     return {
+        editorUrl: `${baseUrl}/studio/editor/${entityId}#editor`,
         previewUrl: `${baseUrl}/studio/editor/${entityId}#preview`,
         approvalUrl: `${baseUrl}/studio/editor/${entityId}#approval`
     }
@@ -179,11 +182,13 @@ export async function requestContentReview(params: {
         return { sentUserIds: [], error: '通知对象已更新，请重新选择。' }
     }
 
-    const { previewUrl, approvalUrl } = getStudioReviewUrls(params.entityType, params.entityId, entity.slug)
+    const { editorUrl, previewUrl, approvalUrl } = getStudioReviewUrls(params.entityType, params.entityId, entity.slug)
     const result = await sendApprovalNotification({
         entityId: params.entityId,
         entityType: params.entityType,
+        targetRole: params.role,
         title: entity.titleDraftZH || entity.titleDraftEN || `Entity #${params.entityId}`,
+        editorUrl,
         previewUrl,
         approvalUrl,
         requestedBy: user.name

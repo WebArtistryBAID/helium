@@ -414,6 +414,44 @@ export async function unpublishContentEntity(id: number): Promise<void> {
     })
 }
 
+export async function restoreContentEntityDraftFromPublished(id: number): Promise<HydratedContentEntity> {
+    const user = await requireUserWithRole(Role.writer)
+    const current = await prisma.contentEntity.findUnique({ where: { id } })
+    if (current == null) {
+        throw new Error('Content entity not found')
+    }
+    if (current.titlePublishedEN == null || current.titlePublishedZH == null ||
+        current.contentPublishedEN == null || current.contentPublishedZH == null) {
+        throw new Error('Content entity has no complete published version')
+    }
+
+    const restored = await prisma.contentEntity.update({
+        where: { id },
+        data: {
+            titleDraftEN: current.titlePublishedEN,
+            titleDraftZH: current.titlePublishedZH,
+            shortContentDraftEN: current.shortContentPublishedEN,
+            shortContentDraftZH: current.shortContentPublishedZH,
+            contentDraftEN: current.contentPublishedEN,
+            contentDraftZH: current.contentPublishedZH,
+            coverImageDraftId: current.coverImagePublishedId
+        },
+        select: HYDRATED_CONTENT_ENTITY_SELECT
+    })
+    await prisma.userAuditLog.create({
+        data: {
+            type: UserAuditLogType.writerEditEntity,
+            userId: user.id,
+            values: [ restored.id.toString(), restored.titleDraftEN ]
+        }
+    })
+    await prisma.approval.deleteMany({ where: { entityId: id } })
+    if (current.type === EntityType.page) {
+        await reconcilePuckCommentThreads(id, restored.contentDraftEN, restored.contentDraftZH)
+    }
+    return restored
+}
+
 // Align draft content with published content (in effect, publishing or overriding existing publish)
 export async function alignContentEntity(id: number): Promise<AlignEntityResponse> {
     const user = await requireUserWithRole(Role.admin)

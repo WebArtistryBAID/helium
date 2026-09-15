@@ -4,6 +4,7 @@ import { HydratedContentEntity } from '@/app/lib/data-types'
 import {
     deleteContentEntity,
     getContentEntity,
+    restoreContentEntityDraftFromPublished,
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
@@ -15,11 +16,8 @@ import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { Puck } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import StableInlineText from '@/app/lib/puck/StableInlineText'
-import PuckComments, {
-    PuckCommentActionBar,
-    PuckCommentHighlights
-} from '@/app/studio/pages/[id]/editor/PuckComments'
-import { Badge, Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
+import PuckComments, { PuckCommentActionBar, PuckCommentHighlights } from '@/app/studio/pages/[id]/editor/PuckComments'
+import { Button, HelperText, Label, Modal, ModalBody, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
 import '@measured/puck/puck.css'
@@ -65,6 +63,8 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
     const [ showMetadata, setShowMetadata ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
+    const [ restoreConfirm, setRestoreConfirm ] = useState(false)
+    const [ puckRevision, setPuckRevision ] = useState(0)
     const [ loadingAdditional, setLoadingAdditional ] = useState(false)
     const [ inEnglish, setInEnglish ] = useState(false)
     const [ commentThreads, setCommentThreads ] = useState(initialCommentThreads)
@@ -287,92 +287,118 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                     </dl>
 
                     <p className="text-sm text-gray-500">关闭后，请务必保存。</p>
-                </div>
-            </ModalBody>
-            <ModalFooter className="flex flex-wrap items-center gap-2">
-                <If condition={canWrite}>
-                    <Button pill size="md" color="alternative" className="whitespace-nowrap"
-                            onClick={() => {
-                                if (!canWrite) {
-                                    showPermissionDenied()
+
+                    <div className="flex flex-wrap gap-2">
+                        <If condition={canWrite}>
+                            <Button pill size="sm" color="alternative" className="whitespace-nowrap"
+                                    onClick={() => {
+                                        if (!canWrite) {
+                                            showPermissionDenied()
+                                            return
+                                        }
+                                        setDraft(prev => ({
+                                            ...prev,
+                                            contentDraftEN: prev.contentDraftZH,
+                                            titleDraftEN: prev.titleDraftZH
+                                        }))
+                                        setPuckRevision(current => current + 1)
+                                    }}>用中文内容覆盖英文</Button>
+                        </If>
+                        <If condition={canWrite && draft.titlePublishedEN != null && draft.titlePublishedZH != null &&
+                            draft.contentPublishedEN != null && draft.contentPublishedZH != null}>
+                            <Button disabled={loadingAdditional} pill size="sm" color="red" outline
+                                    className="whitespace-nowrap" onClick={async () => {
+                                if (!restoreConfirm) {
+                                    setRestoreConfirm(true)
                                     return
                                 }
-                                setDraft(prev => ({
-                                    ...prev,
-                                    contentDraftEN: prev.contentDraftZH,
-                                    titleDraftEN: prev.titleDraftZH
-                                }))
-                            }}>用中文内容覆盖英文</Button>
-                </If>
-
-                <div className="ml-auto flex flex-wrap gap-2">
-                    <If condition={canModerate && (draft.contentPublishedEN != null || draft.contentPublishedZH != null)}>
-                        <Button disabled={loadingAdditional} pill size="md" color="red" className="whitespace-nowrap"
-                                onClick={async () => {
-                        if (!canModerate) {
-                            showPermissionDenied()
-                            return
-                        }
-                        if (!unpublishConfirm) {
-                            setUnpublishConfirm(true)
-                            return
-                        }
-                        setLoadingAdditional(true)
-                        try {
-                            await unpublishContentEntity(draft.id)
-                            await refresh()
-                            setUnpublishConfirm(false)
-                            setDraft(prev => ({ // Somehow refreshing doesn't work so we update the state locally
-                                ...prev,
-                                titlePublishedEN: null,
-                                titlePublishedZH: null,
-                                contentPublishedEN: null,
-                                contentPublishedZH: null
-                            }))
-                            router.refresh()
-                        } catch (error) {
-                            if (!handlePermissionError(error)) {
-                                console.error('Failed to unpublish page:', error)
-                            }
-                        } finally {
-                            setLoadingAdditional(false)
-                        }
-                                }}>
-                            {unpublishConfirm ? '确认撤回?' : '撤回发布'}
-                        </Button>
-                    </If>
-                    <If condition={canModerate}>
-                        <Button disabled={loadingAdditional} pill size="md" color="red" className="whitespace-nowrap"
-                                onClick={async () => {
-                        if (!canModerate) {
-                            showPermissionDenied()
-                            return
-                        }
-                        if (!deleteConfirm) {
-                            setDeleteConfirm(true)
-                            return
-                        }
-                        setLoadingAdditional(true)
-                        try {
-                            await deleteContentEntity(draft.id)
-                            router.push('/studio/pages')
-                        } catch (error) {
-                            if (!handlePermissionError(error)) {
-                                console.error('Failed to delete page:', error)
-                            }
-                        } finally {
-                            setLoadingAdditional(false)
-                        }
-                                }}>{deleteConfirm ? '确认删除?' : '删除页面'}</Button>
-                    </If>
+                                setLoadingAdditional(true)
+                                try {
+                                    const restored = await restoreContentEntityDraftFromPublished(draft.id)
+                                    setDraft(restored)
+                                    setPuckRevision(current => current + 1)
+                                    setRestoreConfirm(false)
+                                    setShowMetadata(false)
+                                    router.refresh()
+                                } catch (error) {
+                                    if (!handlePermissionError(error)) {
+                                        console.error('Failed to restore published page:', error)
+                                    }
+                                } finally {
+                                    setLoadingAdditional(false)
+                                }
+                            }}>{restoreConfirm ? '确认退回?' : '退回到线上版'}</Button>
+                        </If>
+                        <If condition={canModerate && (draft.contentPublishedEN != null || draft.contentPublishedZH != null)}>
+                            <Button disabled={loadingAdditional} pill size="sm" color="red" outline
+                                    className="whitespace-nowrap"
+                                    onClick={async () => {
+                                        if (!canModerate) {
+                                            showPermissionDenied()
+                                            return
+                                        }
+                                        if (!unpublishConfirm) {
+                                            setUnpublishConfirm(true)
+                                            return
+                                        }
+                                        setLoadingAdditional(true)
+                                        try {
+                                            await unpublishContentEntity(draft.id)
+                                            await refresh()
+                                            setUnpublishConfirm(false)
+                                            setDraft(prev => ({ // Somehow refreshing doesn't work so we update the state locally
+                                                ...prev,
+                                                titlePublishedEN: null,
+                                                titlePublishedZH: null,
+                                                contentPublishedEN: null,
+                                                contentPublishedZH: null
+                                            }))
+                                            router.refresh()
+                                        } catch (error) {
+                                            if (!handlePermissionError(error)) {
+                                                console.error('Failed to unpublish page:', error)
+                                            }
+                                        } finally {
+                                            setLoadingAdditional(false)
+                                        }
+                                    }}>
+                                {unpublishConfirm ? '确认撤回?' : '撤回发布'}
+                            </Button>
+                        </If>
+                        <If condition={canModerate}>
+                            <Button disabled={loadingAdditional} pill size="sm" color="red" outline
+                                    className="whitespace-nowrap"
+                                    onClick={async () => {
+                                        if (!canModerate) {
+                                            showPermissionDenied()
+                                            return
+                                        }
+                                        if (!deleteConfirm) {
+                                            setDeleteConfirm(true)
+                                            return
+                                        }
+                                        setLoadingAdditional(true)
+                                        try {
+                                            await deleteContentEntity(draft.id)
+                                            router.push('/studio/pages')
+                                        } catch (error) {
+                                            if (!handlePermissionError(error)) {
+                                                console.error('Failed to delete page:', error)
+                                            }
+                                        } finally {
+                                            setLoadingAdditional(false)
+                                        }
+                                    }}>{deleteConfirm ? '确认删除?' : '删除页面'}</Button>
+                        </If>
+                    </div>
                 </div>
-            </ModalFooter>
+            </ModalBody>
         </Modal>
 
         <div className="page-editor">
             <PuckCommentHighlights componentIds={Object.keys(commentThreadCounts)}/>
             <Puck
-                key={inEnglish ? 'en' : 'zh'} // Force re-render
+                key={`${inEnglish ? 'en' : 'zh'}-${puckRevision}`} // Force re-render
                 config={PUCK_CONFIG}
                 data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
                 fieldTransforms={STABLE_INLINE_TEXT_TRANSFORMS}

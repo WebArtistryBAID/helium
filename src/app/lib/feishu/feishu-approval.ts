@@ -10,7 +10,9 @@ let tokenExpiry = 0
 type NotificationData = {
     entityId: number
     entityType: string
+    targetRole: typeof Role.editor | typeof Role.admin
     title: string
+    editorUrl: string
     previewUrl: string
     approvalUrl: string
 }
@@ -29,6 +31,9 @@ function getEntityTypeLabel(entityType: string) {
 
 function buildApprovalCard(data: NotificationData & { requestedBy: string; websiteTitle: string }) {
     const entityType = getEntityTypeLabel(data.entityType)
+    const contentLink = data.targetRole === Role.editor
+        ? { label: '查看内容', url: data.editorUrl }
+        : { label: '查看预览', url: data.previewUrl }
 
     return {
         config: { wide_screen_mode: true, enable_forward: true },
@@ -56,7 +61,7 @@ function buildApprovalCard(data: NotificationData & { requestedBy: string; websi
             {
                 tag: 'action',
                 actions: [
-                    { tag: 'button', text: { tag: 'plain_text', content: '查看预览' }, url: data.previewUrl },
+                    { tag: 'button', text: { tag: 'plain_text', content: contentLink.label }, url: contentLink.url },
                     {
                         tag: 'button',
                         style: 'primary',
