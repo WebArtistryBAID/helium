@@ -16,6 +16,7 @@ import { prisma } from '@/app/lib/prisma'
 import { resolveAllData } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { WEBSITE_METADATA_SLUG } from '@/app/lib/metadata/website-metadata-types'
+import { reconcilePuckCommentThreads } from '@/app/lib/puck/puck-comment-storage'
 import { sendPublicationNotification } from '@/app/lib/feishu/feishu-approval'
 
 const PAGE_SIZE = 24
@@ -534,7 +535,7 @@ export async function updateContentEntity(data: {
     coverImageDraftId: number | null | undefined
 }): Promise<HydratedContentEntity> {
     const user = await requireUserWithRole(Role.writer)
-    const current = await prisma.contentEntity.findUnique({ where: { id: data.id }, select: { slug: true } })
+    const current = await prisma.contentEntity.findUnique({ where: { id: data.id }, select: { slug: true, type: true } })
     if (current?.slug === WEBSITE_METADATA_SLUG) {
         throw new Error('Website metadata must be managed from website settings')
     }
@@ -567,5 +568,8 @@ export async function updateContentEntity(data: {
             entityId: data.id
         }
     })
+    if (current?.type === EntityType.page && data.contentDraftEN != null && data.contentDraftZH != null) {
+        await reconcilePuckCommentThreads(data.id, data.contentDraftEN, data.contentDraftZH)
+    }
     return post
 }

@@ -15,12 +15,24 @@ import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { Puck } from '@measured/puck'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import StableInlineText from '@/app/lib/puck/StableInlineText'
+import PuckComments, {
+    PuckCommentActionBar,
+    PuckCommentHighlights
+} from '@/app/studio/pages/[id]/editor/PuckComments'
 import { Badge, Button, HelperText, Label, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
 import '@measured/puck/puck.css'
-import { Role, User } from '@/generated/prisma/browser'
+import { ContentLanguage, Role, User } from '@/generated/prisma/browser'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
+import {
+    createPuckCommentThread,
+    deletePuckComponentCommentThreads,
+    replyToPuckCommentThread,
+    setPuckCommentThreadResolved
+} from '@/app/studio/pages/[id]/editor/comment-actions'
+import { collectPuckComponentIds } from '@/app/lib/puck/puck-component-ids'
 
 const STABLE_INLINE_TEXT_TRANSFORMS = {
     text: ({ componentId, field, isReadOnly, propPath, value }: any) =>
@@ -42,11 +54,12 @@ const STABLE_INLINE_TEXT_TRANSFORMS = {
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
-export default function PageEditor({ init, lockToken, user, host }: {
+export default function PageEditor({ init, lockToken, user, host, initialCommentThreads }: {
     init: HydratedContentEntity,
     lockToken: string,
     user: User,
-    host: string
+    host: string,
+    initialCommentThreads: PuckCommentThread[]
 }) {
     const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMetadata, setShowMetadata ] = useState(false)
@@ -54,10 +67,20 @@ export default function PageEditor({ init, lockToken, user, host }: {
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ loadingAdditional, setLoadingAdditional ] = useState(false)
     const [ inEnglish, setInEnglish ] = useState(false)
+    const [ commentThreads, setCommentThreads ] = useState(initialCommentThreads)
+    const [ activeCommentComponentId, setActiveCommentComponentId ] = useState<string | null>(null)
 
     const router = useRouter()
     const canWrite = user.roles.includes(Role.writer)
     const canModerate = user.roles.includes(Role.editor)
+    const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
+    const languageCommentThreads = commentThreads.filter(thread => thread.language === commentLanguage)
+    const commentThreadCounts = languageCommentThreads.reduce<Record<string, number>>((counts, thread) => {
+        if (thread.componentId != null && thread.resolvedAt == null) {
+            counts[thread.componentId] = (counts[thread.componentId] ?? 0) + 1
+        }
+        return counts
+    }, {})
     const {
         permissionDenied,
         showPermissionDenied,
@@ -67,6 +90,7 @@ export default function PageEditor({ init, lockToken, user, host }: {
 
     // = Switch language
     function switchLanguage() {
+        setActiveCommentComponentId(null)
         setInEnglish(!inEnglish)
     }
 
@@ -146,6 +170,63 @@ export default function PageEditor({ init, lockToken, user, host }: {
             ? { label: '有更新未发布', color: 'warning' }
             : { label: '草稿', color: 'gray' }
     const pageUrl = `${host.replace(/\/+$/, '')}/${draft.slug.replace(/^\/+/, '')}`
+
+    async function createComponentComment(componentId: string, body: string) {
+        try {
+            const thread = await createPuckCommentThread({
+                entityId: draft.id,
+                language: commentLanguage,
+                componentId,
+                body
+            })
+            setCommentThreads(current => [ ...current, thread ])
+        } catch (error) {
+            handlePermissionError(error)
+            throw error
+        }
+    }
+
+    async function replyToComponentComment(threadId: string, body: string) {
+        try {
+            const comment = await replyToPuckCommentThread({ threadId, body })
+            setCommentThreads(current => current.map(thread => thread.id === threadId
+                ? { ...thread, comments: [ ...thread.comments, comment ], updatedAt: comment.updatedAt }
+                : thread))
+        } catch (error) {
+            handlePermissionError(error)
+            throw error
+        }
+    }
+
+    async function setComponentCommentResolved(threadId: string, resolved: boolean) {
+        try {
+            const updated = await setPuckCommentThreadResolved({ threadId, resolved })
+            setCommentThreads(current => current.map(thread => thread.id === threadId ? updated : thread))
+        } catch (error) {
+            handlePermissionError(error)
+            throw error
+        }
+    }
+
+    function removeDeletedComponentComments(nextData: unknown, previousData: unknown) {
+        const nextIds = collectPuckComponentIds(nextData)
+        const deletedIds = [ ...collectPuckComponentIds(previousData) ].filter(id => !nextIds.has(id))
+        if (deletedIds.length === 0) return
+
+        setCommentThreads(current => current.filter(thread =>
+            thread.language !== commentLanguage || thread.componentId == null || !deletedIds.includes(thread.componentId)
+        ))
+        if (activeCommentComponentId != null && deletedIds.includes(activeCommentComponentId)) {
+            setActiveCommentComponentId(null)
+        }
+        void deletePuckComponentCommentThreads({
+            entityId: draft.id,
+            language: commentLanguage,
+            componentIds: deletedIds
+        }).catch(error => {
+            if (!handlePermissionError(error)) console.error('Failed to delete component comments:', error)
+        })
+    }
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
@@ -289,11 +370,15 @@ export default function PageEditor({ init, lockToken, user, host }: {
         </Modal>
 
         <div className="page-editor">
+            <PuckCommentHighlights componentIds={Object.keys(commentThreadCounts)}/>
             <Puck
                 key={inEnglish ? 'en' : 'zh'} // Force re-render
                 config={PUCK_CONFIG}
                 data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
                 fieldTransforms={STABLE_INLINE_TEXT_TRANSFORMS}
+                onAction={(_action, appState, previousAppState) => {
+                    removeDeletedComponentComments(appState.data, previousAppState.data)
+                }}
                 onChange={data => {
                     if (!canWrite) {
                         showPermissionDenied()
@@ -314,6 +399,24 @@ export default function PageEditor({ init, lockToken, user, host }: {
                     }
                 }}
                 overrides={{
+                    actionBar: props => <PuckCommentActionBar
+                        {...props}
+                        activeComponentId={activeCommentComponentId}
+                        threadCounts={commentThreadCounts}
+                        onOpen={componentId => setActiveCommentComponentId(current =>
+                            current === componentId ? null : componentId
+                        )}
+                    />,
+                    fields: props => <PuckComments
+                        {...props}
+                        activeComponentId={activeCommentComponentId}
+                        canComment={canWrite}
+                        threads={languageCommentThreads.filter(thread => thread.componentId === activeCommentComponentId)}
+                        onClose={() => setActiveCommentComponentId(null)}
+                        onCreate={createComponentComment}
+                        onReply={replyToComponentComment}
+                        onSetResolved={setComponentCommentResolved}
+                    />,
                     headerActions: () => <>
                         <Button pill size="md" color="alternative"
                                 onClick={switchLanguage}>切换到{inEnglish ? '中文' : '英文'}</Button>

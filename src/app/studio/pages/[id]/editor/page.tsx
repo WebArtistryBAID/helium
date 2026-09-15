@@ -4,6 +4,7 @@ import { tryAcquireLock } from '@/app/lib/lock/lock-typicals'
 import { getContentEntity } from '@/app/studio/editor/entity-actions'
 import PageEditor from '@/app/studio/pages/[id]/editor/PageEditor'
 import { WEBSITE_METADATA_SLUG, WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/metadata/website-metadata-types'
+import { getPuckCommentThreads } from '@/app/studio/pages/[id]/editor/comment-actions'
 
 export default async function StudioPageEditor({ params, searchParams }: {
     params: Promise<{ id: string }>,
@@ -32,5 +33,8 @@ export default async function StudioPageEditor({ params, searchParams }: {
         redirect(`/studio/pages/${entity.id}/editor?token=${token}`)
     }
 
-    return <PageEditor init={entity} lockToken={token} user={user} host={process.env.HOST!}/>
+    const commentThreads = await getPuckCommentThreads(entity.id)
+
+    return <PageEditor init={entity} lockToken={token} user={user} host={process.env.HOST!}
+                       initialCommentThreads={commentThreads}/>
 }

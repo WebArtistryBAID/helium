@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode } from 'react'
+import { ReactNode, useEffect, useState } from 'react'
 import { Role, User } from '@/generated/prisma/browser'
 import {
     Badge,
@@ -27,13 +27,29 @@ import {
     HiStar,
     HiUsers,
     HiCog,
-    HiGlobeAlt
+    HiGlobeAlt,
+    HiChevronDoubleLeft,
+    HiChevronDoubleRight
 } from 'react-icons/hi2'
 import If from '@/app/lib/If'
 import { usePathname } from 'next/navigation'
 
 export default function StudioShell({ children, myUser }: { children: ReactNode; myUser: User }) {
     const pathName = usePathname()
+    const [isSidebarVisible, setIsSidebarVisible] = useState(true)
+    const canShowSidebar = !pathName.includes('preview') && !(pathName.includes('pages') && pathName.includes('editor'))
+
+    useEffect(() => {
+        setIsSidebarVisible(localStorage.getItem('helium-studio-sidebar-visible') !== 'false')
+    }, [])
+
+    function toggleSidebar() {
+        setIsSidebarVisible(currentValue => {
+            const nextValue = !currentValue
+            localStorage.setItem('helium-studio-sidebar-visible', String(nextValue))
+            return nextValue
+        })
+    }
 
     return <>
         <a className="sr-only" href="#main-content">跳至主内容</a>
@@ -44,11 +60,22 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
         </div>
 
         <div className="h-screen flex">
-            <If condition={!pathName.includes('preview') && !(pathName.includes('pages') && pathName.includes('editor'))}>
-                <div className="h-screen">
+            <If condition={canShowSidebar && isSidebarVisible}>
+                <div className="h-screen relative">
                     <Sidebar className="h-full relative">
-                        <SidebarLogo href="/" img="/assets/icon.png"><span
-                            className="font-display">Helium</span></SidebarLogo>
+                        <div className="relative">
+                            <SidebarLogo href="/" img="/assets/icon.png"><span
+                                className="font-display">Helium</span></SidebarLogo>
+                            <button
+                                type="button"
+                                onClick={toggleSidebar}
+                                aria-label="隐藏侧边栏"
+                                title="隐藏侧边栏"
+                                className="absolute right-0 top-1/2 z-10 -translate-y-1/2 rounded-full p-2 text-gray-500 transition-colors duration-100 hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            >
+                                <HiChevronDoubleLeft className="size-5" aria-hidden="true"/>
+                            </button>
+                        </div>
                         <SidebarItems>
                             <SidebarItemGroup>
                                 <Link href="/studio">
@@ -139,6 +166,17 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                         </div>
                     </Sidebar>
                 </div>
+            </If>
+            <If condition={canShowSidebar && !isSidebarVisible}>
+                <button
+                    type="button"
+                    onClick={toggleSidebar}
+                    aria-label="显示侧边栏"
+                    title="显示侧边栏"
+                    className="fixed left-4 top-4 z-40 rounded-full bg-gray-100 p-2.5 text-gray-600 transition-colors duration-100 hover:bg-gray-200 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                >
+                    <HiChevronDoubleRight className="size-5" aria-hidden="true"/>
+                </button>
             </If>
             <main id="main-content" tabIndex={-1}
                   className="flex-grow h-screen max-h-screen overflow-y-auto" style={{ overflowY: 'auto' }}>

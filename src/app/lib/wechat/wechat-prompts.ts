@@ -10,6 +10,7 @@ export const TRANSLATE_LITERAL = `
   - 不要翻译出现的字面 \`\\n\`（表示换行的转义），保持其原样。  
 - **文体与细节**:   
   - 符合**校园新闻报道**的常见英文体例，语法正确，大小写与标点规范。  
+  - 中国式的表达，重写为符合原意的英文表达。
   - **专有名词与术语**: 严格遵循下方“专有名词对照表”；若原文与对照表不同，以对照表为准。  
   - **中文人名**: 采用汉语拼音，**姓在前、名在后**（如“张丹萌”→“Zhang Danmeng”），不使用音译英文名。  
   - 合理处理量词与日期表达，避免直译僵硬。
@@ -49,15 +50,17 @@ BA 大讲堂: BA Lectures
 职业体验: Career Experiences
 英才学者: Elite Scholar
 世界因我更美好: Better Me, Better World
-仁、智、勇、乐: Benevolence, Wisdom, Bravery, Happiness
-和而不同 乐在其中: Embrace Harmony and Differences
-学会学习 学会共处 学会创新 学会生活: To Learn, To Coooperate, To Innovate, To Live
+仁、智、勇、乐: Humanity, Wisdom, Courage, Happiness
+和而不同 乐在其中: Harmony in Diversity, Joy in Learning
+学会学习 学会共处 学会创新 学会生活: Learning to Acquire, Learning to Coexist, Learning to Pioneer, Learning to Live
 京领: KingLead
 京西学校: Western Academy of Beijing
 社团: Student Club
 选修课: Electives
-年度人物: Person of the Year
-月度人物: Person of the Month
+年度人物: Student of the Year
+月度人物: Student of the Month
+周慧: Zhou Hui
+慧校: Ms. Zhou (Principal Zhou, 如果适合的话)
 校长特别奖: Principal's Special Award
 学科周: Subject Week
 国际风情周: International Theme Week

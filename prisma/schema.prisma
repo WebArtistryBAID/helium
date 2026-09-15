@@ -24,6 +24,10 @@ model User {
 
   ownedEntities ContentEntity[]
   ownedImages   Image[]
+
+  createdCommentThreads  CommentThread[] @relation("CommentThreadCreator")
+  resolvedCommentThreads CommentThread[] @relation("CommentThreadResolver")
+  authoredComments       Comment[]
 }
 
 enum Role {
@@ -71,6 +75,16 @@ enum EntityType {
   faculty
 }
 
+enum ContentLanguage {
+  en
+  zh
+}
+
+enum CommentAnchorType {
+  text
+  component
+}
+
 model UserAuditLog {
   id     Int              @id @default(autoincrement())
   time   DateTime         @default(now())
@@ -81,14 +95,14 @@ model UserAuditLog {
 }
 
 model ContentEntity {
-  id                      Int          @id @default(autoincrement())
+  id                      Int             @id @default(autoincrement())
   type                    EntityType
-  linkOnly                Boolean      @default(false)
+  linkOnly                Boolean         @default(false)
   titlePublishedEN        String?
   titlePublishedZH        String?
   titleDraftEN            String
   titleDraftZH            String
-  slug                    String       @unique
+  slug                    String          @unique
   categoryEN              String?
   categoryZH              String?
   shortContentPublishedEN String?
@@ -99,15 +113,56 @@ model ContentEntity {
   contentPublishedZH      String? // Markdown OR Puck data
   contentDraftEN          String // Markdown OR Puck data
   contentDraftZH          String // Markdown OR Puck data
-  coverImagePublished     Image?       @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
+  coverImagePublished     Image?          @relation("linkedEntitiesPub", fields: [coverImagePublishedId], references: [id], onDelete: SetNull)
   coverImagePublishedId   Int?
-  coverImageDraft         Image?       @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
+  coverImageDraft         Image?          @relation("linkedEntitiesDraft", fields: [coverImageDraftId], references: [id], onDelete: SetNull)
   coverImageDraftId       Int?
   creatorId               Int
-  creator                 User         @relation(fields: [creatorId], references: [id])
-  createdAt               DateTime     @default(now())
-  updatedAt               DateTime     @updatedAt
+  creator                 User            @relation(fields: [creatorId], references: [id])
+  createdAt               DateTime        @default(now())
+  updatedAt               DateTime        @updatedAt
   locks                   EntityLock[]
+  commentThreads          CommentThread[]
+}
+
+model CommentThread {
+  id           String            @id @default(cuid())
+  entityId     Int
+  entity       ContentEntity     @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  language     ContentLanguage
+  anchorType   CommentAnchorType
+  componentId  String?
+  anchorData   Json?
+  quotedText   String?
+  createdById  Int
+  createdBy    User              @relation("CommentThreadCreator", fields: [createdById], references: [id], onDelete: Restrict)
+  resolvedById Int?
+  resolvedBy   User?             @relation("CommentThreadResolver", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolvedAt   DateTime?
+  createdAt    DateTime          @default(now())
+  updatedAt    DateTime          @updatedAt
+  comments     Comment[]
+
+  @@index([entityId, language, resolvedAt])
+  @@index([entityId, language, componentId])
+}
+
+model Comment {
+  id        String        @id @default(cuid())
+  threadId  String
+  thread    CommentThread @relation(fields: [threadId], references: [id], onDelete: Cascade)
+  authorId  Int
+  author    User          @relation(fields: [authorId], references: [id], onDelete: Restrict)
+  parentId  String?
+  parent    Comment?      @relation("CommentReplies", fields: [parentId], references: [id], onDelete: Cascade)
+  replies   Comment[]     @relation("CommentReplies")
+  body      String
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+  deletedAt DateTime?
+
+  @@index([threadId, createdAt])
+  @@index([parentId])
 }
 
 model Image {
