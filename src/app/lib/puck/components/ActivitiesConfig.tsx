@@ -1,5 +1,5 @@
 import { EntityType } from '@/generated/prisma/browser'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import Activities from '@/app/lib/puck/components/Activities'
@@ -56,7 +56,8 @@ const ActivitiesConfig: ComponentConfig = {
     defaultProps: {
         title: '校园活动'
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

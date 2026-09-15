@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Specialties from '@/app/lib/puck/components/Specialties'
@@ -34,7 +34,8 @@ const SpecialtiesConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedItems: await Promise.all((props.items ?? []).map(async (item: {

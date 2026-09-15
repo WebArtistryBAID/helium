@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { colorTypeField, imageTypeField } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
@@ -106,7 +106,8 @@ const ImageTextLayoutConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         const resolvedImage = (props.image == null || props.image === '') ? null : convertDatesToStrings(await getImage(parseInt(props.image)))
         return {
             props: {

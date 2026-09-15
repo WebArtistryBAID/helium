@@ -3,7 +3,7 @@ import { convertDatesToStrings, getContentEntityURI } from '@/app/lib/data-types
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 const PeopleConfig: ComponentConfig = {
     label: '人员',
@@ -54,7 +54,8 @@ const PeopleConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

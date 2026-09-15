@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { colorTypeField, imageTypeField, RESOLVED_CONTENT_ENTITY_TYPE, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import InFocusProjects from '@/app/lib/puck/components/InFocusProjects'
@@ -81,18 +81,21 @@ export const InFocusCommencementConfig: ComponentConfig = {
             }
         ]
     },
-    resolveData: async ({ props }) => ({
-        props: {
-            resolvedHeroBg: props.heroBg == null ? null : convertDatesToStrings(await getImage(parseInt(props.heroBg))),
-            resolvedCollageImages: await Promise.all(
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                (props.collageImages ?? []).map(async (item: any) => ({
-                    image: item?.image == null ? null : convertDatesToStrings(await getImage(parseInt(item.image)))
-                }))
-            ),
-            resolvedUploadPrefix: await getUploadServePath()
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
+        return {
+            props: {
+                resolvedHeroBg: props.heroBg == null ? null : convertDatesToStrings(await getImage(parseInt(props.heroBg))),
+                resolvedCollageImages: await Promise.all(
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    (props.collageImages ?? []).map(async (item: any) => ({
+                        image: item?.image == null ? null : convertDatesToStrings(await getImage(parseInt(item.image)))
+                    }))
+                ),
+                resolvedUploadPrefix: await getUploadServePath()
+            }
         }
-    }),
+    },
     render: ({
                  resolvedHeroBg,
                  heroTitle,
@@ -246,7 +249,8 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
         projectsDescription: '在北京中学国际部，学习不仅是课堂上的事情。你可以参加各类课外活动，在实践中成长。不妨看看学长学姐都在做些什么!'
     },
 
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         const resolvedHeroBg =
             props.heroBg == null ? null : convertDatesToStrings(await getImage(parseInt(props.heroBg)))
 
@@ -426,7 +430,8 @@ export const InFocusProjectsConfig: ComponentConfig = {
         startTopText: '每一个脚步都算数',
         startMainText: '我们正让世界因我们而更美好。'
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedHeroBg: props.heroBg == null ? null : convertDatesToStrings(await getImage(parseInt(props.heroBg))),

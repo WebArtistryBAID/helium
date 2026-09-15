@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Accreditations from '@/app/lib/puck/components/Accreditations'
@@ -39,7 +39,8 @@ const AccreditationsConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedUploadPrefix: await getUploadServePath(),

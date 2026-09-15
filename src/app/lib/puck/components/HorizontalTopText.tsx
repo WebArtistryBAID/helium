@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 function HorizontalTopText({ title, text }: { title: string | undefined, text: string | undefined }) {
     return <section aria-labelledby="mission-heading" className="section !mt-24 container">

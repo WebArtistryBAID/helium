@@ -13,11 +13,13 @@ import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import { AlignEntityResponse } from '@/app/studio/editor/entity-types'
 import { getThresholds, meetsThresholds } from '@/app/lib/approval/approval-actions'
 import { prisma } from '@/app/lib/prisma'
-import { resolveAllData } from '@measured/puck'
+import { resolveAllData } from '@puckeditor/core'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { WEBSITE_METADATA_SLUG } from '@/app/lib/metadata/website-metadata-types'
 import { reconcilePuckCommentThreads } from '@/app/lib/puck/puck-comment-storage'
 import { sendPublicationNotification } from '@/app/lib/feishu/feishu-approval'
+import { isSerializedPlateValue, serializePlateValue } from '@/app/lib/plate/plate-types'
+import { deserializeMarkdownToPlate } from '@/app/lib/plate/plate-markdown'
 
 const PAGE_SIZE = 24
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
@@ -577,6 +579,12 @@ export async function updateContentEntity(data: {
     if (current?.slug === WEBSITE_METADATA_SLUG) {
         throw new Error('Website metadata must be managed from website settings')
     }
+    const normalizeContent = (content: string | undefined): string | undefined => {
+        if (content == null || current?.type === EntityType.page || isSerializedPlateValue(content)) return content
+        return serializePlateValue(deserializeMarkdownToPlate(content))
+    }
+    const contentDraftEN = normalizeContent(data.contentDraftEN)
+    const contentDraftZH = normalizeContent(data.contentDraftZH)
     const post = await prisma.contentEntity.update({
         where: { id: data.id },
         data: {
@@ -588,8 +596,8 @@ export async function updateContentEntity(data: {
             titleDraftZH: data.titleDraftZH,
             shortContentDraftEN: data.shortContentDraftEN,
             shortContentDraftZH: data.shortContentDraftZH,
-            contentDraftEN: data.contentDraftEN,
-            contentDraftZH: data.contentDraftZH,
+            contentDraftEN,
+            contentDraftZH,
             coverImageDraftId: data.coverImageDraftId
         },
         select: HYDRATED_CONTENT_ENTITY_SELECT

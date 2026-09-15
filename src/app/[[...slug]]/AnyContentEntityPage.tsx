@@ -4,6 +4,7 @@ import { notFound, redirect } from 'next/navigation'
 import If from '@/app/lib/If'
 import ContentEntityBody from '@/app/lib/ContentEntityBody'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { extractContentImageIds } from '@/app/lib/plate/plate-types'
 
 export default async function AnyContentEntityPage({ entity, params }: {
     entity: HydratedContentEntity,
@@ -21,10 +22,8 @@ export default async function AnyContentEntityPage({ entity, params }: {
     const locale = slug[0]
 
     const base = locale === 'en' ? entity.contentPublishedEN ?? entity.contentPublishedEN! : entity.contentPublishedZH ?? entity.contentPublishedEN!
-    const regex = /\[IMAGE:\s*(\d+)\s*\]/g
-    const matches = Array.from(base.matchAll(regex))
-    const ids = matches.map(m => m[1])
-    const images = await Promise.all(ids.map(id => getImage(parseInt(id))))
+    const imageIds = extractContentImageIds(base)
+    const images = await Promise.all(imageIds.map(getImage))
     return <>
         <If condition={entity.coverImagePublished != null}>
             <div className="mx-auto w-full max-w-5xl px-4 pt-24 sm:px-8 sm:pt-28">

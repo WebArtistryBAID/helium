@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 function GridText({ title, texts }: { title: string | undefined, texts: (string | undefined)[] | undefined }) {
     texts = texts?.filter((text) => text != null) ?? []

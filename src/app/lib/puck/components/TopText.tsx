@@ -1,6 +1,6 @@
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 import If from '@/app/lib/If'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 function TopText({ title, text, to = null, linkText = null }: {
     title: string,

@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
@@ -68,7 +68,8 @@ const FeaturedProjectsConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any

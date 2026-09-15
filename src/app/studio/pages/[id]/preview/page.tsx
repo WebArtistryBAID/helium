@@ -1,7 +1,7 @@
 import { requireUser } from '@/app/login/login-actions'
 import { getContentEntity } from '@/app/studio/editor/entity-actions'
 import { redirect } from 'next/navigation'
-import { Render } from '@measured/puck'
+import { Render } from '@puckeditor/core'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import PreviewToolbar from '@/app/studio/pages/[id]/preview/PreviewToolbar'
 import { Role } from '@/generated/prisma/client'

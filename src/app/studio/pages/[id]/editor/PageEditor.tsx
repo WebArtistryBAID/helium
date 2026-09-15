@@ -13,20 +13,21 @@ import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useCallback, useEffect, useState } from 'react'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
-import { Puck } from '@measured/puck'
+import { Puck } from '@puckeditor/core'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import StableInlineText from '@/app/lib/puck/StableInlineText'
 import PuckComments, { PuckCommentActionBar, PuckCommentHighlights } from '@/app/studio/pages/[id]/editor/PuckComments'
 import { Button, HelperText, Label, Modal, ModalBody, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
-import '@measured/puck/puck.css'
+import '@puckeditor/core/puck.css'
 import { ContentLanguage, Role, User } from '@/generated/prisma/browser'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
 import {
     createPuckCommentThread,
     deletePuckComponentCommentThreads,
+    deletePuckCommentThread,
     replyToPuckCommentThread,
     setPuckCommentThreadResolved
 } from '@/app/studio/pages/[id]/editor/comment-actions'
@@ -73,6 +74,7 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
     const router = useRouter()
     const canWrite = user.roles.includes(Role.writer)
     const canModerate = user.roles.includes(Role.editor)
+    const canDeleteComments = user.roles.includes(Role.admin)
     const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
     const languageCommentThreads = commentThreads.filter(thread => thread.language === commentLanguage)
     const commentThreadCounts = languageCommentThreads.reduce<Record<string, number>>((counts, thread) => {
@@ -202,6 +204,16 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
         try {
             const updated = await setPuckCommentThreadResolved({ threadId, resolved })
             setCommentThreads(current => current.map(thread => thread.id === threadId ? updated : thread))
+        } catch (error) {
+            handlePermissionError(error)
+            throw error
+        }
+    }
+
+    async function deleteComponentComment(threadId: string) {
+        try {
+            await deletePuckCommentThread(threadId)
+            setCommentThreads(current => current.filter(thread => thread.id !== threadId))
         } catch (error) {
             handlePermissionError(error)
             throw error
@@ -437,9 +449,11 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                         {...props}
                         activeComponentId={activeCommentComponentId}
                         canComment={canWrite}
+                        canDelete={canDeleteComments}
                         threads={languageCommentThreads.filter(thread => thread.componentId === activeCommentComponentId)}
                         onClose={() => setActiveCommentComponentId(null)}
                         onCreate={createComponentComment}
+                        onDelete={deleteComponentComment}
                         onReply={replyToComponentComment}
                         onSetResolved={setComponentCommentResolved}
                     />,

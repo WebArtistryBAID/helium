@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import EligibilityWizard from '@/app/lib/puck/components/ProgramEligibility'
 
 const ProgramEligibilityConfig: ComponentConfig = {

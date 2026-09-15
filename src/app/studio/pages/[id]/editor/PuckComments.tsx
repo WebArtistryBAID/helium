@@ -2,7 +2,7 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 import { Alert, Badge, Button, Textarea } from 'flowbite-react'
-import { ActionBar, usePuck } from '@measured/puck'
+import { ActionBar, usePuck } from '@puckeditor/core'
 import { HiArrowLeft, HiChatBubbleLeftRight, HiCheck, HiChevronDown, HiChevronUp } from 'react-icons/hi2'
 import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
 
@@ -77,13 +77,16 @@ function displayTime(value: Date | string): string {
     })
 }
 
-function ThreadCard({ thread, canComment, onReply, onSetResolved }: {
+function ThreadCard({ thread, canComment, canDelete, onDelete, onReply, onSetResolved }: {
     thread: PuckCommentThread
     canComment: boolean
+    canDelete: boolean
+    onDelete: (threadId: string) => Promise<void>
     onReply: (threadId: string, body: string) => Promise<void>
     onSetResolved: (threadId: string, resolved: boolean) => Promise<void>
 }) {
     const [ collapsed, setCollapsed ] = useState(false)
+    const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ reply, setReply ] = useState('')
     const [ loading, setLoading ] = useState(false)
     const [ error, setError ] = useState<string | null>(null)
@@ -189,6 +192,27 @@ function ThreadCard({ thread, canComment, onReply, onSetResolved }: {
                     }}
                 >重新打开</Button>
             </div>}
+            {canDelete && <div className="flex justify-end">
+                <Button pill size="xs" color="red" disabled={loading}
+                        aria-label={deleteConfirm ? '确认删除评论讨论' : '删除评论讨论'}
+                        onClick={async () => {
+                            if (!deleteConfirm) {
+                                setDeleteConfirm(true)
+                                return
+                            }
+                            setLoading(true)
+                            setError(null)
+                            try {
+                                await onDelete(thread.id)
+                            } catch {
+                                setError('无法删除评论讨论，请重试。')
+                                setDeleteConfirm(false)
+                                setLoading(false)
+                            }
+                        }}>
+                    {deleteConfirm ? '确认删除?' : '删除讨论'}
+                </Button>
+            </div>}
         </div>}
     </>
 }
@@ -233,18 +257,22 @@ export default function PuckComments({
                                          children,
                                          activeComponentId,
                                          canComment,
+                                         canDelete,
                                          threads,
                                          onClose,
                                          onCreate,
+                                         onDelete,
                                          onReply,
                                          onSetResolved
                                      }: {
     children: ReactNode
     activeComponentId: string | null
     canComment: boolean
+    canDelete: boolean
     threads: PuckCommentThread[]
     onClose: () => void
     onCreate: (componentId: string, body: string) => Promise<void>
+    onDelete: (threadId: string) => Promise<void>
     onReply: (threadId: string, body: string) => Promise<void>
     onSetResolved: (threadId: string, resolved: boolean) => Promise<void>
 }) {
@@ -304,6 +332,8 @@ export default function PuckComments({
             key={thread.id}
             thread={thread}
             canComment={canComment}
+            canDelete={canDelete}
+            onDelete={onDelete}
             onReply={onReply}
             onSetResolved={onSetResolved}
         />)}

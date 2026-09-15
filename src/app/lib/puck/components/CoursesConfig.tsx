@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { getAllPublishedCourses } from '@/app/studio/editor/entity-actions'
 import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
 import Courses from '@/app/lib/puck/components/Courses'
@@ -31,7 +31,8 @@ const CoursesConfig: ComponentConfig = {
         title: '我们的课程',
         categoryENList: []
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         const categoryFilters = (props.categoryENList ?? [])
             .map((item: { value?: string | null } | null | undefined) => item?.value?.trim() ?? '')
             .filter(Boolean)

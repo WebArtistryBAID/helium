@@ -23,6 +23,8 @@ export type PuckCommentThread = {
     language: ContentLanguage
     anchorType: CommentAnchorType
     componentId: string | null
+    anchorData?: unknown
+    quotedText?: string | null
     createdById: number
     resolvedById: number | null
     resolvedAt: Date | string | null
@@ -30,4 +32,3 @@ export type PuckCommentThread = {
     updatedAt: Date | string
     comments: PuckComment[]
 }
-

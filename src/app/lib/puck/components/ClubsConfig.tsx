@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
@@ -23,7 +23,8 @@ const ClubsConfig: ComponentConfig = {
             type: 'text'
         }
     },
-    resolveData: async () => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedClubs: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.club)),

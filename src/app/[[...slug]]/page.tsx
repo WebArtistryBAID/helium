@@ -1,6 +1,6 @@
 import { cookies, headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
-import { Render, resolveAllData } from '@measured/puck'
+import { Render, resolveAllData } from '@puckeditor/core'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { getContentEntityBySlug, refreshPageData } from '@/app/studio/editor/entity-actions'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'

@@ -32,8 +32,7 @@ import {
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
-import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
-import ContentEntityBody from '@/app/lib/ContentEntityBody'
+import PlateRichTextEditor from '@/app/studio/editor/PlateRichTextEditor'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
@@ -50,13 +49,21 @@ import {
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
-import { EntityType, Role, User } from '@/generated/prisma/browser'
+import { ContentLanguage, EntityType, Role, User } from '@/generated/prisma/browser'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
+import {
+    createPlateCommentThread,
+    deletePlateCommentThread,
+    replyToPlateCommentThread,
+    setPlateCommentThreadResolved
+} from '@/app/studio/editor/comment-actions'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
-export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix, host }: {
+export default function ContentEntityEditor({ init, initialCommentThreads, user, lockToken, uploadPrefix, host }: {
     init: HydratedContentEntity,
+    initialCommentThreads: PuckCommentThread[],
     user: User,
     lockToken: string,
     uploadPrefix: string,
@@ -73,25 +80,22 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
     const [ restoreConfirm, setRestoreConfirm ] = useState(false)
-    const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
+    const [ contentRevision, setContentRevision ] = useState(0)
     const [ inEnglish, setInEnglish ] = useState(false)
+    const [ commentThreads, setCommentThreads ] = useState(initialCommentThreads)
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const [ _, setActiveTab ] = useState(0)
     const tabsRef = useRef<TabsRef>(null)
     const router = useRouter()
     const canWrite = user.roles.includes(Role.writer)
     const canModerate = user.roles.includes(Role.editor)
+    const canDeleteComments = user.roles.includes(Role.admin)
     const {
         permissionDenied,
         showPermissionDenied,
         closePermissionDenied,
         handlePermissionError
     } = usePermissionDialog()
-
-    const { cachedImages } = useImagePlaceholders({
-        markdown: markdownContent,
-        uploadPrefix
-    })
 
     useEffect(() => {
         const handleHashChange = () => {
@@ -115,13 +119,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
 
     // = Switch language
     function switchLanguage() {
-        if (inEnglish) {
-            setMarkdownContent(post.contentDraftZH)
-            setInEnglish(false)
-        } else {
-            setMarkdownContent(post.contentDraftEN)
-            setInEnglish(true)
-        }
+        setInEnglish(current => !current)
     }
 
     // = Save
@@ -205,9 +203,46 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const statusLabel = isPublished ? '已发布' : isDraft ? '草稿' : '有更新未发布'
     const displayedShortContent = inEnglish ? post.shortContentDraftEN : post.shortContentDraftZH
     const displayedTitle = inEnglish ? post.titleDraftEN : post.titleDraftZH
+    const displayedContent = inEnglish ? post.contentDraftEN : post.contentDraftZH
     const displayedDate = typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt
     const contentUrl = `${host.replace(/\/+$/, '')}${getContentEntityURI(displayedDate, post.slug)}`
     const editButtonClass = 'shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600'
+    const { cachedImages } = useImagePlaceholders({ content: displayedContent, uploadPrefix })
+    const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
+    const displayedCommentThreads = commentThreads.filter(thread => thread.language === commentLanguage)
+
+    async function createTextComment(quotedText: string, body: string): Promise<PuckCommentThread> {
+        const thread = await createPlateCommentThread({
+            entityId: post.id,
+            language: commentLanguage,
+            quotedText,
+            body
+        })
+        setCommentThreads(current => [ ...current, thread ])
+        return thread
+    }
+
+    async function replyToTextComment(threadId: string, body: string): Promise<void> {
+        const comment = await replyToPlateCommentThread({ threadId, body })
+        setCommentThreads(current => current.map(thread => thread.id === threadId
+            ? { ...thread, comments: [ ...thread.comments, comment ] }
+            : thread))
+    }
+
+    async function setTextCommentResolved(threadId: string, resolved: boolean): Promise<void> {
+        const updated = await setPlateCommentThreadResolved({ threadId, resolved })
+        setCommentThreads(current => current.map(thread => thread.id === threadId ? updated : thread))
+    }
+
+    async function deleteTextComment(threadId: string): Promise<void> {
+        try {
+            await deletePlateCommentThread(threadId)
+            setCommentThreads(current => current.filter(thread => thread.id !== threadId))
+        } catch (error) {
+            handlePermissionError(error)
+            throw error
+        }
+    }
 
     return <>
         <Modal show={showTitleForm} size="md" popup onClose={() => setShowTitleForm(false)}>
@@ -450,16 +485,24 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                     <h2 className="font-semibold text-gray-900">正文</h2>
                                 </div>
                             </div>
-                            <SimpleMarkdownEditor
-                                className="rounded-xl shadow-none"
-                                value={markdownContent}
+                            <PlateRichTextEditor
+                                documentKey={`${post.id}-${inEnglish ? 'en' : 'zh'}-${contentRevision}`}
+                                content={displayedContent}
+                                commentThreads={displayedCommentThreads}
+                                canComment={canWrite}
+                                canDeleteComments={canDeleteComments}
+                                images={cachedImages}
                                 readOnly={!canWrite}
-                                onChange={(content: string) => {
+                                uploadPrefix={uploadPrefix}
+                                onCreateComment={createTextComment}
+                                onDeleteComment={deleteTextComment}
+                                onReplyComment={replyToTextComment}
+                                onSetCommentResolved={setTextCommentResolved}
+                                onChange={content => {
                                     if (!canWrite) {
                                         showPermissionDenied()
                                         return
                                     }
-                                    setMarkdownContent(content)
                                     if (inEnglish) {
                                         setPost(prev => ({ ...prev, contentDraftEN: content }))
                                     } else {
@@ -642,9 +685,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                 try {
                                                     const restored = await restoreContentEntityDraftFromPublished(post.id)
                                                     setPost(restored)
-                                                    setMarkdownContent(inEnglish
-                                                        ? restored.contentDraftEN
-                                                        : restored.contentDraftZH)
+                                                    setContentRevision(current => current + 1)
                                                     setRestoreConfirm(false)
                                                     router.refresh()
                                                 } catch (error) {
@@ -739,9 +780,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                     <If condition={post.type !== EntityType.post}>
                                         <h1 className="text-center text-5xl">{displayedTitle}</h1>
                                     </If>
-                                    <ContentEntityBody content={markdownContent}
-                                                       images={Array.from(cachedImages.values())}
-                                                       uploadPrefix={uploadPrefix}/>
+                                    <PlateRichTextEditor
+                                        documentKey={`preview-${post.id}-${inEnglish ? 'en' : 'zh'}-${contentRevision}`}
+                                        content={displayedContent}
+                                        images={cachedImages}
+                                        uploadPrefix={uploadPrefix}
+                                        readOnly/>
                                 </article>
                             </div>
                         </div>

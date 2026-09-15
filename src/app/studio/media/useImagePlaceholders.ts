@@ -1,27 +1,22 @@
 import { useEffect, useState } from 'react'
 import type { Image } from '@/generated/prisma/browser'
 import { getImage } from '@/app/studio/media/media-actions'
+import { extractContentImageIds } from '@/app/lib/plate/plate-types'
 
 export function useImagePlaceholders(opts: {
-    markdown: string | undefined,
+    markdown?: string,
+    content?: string,
     uploadPrefix: string,
 }) {
-    const { markdown = '', uploadPrefix } = opts
+    const { content, markdown = content ?? '', uploadPrefix } = opts
     const [ previewContent, setPreviewContent ] = useState('')
     const [ cachedImages, setCachedImages ] = useState<Map<number, Image>>(new Map())
 
-    const extractImageIds = (md: string): number[] => {
-        const ids = new Set<number>()
-        const re = /\[IMAGE:\s*(\d+)\s*\]/g
-        let m: RegExpExecArray | null
-        while ((m = re.exec(md)) !== null) ids.add(Number(m[1]))
-        return Array.from(ids)
-    }
     const escapeAlt = (s: string) => (s ?? '').replace(/]/g, '\\]')
 
     useEffect(() => {
         (async () => {
-            const ids = extractImageIds(markdown)
+            const ids = extractContentImageIds(markdown)
             if (ids.length === 0) {
                 setPreviewContent(markdown)
                 return

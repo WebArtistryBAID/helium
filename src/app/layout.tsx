@@ -24,9 +24,13 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <head><ThemeInit/></head>
         <body className="antialiased">
         <NextTopLoader showSpinner={false}/>
-        <ThemeProvider theme={{ modal: {
-            content: { inner: 'rounded-3xl' },
-            header: { base: 'rounded-t-3xl' },
+        <ThemeProvider props={{ modal: { dismissible: true } }} theme={{
+            modal: {
+                content: { inner: 'rounded-3xl shadow-none' },
+                header: {
+                    base: 'rounded-t-3xl',
+                    popup: 'border-b-0 px-6 pb-3 pt-6'
+                },
             footer: { base: 'rounded-b-3xl' }
         } }}>
             {children}

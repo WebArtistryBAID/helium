@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { EntityType } from '@/generated/prisma/browser'
@@ -22,7 +22,8 @@ const NewsListConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         const category = props.category?.trim() || undefined
 
         return {

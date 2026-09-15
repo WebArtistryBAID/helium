@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
@@ -108,7 +108,8 @@ const ImageGalleryConfig: ComponentConfig = {
             }
         ]
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedSlides: await Promise.all((props.slides ?? []).map(async (slide: {

@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedProjectsByCategoriesForInit } from '@/app/studio/editor/entity-actions'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import ProjectCategory from '@/app/lib/puck/components/ProjectCategory'
@@ -17,7 +17,8 @@ const ProjectCategoryConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async () => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedProjectsInit: convertDatesToStrings(await getPublishedProjectsByCategoriesForInit()),

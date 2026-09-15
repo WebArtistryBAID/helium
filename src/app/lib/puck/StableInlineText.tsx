@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { usePuck } from '@measured/puck'
+import { usePuck } from '@puckeditor/core'
 
 type StableInlineTextProps = {
     componentId: string

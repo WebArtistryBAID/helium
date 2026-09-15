@@ -1,0 +1,403 @@
+'use client'
+
+import { useEffect, useMemo, useState } from 'react'
+import { Plate, PlateContent, usePlateEditor, type PlateEditor } from 'platejs/react'
+import { isSlateText, KEYS, RangeApi, TextApi, type TRange } from 'platejs'
+import { MarkdownPlugin } from '@platejs/markdown'
+import { getCommentKey, getDraftCommentKey } from '@platejs/comment'
+import { CommentPlugin } from '@platejs/comment/react'
+import { TextAlignPlugin } from '@platejs/basic-styles/react'
+import { toggleBulletedList, toggleNumberedList } from '@platejs/list-classic'
+import { upsertLink } from '@platejs/link'
+import type { Image } from '@/generated/prisma/browser'
+import { Button, Modal, ModalBody, ModalFooter, ModalHeader, TextInput } from 'flowbite-react'
+import {
+    HiBars3,
+    HiBars3CenterLeft,
+    HiBars3BottomLeft,
+    HiBars3BottomRight,
+    HiBold,
+    HiChatBubbleLeftRight,
+    HiH1,
+    HiH2,
+    HiH3,
+    HiItalic,
+    HiLink,
+    HiListBullet,
+    HiNumberedList,
+    HiPhoto,
+    HiStrikethrough,
+    HiUnderline
+} from 'react-icons/hi2'
+import { HELIUM_PLATE_EDITOR_PLUGINS } from '@/app/lib/plate/plate-editor-config'
+import {
+    EMPTY_PLATE_VALUE,
+    isPlateValue,
+    serializePlateValue,
+    type HeliumPlateValue
+} from '@/app/lib/plate/plate-types'
+import { PlateCommentProvider, PlateMediaProvider } from '@/app/lib/plate/plate-elements'
+import MediaPicker from '@/app/studio/media/MediaPicker'
+import PlateCommentsPanel from '@/app/studio/editor/PlateCommentsPanel'
+import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
+
+function convertLegacyImagePlaceholders(value: HeliumPlateValue): HeliumPlateValue {
+    return value.map(node => {
+        const text = node.children.length === 1 && 'text' in node.children[0] ? node.children[0].text : null
+        const match = typeof text === 'string' ? text.match(/^\s*\[IMAGE:\s*(\d+)\s*]\s*$/) : null
+        if (match) {
+            return {
+                type: KEYS.img,
+                imageId: Number(match[1]),
+                url: '',
+                children: [ { text: '' } ]
+            }
+        }
+        return node
+    }) as HeliumPlateValue
+}
+
+function getInitialValue(content: string, editor: PlateEditor): {
+    converted: boolean
+    value: HeliumPlateValue
+} {
+    try {
+        const parsed: unknown = JSON.parse(content)
+        if (isPlateValue(parsed)) return { converted: false, value: parsed }
+    } catch {
+        // Existing content is converted from Markdown below.
+    }
+
+    if (content.trim().length === 0) {
+        return { converted: true, value: structuredClone(EMPTY_PLATE_VALUE) }
+    }
+    return {
+        converted: true,
+        value: convertLegacyImagePlaceholders(
+            editor.getApi(MarkdownPlugin).markdown.deserialize(content) as HeliumPlateValue
+        )
+    }
+}
+
+function QuotationMarksIcon() {
+    return <svg viewBox="0 0 24 24" fill="currentColor" className="h-4 w-4" aria-hidden="true">
+        <path
+            d="M5.4 6.5A3.4 3.4 0 0 0 2 9.9v1.7A3.4 3.4 0 0 0 5.4 15H7l-1.7 3.4h3.1l2.2-4.5V9.9a3.4 3.4 0 0 0-3.4-3.4H5.4Zm10.4 0a3.4 3.4 0 0 0-3.4 3.4v1.7a3.4 3.4 0 0 0 3.4 3.4h1.6l-1.7 3.4h3.1l2.2-4.5V9.9a3.4 3.4 0 0 0-3.4-3.4h-1.8Z"/>
+    </svg>
+}
+
+function CenterAlignmentIcon() {
+    return <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"
+                strokeLinecap="round" className="h-4 w-4" aria-hidden="true">
+        <path d="M4 6.75h16M7 12h10M4 17.25h16"/>
+    </svg>
+}
+
+function ToolbarButton({ children, highlighted = false, label, onClick }: {
+    children: React.ReactNode
+    highlighted?: boolean
+    label: string
+    onClick: () => void
+}) {
+    return <Button pill size="xs" color={highlighted ? 'blue' : 'alternative'} type="button"
+                   aria-label={label} title={label}
+                   onMouseDown={event => event.preventDefault()} onClick={onClick}>
+        {children}
+    </Button>
+}
+
+export default function PlateRichTextEditor({
+                                                content,
+                                                commentThreads = [],
+                                                canComment = false,
+                                                canDeleteComments = false,
+                                                documentKey,
+                                                images,
+                                                onCreateComment,
+                                                onDeleteComment,
+                                                onChange,
+                                                onReplyComment,
+                                                onSetCommentResolved,
+                                                readOnly = false,
+                                                uploadPrefix
+                                            }: {
+    content: string
+    commentThreads?: PuckCommentThread[]
+    canComment?: boolean
+    canDeleteComments?: boolean
+    documentKey: string
+    images: Map<number, Image>
+    onCreateComment?: (quotedText: string, body: string) => Promise<PuckCommentThread>
+    onDeleteComment?: (threadId: string) => Promise<void>
+    onChange?: (content: string) => void
+    onReplyComment?: (threadId: string, body: string) => Promise<void>
+    onSetCommentResolved?: (threadId: string, resolved: boolean) => Promise<void>
+    readOnly?: boolean
+    uploadPrefix: string
+}) {
+    const [ showLinkForm, setShowLinkForm ] = useState(false)
+    const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
+    const [ showComments, setShowComments ] = useState(false)
+    const [ activeThreadId, setActiveThreadId ] = useState<string | null>(null)
+    const [ pendingRange, setPendingRange ] = useState<TRange | null>(null)
+    const [ pendingQuote, setPendingQuote ] = useState<string | null>(null)
+    const [ linkUrl, setLinkUrl ] = useState('')
+    const editor = usePlateEditor({
+        id: documentKey,
+        plugins: HELIUM_PLATE_EDITOR_PLUGINS,
+        value: editor => getInitialValue(content, editor).value
+    }, [ documentKey, readOnly ? content : null ])
+    const initial = useMemo(() => getInitialValue(content, editor), [ content, editor ])
+    const unresolvedCommentIds = useMemo(() => new Set(commentThreads
+        .filter(thread => thread.resolvedAt == null)
+        .map(thread => thread.id)), [ commentThreads ])
+
+    useEffect(() => {
+        if (!readOnly && initial.converted && onChange) {
+            onChange(serializePlateValue(editor.children as HeliumPlateValue))
+        }
+    }, [ editor, initial.converted, onChange, readOnly ])
+
+    const toggleMark = (key: string) => {
+        editor.tf.toggleMark(key)
+        editor.tf.focus()
+    }
+    const toggleBlock = (key: string) => {
+        editor.tf.toggleBlock(key)
+        editor.tf.focus()
+    }
+    const setTextAlignment = (alignment: 'left' | 'center' | 'right' | 'justify') => {
+        editor.getTransforms(TextAlignPlugin).textAlign.setNodes(alignment)
+        editor.tf.focus()
+    }
+    const useSelectionForComment = (selection: TRange) => {
+        const range = structuredClone(selection) as TRange
+        setPendingRange(range)
+        setPendingQuote(editor.api.string(range))
+        setActiveThreadId(null)
+    }
+    const toggleComments = () => {
+        if (showComments) {
+            setShowComments(false)
+            setActiveThreadId(null)
+            setPendingRange(null)
+            setPendingQuote(null)
+            clearCommentSelection()
+            return
+        }
+        setActiveThreadId(null)
+        if (editor.selection && RangeApi.isExpanded(editor.selection)) {
+            useSelectionForComment(editor.selection)
+        } else {
+            setPendingRange(null)
+            setPendingQuote(null)
+        }
+        setShowComments(true)
+    }
+    const clearCommentSelection = () => {
+        editor.tf.deselect()
+        editor.tf.deselectDOM()
+    }
+
+    return <>
+        <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} allowUnpick={false}
+                     onPick={image => {
+                         if (image == null) return
+                         editor.tf.insertNodes({
+                             type: KEYS.img,
+                             imageId: image.id,
+                             url: `${uploadPrefix}/${image.sha1}.webp`,
+                             children: [ { text: '' } ]
+                         })
+                         setShowMediaLibrary(false)
+                         editor.tf.focus()
+                     }}/>
+        <Modal show={showLinkForm} size="md" popup onClose={() => setShowLinkForm(false)}>
+            <ModalHeader>添加链接</ModalHeader>
+            <ModalBody>
+                <TextInput value={linkUrl} placeholder="https://dreta.dev"
+                           onChange={event => setLinkUrl(event.currentTarget.value)}/>
+            </ModalBody>
+            <ModalFooter>
+                <Button pill color="blue" disabled={linkUrl.trim().length === 0} onClick={() => {
+                    upsertLink(editor, { url: linkUrl.trim() })
+                    setLinkUrl('')
+                    setShowLinkForm(false)
+                    editor.tf.focus()
+                }}>确认</Button>
+            </ModalFooter>
+        </Modal>
+
+        <PlateMediaProvider images={images} uploadPrefix={uploadPrefix}>
+            <PlateCommentProvider activeId={activeThreadId} unresolvedIds={unresolvedCommentIds}
+                                  onActivate={threadId => {
+                                      setActiveThreadId(threadId)
+                                      setPendingRange(null)
+                                      setPendingQuote(null)
+                                      setShowComments(true)
+                                  }}>
+                <div className={showComments && !readOnly
+                    ? 'grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]'
+                    : ''}>
+                    <Plate editor={editor} readOnly={readOnly}
+                           onSelectionChange={({ selection }) => {
+                               if (showComments && selection && RangeApi.isExpanded(selection)) {
+                                   useSelectionForComment(selection)
+                               }
+                           }}
+                           onValueChange={({ value }) => {
+                               onChange?.(serializePlateValue(value as HeliumPlateValue))
+                           }}>
+                        <div
+                            className={readOnly ? '' : 'flex h-[60rem] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white'}>
+                            {!readOnly && <div className="flex shrink-0 flex-wrap gap-2 p-3" role="toolbar"
+                                               aria-label="正文格式工具栏">
+                                <ToolbarButton label="正文" onClick={() => toggleBlock(KEYS.p)}>
+                                    <HiBars3CenterLeft className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="一级标题" onClick={() => toggleBlock(KEYS.h1)}>
+                                    <HiH1 className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="二级标题" onClick={() => toggleBlock(KEYS.h2)}>
+                                    <HiH2 className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="三级标题" onClick={() => toggleBlock(KEYS.h3)}>
+                                    <HiH3 className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="左对齐" onClick={() => setTextAlignment('left')}>
+                                    <HiBars3BottomLeft className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="居中对齐" onClick={() => setTextAlignment('center')}>
+                                    <CenterAlignmentIcon/>
+                                </ToolbarButton>
+                                <ToolbarButton label="右对齐" onClick={() => setTextAlignment('right')}>
+                                    <HiBars3BottomRight className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="两端对齐" onClick={() => setTextAlignment('justify')}>
+                                    <HiBars3 className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="粗体" onClick={() => toggleMark(KEYS.bold)}>
+                                    <HiBold className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="斜体" onClick={() => toggleMark(KEYS.italic)}>
+                                    <HiItalic className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="下划线" onClick={() => toggleMark(KEYS.underline)}>
+                                    <HiUnderline className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="删除线" onClick={() => toggleMark(KEYS.strikethrough)}>
+                                    <HiStrikethrough className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="引用" onClick={() => toggleBlock(KEYS.blockquote)}>
+                                    <QuotationMarksIcon/>
+                                </ToolbarButton>
+                                <ToolbarButton label="项目符号列表" onClick={() => {
+                                    toggleBulletedList(editor)
+                                    editor.tf.focus()
+                                }}><HiListBullet className="h-4 w-4" aria-hidden="true"/></ToolbarButton>
+                                <ToolbarButton label="编号列表" onClick={() => {
+                                    toggleNumberedList(editor)
+                                    editor.tf.focus()
+                                }}><HiNumberedList className="h-4 w-4" aria-hidden="true"/></ToolbarButton>
+                                <ToolbarButton label="添加链接" onClick={() => setShowLinkForm(true)}>
+                                    <HiLink className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                <ToolbarButton label="插入图片" onClick={() => setShowMediaLibrary(true)}>
+                                    <HiPhoto className="h-4 w-4" aria-hidden="true"/>
+                                </ToolbarButton>
+                                {canComment && <ToolbarButton
+                                    highlighted={unresolvedCommentIds.size > 0}
+                                    label={unresolvedCommentIds.size > 0
+                                        ? `评论, ${unresolvedCommentIds.size} 条未解决`
+                                        : '评论, 没有未解决评论'}
+                                    onClick={toggleComments}>
+                        <span className="flex items-center gap-1">
+                            <HiChatBubbleLeftRight className="h-4 w-4" aria-hidden="true"/>
+                            {unresolvedCommentIds.size > 0 &&
+                                <span aria-hidden="true">{unresolvedCommentIds.size}</span>}
+                        </span>
+                                </ToolbarButton>}
+                            </div>}
+                            <PlateContent
+                                readOnly={readOnly}
+                                aria-label={readOnly ? '正文预览' : '富文本正文编辑器'}
+                                placeholder={readOnly ? undefined : '输入正文...'}
+                                style={readOnly ? undefined : { boxShadow: 'none', outline: 'none' }}
+                                className={readOnly
+                                    ? 'flex min-h-0 flex-wrap content-start px-0 py-0 outline-none'
+                                    : 'flex min-h-0 flex-1 flex-wrap content-start overflow-y-auto px-5 py-4 text-gray-900 outline-none focus-visible:outline-none'}
+                            />
+                        </div>
+                    </Plate>
+                    {showComments && !readOnly && onCreateComment && onReplyComment && onSetCommentResolved &&
+                        <PlateCommentsPanel
+                            activeThreadId={activeThreadId}
+                            canComment={canComment}
+                            canDelete={canDeleteComments && onDeleteComment != null}
+                            pendingQuote={pendingQuote}
+                            threads={commentThreads}
+                            onClose={() => {
+                                setShowComments(false)
+                                setActiveThreadId(null)
+                                setPendingRange(null)
+                                setPendingQuote(null)
+                                clearCommentSelection()
+                            }}
+                            onCreate={async body => {
+                                if (!pendingRange || !pendingQuote) return
+                                const draftKey = getDraftCommentKey()
+                                editor.getTransforms(CommentPlugin).comment.setDraft({ at: pendingRange })
+                                let thread: PuckCommentThread
+                                try {
+                                    thread = await onCreateComment(pendingQuote, body)
+                                } catch (error) {
+                                    editor.tf.unsetNodes([ 'comment', draftKey ], {
+                                        at: [],
+                                        match: node => TextApi.isText(node) && node[draftKey] === true
+                                    })
+                                    throw error
+                                }
+                                try {
+                                    editor.tf.withoutNormalizing(() => {
+                                        editor.tf.setNodes({ [getCommentKey(thread.id)]: true }, {
+                                            at: [],
+                                            match: node => TextApi.isText(node) && node[draftKey] === true
+                                        })
+                                        editor.tf.unsetNodes(draftKey, {
+                                            at: [],
+                                            match: node => TextApi.isText(node) && node[draftKey] === true
+                                        })
+                                    })
+                                    setActiveThreadId(thread.id)
+                                    setPendingRange(null)
+                                    setPendingQuote(null)
+                                    clearCommentSelection()
+                                } catch (error) {
+                                    console.error('Failed to attach saved comment thread to Plate text:', error)
+                                    editor.tf.unsetNodes([ 'comment', draftKey ], {
+                                        at: [],
+                                        match: node => TextApi.isText(node) && node[draftKey] === true
+                                    })
+                                    setActiveThreadId(thread.id)
+                                    setPendingRange(null)
+                                    setPendingQuote(null)
+                                    clearCommentSelection()
+                                }
+                            }}
+                            onDelete={async threadId => {
+                                if (onDeleteComment == null) return
+                                await onDeleteComment(threadId)
+                                editor.getTransforms(CommentPlugin).comment.unsetMark({ id: threadId })
+                                if (activeThreadId === threadId) setActiveThreadId(null)
+                            }}
+                            onReply={onReplyComment}
+                            onSetResolved={async (threadId, resolved) => {
+                                await onSetCommentResolved(threadId, resolved)
+                                if (resolved) clearCommentSelection()
+                            }}
+                        />}
+                </div>
+            </PlateCommentProvider>
+        </PlateMediaProvider>
+    </>
+}

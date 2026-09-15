@@ -1,5 +1,5 @@
 import ButtonWidget from '@/app/lib/puck/components/ButtonWidget'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 const ButtonConfig: ComponentConfig = {
     label: '按钮',

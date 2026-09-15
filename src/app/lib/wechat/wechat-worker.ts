@@ -4,7 +4,6 @@ import os from 'node:os'
 import crypto from 'node:crypto'
 import { spawn } from 'node:child_process'
 import sharp from 'sharp'
-import { pkgUp } from 'pkg-up'
 import { EntityType, User, UserAuditLogType } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
 import { callFeishuAily } from '@/app/lib/feishu/feishu-aily'
@@ -17,6 +16,9 @@ import {
     NOTIFICATION_LITERAL,
     ENGLISH_TRANSLATION_LITERAL
 } from '@/app/lib/wechat/wechat-prompts'
+import { packageUp } from 'package-up'
+import { deserializeMarkdownToPlate } from '@/app/lib/plate/plate-markdown'
+import { serializePlateValue } from '@/app/lib/plate/plate-types'
 
 async function download(command: string, args: string[], cwd: string, signal: AbortSignal) {
     signal.throwIfAborted()
@@ -96,7 +98,7 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
     }
     try {
         await fs.mkdir(directory, { recursive: true })
-        const root = path.dirname(await pkgUp() ?? '')
+        const root = path.dirname(await packageUp() ?? '')
         await download(path.join(root, 'blobs', process.platform === 'darwin' ? 'downloader-macos' : 'downloader'), [link, directory, '--image=save'], directory, signal)
         signal.throwIfAborted()
         const folders = await fs.readdir(directory, { withFileTypes: true })
@@ -180,16 +182,18 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
                     for (const [file, id] of mapping) {
                         const escaped = file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                         const expression = new RegExp(`!\\[[^\\]]*\\]\\([^)]*${escaped}[^)]*\\)`, 'g')
-                        finalContentEN = finalContentEN.replace(expression, `[IMAGE: ${id}]`)
-                        finalContentZH = finalContentZH.replace(expression, `[IMAGE: ${id}]`)
+                        finalContentEN = finalContentEN.replace(expression, `![](helium-media://${id})`)
+                        finalContentZH = finalContentZH.replace(expression, `![](helium-media://${id})`)
                     }
+                    const plateContentEN = serializePlateValue(deserializeMarkdownToPlate(finalContentEN))
+                    const plateContentZH = serializePlateValue(deserializeMarkdownToPlate(finalContentZH))
                     const baseSlug = translated.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').split('-').slice(0, 8).join('-') || 'wechat-article'
                     let slug = baseSlug
                     if (await tx.contentEntity.findUnique({ where: { slug }, select: { id: true } })) slug = `${baseSlug}-${task.id}`
                     signal.throwIfAborted()
                     const post = await tx.contentEntity.create({ data: {
                         type: EntityType.post, titleDraftEN: translated.title, titleDraftZH: titleChinese,
-                        slug, contentDraftEN: finalContentEN, contentDraftZH: finalContentZH,
+                            slug, contentDraftEN: plateContentEN, contentDraftZH: plateContentZH,
                         coverImageDraftId: coverImageId, createdAt: date, creatorId: user.id
                     } })
                     postId = post.id

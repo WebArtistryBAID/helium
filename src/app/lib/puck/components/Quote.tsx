@@ -1,5 +1,5 @@
 import { Image } from '@/generated/prisma/browser'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { convertDatesToStrings } from '@/app/lib/data-types'
@@ -169,13 +169,16 @@ const QuoteConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => ({
-        props: {
-            ...props,
-            resolvedImage: props.image == null ? null : convertDatesToStrings(await getImage(parseInt(props.image))),
-            resolvedUploadPrefix: await getUploadServePath()
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
+        return {
+            props: {
+                ...props,
+                resolvedImage: props.image == null ? null : convertDatesToStrings(await getImage(parseInt(props.image))),
+                resolvedUploadPrefix: await getUploadServePath()
+            }
         }
-    }),
+    },
     defaultProps: {
         text: '我们会让校园成为师生的精神家园，让校园成为师生的学习中心，让校园成为师生的创新沃土，进而让孩子们能爱别人、帮助别人、尊重别人。',
         source: '北京中学校长 夏青峰'

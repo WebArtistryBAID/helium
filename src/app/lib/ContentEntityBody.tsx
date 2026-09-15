@@ -1,4 +1,7 @@
 import Markdown from 'react-markdown'
+import { PlateStatic } from 'platejs/static'
+import { createHeliumPlateStaticEditor } from '@/app/lib/plate/plate-static-config'
+import { isPlateValue, type HeliumPlateValue } from '@/app/lib/plate/plate-types'
 
 type ContentBlock =
     | { type: 'markdown', content: string }
@@ -6,9 +9,36 @@ type ContentBlock =
 
 export default function ContentEntityBody({ content, images, uploadPrefix }: {
     content: string
-    images: { id: number; altText: string | null; sha1: string }[]
+    images: { id: number; altText: string | null; height: number; sha1: string; width: number }[]
     uploadPrefix: string
 }) {
+    try {
+        const parsed: unknown = JSON.parse(content)
+        if (isPlateValue(parsed)) {
+            const imageMap = new Map(images.map(image => [ image.id, image ]))
+            const value = structuredClone(parsed) as HeliumPlateValue
+            const hydrateImages = (node: unknown) => {
+                if (node == null || typeof node !== 'object') return
+                const record = node as Record<string, unknown>
+                if (record.type === 'img' && typeof record.imageId === 'number') {
+                    const image = imageMap.get(record.imageId)
+                    if (image != null) {
+                        record.url = `${uploadPrefix}/${image.sha1}.webp`
+                        record.alt = image.altText ?? ''
+                        record.imageWidth = image.width
+                        record.imageHeight = image.height
+                    }
+                }
+                if (Array.isArray(record.children)) record.children.forEach(hydrateImages)
+            }
+            value.forEach(hydrateImages)
+            const editor = createHeliumPlateStaticEditor(value)
+            return <PlateStatic editor={editor} className="flex flex-wrap content-start"/>
+        }
+    } catch {
+        // Legacy Markdown is rendered below.
+    }
+
     const base = content
     const matches = Array.from(base.matchAll(/\[IMAGE:\s*(\d+)\s*\]/g))
     const imageMap = new Map(images.map(image => [String(image.id), image]))

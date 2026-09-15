@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { colorTypeField } from '@/app/lib/puck/custom-fields'
 import React from 'react'
 import { Property } from 'csstype'

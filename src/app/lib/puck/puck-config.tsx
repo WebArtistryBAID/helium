@@ -1,4 +1,4 @@
-import type { Config } from '@measured/puck'
+import type { Config } from '@puckeditor/core'
 import TopTextConfig from '@/app/lib/puck/components/TopText'
 import HighlightsConfig from '@/app/lib/puck/components/Highlights'
 import ContainerConfig from '@/app/lib/puck/components/ContainerConfig'

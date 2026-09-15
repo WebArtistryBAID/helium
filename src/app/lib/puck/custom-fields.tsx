@@ -1,5 +1,5 @@
 import MediaPickerPuck from '@/app/lib/puck/MediaPickerPuck'
-import { Field, ObjectField } from '@measured/puck'
+import { Field, ObjectField } from '@puckeditor/core'
 import ColorPickerPuck from '@/app/lib/puck/ColorPickerPuck'
 
 export const RESOLVED_IMAGE_TYPE: ObjectField = {

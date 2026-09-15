@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
@@ -35,7 +35,8 @@ const LatestNewsConfig: ComponentConfig = {
         otherNewsText: '其他新闻',
         readMoreText: '了解更多'
     },
-    resolveData: async () => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         const posts = convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post))
         return {
             props: {

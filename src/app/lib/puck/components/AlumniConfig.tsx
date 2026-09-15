@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Alumni from '@/app/lib/puck/components/Alumni'
@@ -56,7 +56,8 @@ const AlumniConfig: ComponentConfig = {
             }
         ]
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedAlumni: await Promise.all((props.alumni ?? []).map(async (alum: {

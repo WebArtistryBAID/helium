@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 function AnonymousQuote({ quote }: { quote: string }) {
     return <section className="relative container py-24 px-4 md:px-36 my-12 md:my-24 items-center">

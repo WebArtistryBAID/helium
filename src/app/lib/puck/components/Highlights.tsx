@@ -1,7 +1,7 @@
 import { Image } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import { imageTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { convertDatesToStrings } from '@/app/lib/data-types'
@@ -99,7 +99,8 @@ const HighlightsConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         // Resolve all images with getImage(id).
         const resolvedHighlights = await Promise.all(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any

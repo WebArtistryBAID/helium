@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 import Curriculum from '@/app/lib/puck/components/Curriculum'
 
 const CurriculumConfig: ComponentConfig = {
