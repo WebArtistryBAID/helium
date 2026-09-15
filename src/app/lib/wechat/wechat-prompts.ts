@@ -68,20 +68,20 @@ BA 大讲堂: BA Lectures
 中秋诗会: Zhongqiu Poem Festival
 大地课程: Nature Exploration
 语文 (指课程): Chinese Literature
-通用技术 (指课程): General Technology
-信息技术 (指课程): Information Technology
+通用技术 (指课程): General Technologies
+信息技术 (指课程): Information Technologies
 综合英语 (指课程): Integrated English
 文学与写作 (指课程): Literature
 整本书阅读 (指课程): Guided Reading
 戏剧 (指课程): Drama
-专题数学 (指课程): Selected Topics in Mathematics
-高阶数学 (指课程): Multivariable Calculus
+专题数学 (指课程): Integrated Mathematics
+高阶数学 (指课程): Advanced Mathematics
 高阶经济 (指课程): Advanced Economics
 高阶物理 (指课程): Advanced Physics
 沟通技能 (指课程): Communication Skills
 学术写作 (指课程): Academic Writing
 跨文化交际 (指课程): Intercultural Communications
-人文社科 (指课程): Social Studies Course Set (必须包含 Course Set)，注意禁止出现 AP European History、AP US History、Pre-AP World History、AP Human Geography 等历史类、政治类课程名称
+人文社科 (指课程): Humanities Course Set (必须包含 Course Set)，注意禁止出现 AP European History、AP US History、Pre-AP World History、AP Human Geography 等历史类、政治类课程名称
 EOT 经济竞赛 (指课程): Economics Olympiad Team
 植物知道生命的答案 (指课程): Plants Know the Truth of Life
 「丝绸之路」之跨学科探索 (指课程): Silk Road Exploration
