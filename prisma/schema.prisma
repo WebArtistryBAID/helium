@@ -123,6 +123,20 @@ model ContentEntity {
   updatedAt               DateTime        @updatedAt
   locks                   EntityLock[]
   commentThreads          CommentThread[]
+  yjsDocuments            YjsDocument[]
+}
+
+model YjsDocument {
+  name      String          @id
+  entityId  Int
+  entity    ContentEntity   @relation(fields: [entityId], references: [id], onDelete: Cascade)
+  language  ContentLanguage
+  state     Bytes
+  createdAt DateTime        @default(now())
+  updatedAt DateTime        @updatedAt
+
+  @@unique([entityId, language])
+  @@index([updatedAt])
 }
 
 model CommentThread {

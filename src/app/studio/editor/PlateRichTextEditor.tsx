@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { Plate, PlateContent, type PlateEditor, usePlateEditor } from 'platejs/react'
 import { KEYS, RangeApi, TextApi, type TRange } from 'platejs'
 import { MarkdownPlugin } from '@platejs/markdown'
@@ -9,6 +9,8 @@ import { CommentPlugin } from '@platejs/comment/react'
 import { TextAlignPlugin } from '@platejs/basic-styles/react'
 import { SuggestionPlugin } from '@platejs/suggestion/react'
 import { acceptSuggestion, rejectSuggestion } from '@platejs/suggestion'
+import { YjsPlugin } from '@platejs/yjs/react'
+import { CursorEditor, relativeRangeToSlateRange, type CursorState } from '@slate-yjs/core'
 import { toggleBulletedList, toggleNumberedList } from '@platejs/list-classic'
 import { upsertLink } from '@platejs/link'
 import type { Image } from '@/generated/prisma/browser'
@@ -46,6 +48,142 @@ import PlateCommentsPanel from '@/app/studio/editor/PlateCommentsPanel'
 import PlateSuggestionsPanel from '@/app/studio/editor/PlateSuggestionsPanel'
 import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
 import { collectPlateSuggestions, rejectAllPlateSuggestions } from '@/app/lib/plate/plate-suggestions'
+
+type CollaborationConfig = {
+    entityId: number
+    language: 'en' | 'zh'
+}
+
+export type PlateCollaborator = {
+    clientId: number
+    color: string
+    name: string
+    userId: string
+}
+
+type CursorData = {
+    color: string
+    name: string
+    userId: string
+}
+
+type RemoteCursorPosition = CursorData & {
+    caret: { height: number, left: number, top: number } | null
+    clientId: number
+    selections: { height: number, left: number, top: number, width: number }[]
+}
+
+type AwarenessLike = {
+    getStates: () => Map<number, Record<string, unknown>>
+    on: (event: 'change', listener: () => void) => void
+    off: (event: 'change', listener: () => void) => void
+}
+
+type CollaborationStatus = 'connected' | 'joining' | 'offline'
+
+type YjsProviderState = {
+    isConnected: boolean
+    isSynced: boolean
+    type: string
+}
+
+function cursorColor(userId: string): string {
+    const hash = Array.from(userId).reduce(
+        (value, character) => Math.imul(value ^ character.charCodeAt(0), 16_777_619) >>> 0,
+        2_166_136_261
+    )
+    return `hsl(${hash % 360} 72% 45%)`
+}
+
+function RemoteCursorOverlay({ editor, container, revision }: {
+    editor: PlateEditor
+    container: React.RefObject<HTMLDivElement | null>
+    revision: number
+}) {
+    const [ positions, setPositions ] = useState<RemoteCursorPosition[]>([])
+    const collaborativeEditor = editor as PlateEditor & CursorEditor<CursorData>
+
+    const updatePositions = useCallback(() => {
+        const containerElement = container.current
+        if (containerElement == null || !CursorEditor.isCursorEditor(collaborativeEditor)) {
+            setPositions([])
+            return
+        }
+        const containerRect = containerElement.getBoundingClientRect()
+        const next = Object.entries(CursorEditor.cursorStates(collaborativeEditor)).flatMap(([ id, state ]) => {
+            const cursorState = state as CursorState<CursorData>
+            if (cursorState.relativeSelection == null || cursorState.data == null) return []
+            const range = relativeRangeToSlateRange(
+                collaborativeEditor.sharedRoot,
+                collaborativeEditor,
+                cursorState.relativeSelection
+            )
+            if (range == null) return []
+            const domRange = editor.api.toDOMRange(range as TRange)
+            if (domRange == null) return []
+            const rectangles = Array.from(domRange.getClientRects())
+                .filter(rectangle => rectangle.width > 0 || rectangle.height > 0)
+            const finalRectangle = rectangles.at(-1) ?? domRange.getBoundingClientRect()
+            return [ {
+                clientId: Number(id),
+                ...cursorState.data,
+                caret: finalRectangle.height > 0 ? {
+                    height: finalRectangle.height,
+                    left: finalRectangle.right - containerRect.left,
+                    top: finalRectangle.top - containerRect.top
+                } : null,
+                selections: rectangles.map(rectangle => ({
+                    height: rectangle.height,
+                    left: rectangle.left - containerRect.left,
+                    top: rectangle.top - containerRect.top,
+                    width: rectangle.width
+                }))
+            } ]
+        })
+        setPositions(next)
+    }, [ collaborativeEditor, container, editor ])
+
+    useEffect(() => {
+        if (!CursorEditor.isCursorEditor(collaborativeEditor)) return
+        CursorEditor.on(collaborativeEditor, 'change', updatePositions)
+        window.addEventListener('resize', updatePositions)
+        container.current?.addEventListener('scroll', updatePositions, true)
+        return () => {
+            CursorEditor.off(collaborativeEditor, 'change', updatePositions)
+            window.removeEventListener('resize', updatePositions)
+            container.current?.removeEventListener('scroll', updatePositions, true)
+        }
+    }, [ collaborativeEditor, container, updatePositions ])
+
+    useLayoutEffect(() => updatePositions(), [ revision, updatePositions ])
+
+    return <div className="pointer-events-none absolute inset-0 z-20 overflow-hidden" aria-hidden="true">
+        {positions.map(position => <div key={position.clientId}>
+            {position.selections.map((selection, index) => <span key={index} className="absolute rounded-sm"
+                                                                 style={{
+                                                                     backgroundColor: position.color,
+                                                                     height: selection.height,
+                                                                     left: selection.left,
+                                                                     opacity: 0.2,
+                                                                     top: selection.top,
+                                                                     width: selection.width
+                                                                 }}/>)}
+            {position.caret != null && <>
+                <span className="absolute w-0.5" style={{
+                    backgroundColor: position.color,
+                    height: position.caret.height,
+                    left: position.caret.left,
+                    top: position.caret.top
+                }}/>
+                <span
+                    className="absolute max-w-40 -translate-y-full truncate rounded-lg px-2 py-1 text-xs font-medium text-white"
+                    style={{ backgroundColor: position.color, left: position.caret.left, top: position.caret.top }}>
+                    {position.name}
+                </span>
+            </>}
+        </div>)}
+    </div>
+}
 
 function convertLegacyImagePlaceholders(value: HeliumPlateValue): HeliumPlateValue {
     return value.map(node => {
@@ -114,6 +252,7 @@ function ToolbarButton({ children, highlighted = false, label, onClick }: {
 
 export default function PlateRichTextEditor({
                                                 content,
+                                                collaboration,
                                                 commentThreads = [],
                                                 canComment = false,
                                                 canDeleteComments = false,
@@ -124,12 +263,14 @@ export default function PlateRichTextEditor({
                                                 onCreateComment,
                                                 onDeleteComment,
                                                 onChange,
+                                                onCollaboratorsChange,
                                                 onReplyComment,
                                                 onSetCommentResolved,
                                                 readOnly = false,
                                                 uploadPrefix
                                             }: {
     content: string
+    collaboration?: CollaborationConfig
     commentThreads?: PuckCommentThread[]
     canComment?: boolean
     canDeleteComments?: boolean
@@ -140,6 +281,7 @@ export default function PlateRichTextEditor({
     onCreateComment?: (quotedText: string, body: string) => Promise<PuckCommentThread>
     onDeleteComment?: (threadId: string) => Promise<void>
     onChange?: (content: string) => void
+    onCollaboratorsChange?: (users: PlateCollaborator[]) => void
     onReplyComment?: (threadId: string, body: string) => Promise<void>
     onSetCommentResolved?: (threadId: string, resolved: boolean) => Promise<void>
     readOnly?: boolean
@@ -156,15 +298,84 @@ export default function PlateRichTextEditor({
     const [ pendingRange, setPendingRange ] = useState<TRange | null>(null)
     const [ pendingQuote, setPendingQuote ] = useState<string | null>(null)
     const [ linkUrl, setLinkUrl ] = useState('')
+    const [ collaborationStatus, setCollaborationStatus ] = useState<CollaborationStatus>('joining')
+    const editorContainerRef = useRef<HTMLDivElement>(null)
+    const collaborationUrl = process.env.NEXT_PUBLIC_HOCUSPOCUS_URL
+    const collaborationEntityId = collaboration?.entityId
+    const collaborationLanguage = collaboration?.language
+    const collaborationRoom = collaborationEntityId == null || collaborationLanguage == null
+        ? null
+        : `content-entity:${collaborationEntityId}:${collaborationLanguage}`
+    const collaborationEnabled = !readOnly && collaborationRoom != null && Boolean(collaborationUrl)
+    const plugins = useMemo(() => {
+        if (!collaborationEnabled || collaborationEntityId == null || collaborationLanguage == null ||
+            collaborationRoom == null || collaborationUrl == null) {
+            return HELIUM_PLATE_EDITOR_PLUGINS
+        }
+        return [
+            ...HELIUM_PLATE_EDITOR_PLUGINS,
+            YjsPlugin.configure({
+                options: {
+                    providers: [
+                        {
+                            type: 'indexeddb',
+                            options: { docName: `helium:${collaborationRoom}` }
+                        },
+                        {
+                            type: 'hocuspocus',
+                            options: {
+                                name: collaborationRoom,
+                                url: collaborationUrl,
+                                token: async () => {
+                                    const query = new URLSearchParams({
+                                        entityId: String(collaborationEntityId),
+                                        language: collaborationLanguage
+                                    })
+                                    const response = await fetch(`/api/collaboration/token?${query}`)
+                                    if (!response.ok) throw new Error('Unable to authorize collaboration')
+                                    const result = await response.json() as { token?: string }
+                                    if (result.token == null) throw new Error('Collaboration token is missing')
+                                    return result.token
+                                }
+                            }
+                        }
+                    ],
+                    cursors: {
+                        data: {
+                            name: currentUserName,
+                            color: cursorColor(currentUserId),
+                            userId: currentUserId
+                        }
+                    },
+                    onConnect: ({ type }) => {
+                        if (type === 'hocuspocus') setCollaborationStatus('joining')
+                    },
+                    onDisconnect: ({ type }) => {
+                        if (type === 'hocuspocus') setCollaborationStatus('offline')
+                    },
+                    onSyncChange: ({ isSynced, type }) => {
+                        if (type === 'hocuspocus') setCollaborationStatus(isSynced ? 'connected' : 'offline')
+                    },
+                    onError: ({ error, type }) => {
+                        if (type === 'hocuspocus') setCollaborationStatus('offline')
+                        console.error('Plate collaboration failed:', error)
+                    }
+                }
+            })
+        ]
+    }, [ collaborationEnabled, collaborationEntityId, collaborationLanguage, collaborationRoom, collaborationUrl,
+        currentUserId, currentUserName ])
     const editor = usePlateEditor({
         id: documentKey,
-        plugins: HELIUM_PLATE_EDITOR_PLUGINS,
+        plugins,
+        skipInitialization: collaborationEnabled,
         value: editor => {
             const value = getInitialValue(content, editor).value
             return readOnly ? rejectAllPlateSuggestions(value) : value
         }
-    }, [ documentKey, readOnly ? content : null ])
+    }, [ documentKey, plugins, readOnly ? content : null ])
     const initial = useMemo(() => getInitialValue(content, editor), [ content, editor ])
+    const collaborationInitialValue = useMemo(() => getInitialValue(content, editor).value, [ editor ])
     const unresolvedCommentIds = useMemo(() => new Set(commentThreads
         .filter(thread => thread.resolvedAt == null)
         .map(thread => thread.id)), [ commentThreads ])
@@ -176,6 +387,74 @@ export default function PlateRichTextEditor({
             onChange(serializePlateValue(editor.children as HeliumPlateValue))
         }
     }, [ editor, initial.converted, onChange, readOnly ])
+
+    useEffect(() => {
+        if (!collaborationEnabled || collaborationRoom == null) return
+        setCollaborationStatus('joining')
+        let awareness: AwarenessLike | undefined
+        let disposed = false
+        let ready = false
+        let cleaned = false
+        const publishCollaborators = () => {
+            if (awareness == null) return
+            const users = Array.from(awareness.getStates(), ([ clientId, state ]) => {
+                const data = state.data as { color?: unknown, name?: unknown, userId?: unknown } | undefined
+                return typeof data?.name === 'string' && data.name.length > 0 && typeof data.userId === 'string' &&
+                typeof data.color === 'string'
+                    ? { clientId, color: data.color, name: data.name, userId: data.userId }
+                    : null
+            }).filter((user): user is PlateCollaborator => user != null)
+            onCollaboratorsChange?.(users)
+        }
+        const cleanUp = () => {
+            if (cleaned) return
+            cleaned = true
+            awareness?.off('change', publishCollaborators)
+            onCollaboratorsChange?.([])
+            editor.getApi(YjsPlugin).yjs.destroy()
+        }
+        const initializationTimer = window.setTimeout(() => {
+            void editor.getApi(YjsPlugin).yjs.init({
+                id: collaborationRoom,
+                value: collaborationInitialValue
+            }).then(() => {
+                ready = true
+                if (disposed) {
+                    cleanUp()
+                    return
+                }
+                awareness = editor.getOption(YjsPlugin, 'awareness') as AwarenessLike | undefined
+                awareness?.on('change', publishCollaborators)
+                publishCollaborators()
+                const providers = editor.getOption(YjsPlugin, '_providers') as YjsProviderState[]
+                const remoteProvider = providers.find(provider => provider.type === 'hocuspocus')
+                setCollaborationStatus(remoteProvider?.isConnected && remoteProvider.isSynced
+                    ? 'connected'
+                    : 'offline')
+            }).catch(error => {
+                if (disposed) return
+                console.error('Unable to initialize Plate collaboration:', error)
+            })
+        }, 0)
+        return () => {
+            disposed = true
+            window.clearTimeout(initializationTimer)
+            if (ready) cleanUp()
+        }
+    }, [ collaborationEnabled, collaborationInitialValue, collaborationRoom, editor, onCollaboratorsChange ])
+
+    useEffect(() => {
+        if (!collaborationEnabled) return
+        const handleOffline = () => setCollaborationStatus('offline')
+        const handleOnline = () => setCollaborationStatus('joining')
+        window.addEventListener('offline', handleOffline)
+        window.addEventListener('online', handleOnline)
+        if (!window.navigator.onLine) handleOffline()
+        return () => {
+            window.removeEventListener('offline', handleOffline)
+            window.removeEventListener('online', handleOnline)
+        }
+    }, [ collaborationEnabled ])
 
     useEffect(() => {
         editor.setOption(SuggestionPlugin, 'currentUserId', currentUserId)
@@ -294,8 +573,8 @@ export default function PlateRichTextEditor({
                                    setSuggestionRevision(revision => revision + 1)
                                    onChange?.(serializePlateValue(value as HeliumPlateValue))
                                }}>
-                            <div
-                                className={readOnly ? '' : 'flex h-[50rem] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white'}>
+                            <div ref={editorContainerRef}
+                                 className={readOnly ? '' : 'relative flex h-[50rem] flex-col overflow-hidden rounded-3xl border border-gray-200 bg-white'}>
                                 {!readOnly && <div className="flex shrink-0 flex-wrap gap-2 p-3" role="toolbar"
                                                    aria-label="正文格式工具栏">
                                     <ToolbarButton label="正文" onClick={() => toggleBlock(KEYS.p)}>
@@ -403,6 +682,17 @@ export default function PlateRichTextEditor({
                                         ? 'flex min-h-0 flex-wrap content-start px-0 py-0 outline-none'
                                         : 'flex min-h-0 flex-1 flex-wrap content-start overflow-y-auto px-5 py-4 text-gray-900 outline-none focus-visible:outline-none'}
                                 />
+                                {collaborationEnabled && <RemoteCursorOverlay editor={editor}
+                                                                              container={editorContainerRef}
+                                                                              revision={suggestionRevision}/>}
+                                {collaborationEnabled && collaborationStatus !== 'connected' &&
+                                    <div
+                                        className="absolute inset-0 z-30 flex items-center justify-center rounded-3xl backdrop-blur-lg bg-gray-100/50 px-6 text-center text-gray-700"
+                                        role="status" aria-live="polite">
+                                        {collaborationStatus === 'joining'
+                                            ? '正在加入内容编辑器'
+                                            : '无法连接到服务器'}
+                                    </div>}
                             </div>
                         </Plate>
                     </PlateSuggestionProvider>

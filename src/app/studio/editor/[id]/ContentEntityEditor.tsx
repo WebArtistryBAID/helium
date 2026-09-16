@@ -14,7 +14,8 @@ import {
     TabItem,
     Tabs,
     TabsRef,
-    TextInput
+    TextInput,
+    Tooltip
 } from 'flowbite-react'
 import {
     HiArrowLeft, HiArrowsRightLeft,
@@ -31,13 +32,12 @@ import {
 } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import PlateRichTextEditor from '@/app/studio/editor/PlateRichTextEditor'
+import PlateRichTextEditor, { type PlateCollaborator } from '@/app/studio/editor/PlateRichTextEditor'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
-import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
 import MediaPicker from '@/app/studio/media/MediaPicker'
-import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { getContentEntityURI, HydratedContentEntity } from '@/app/lib/data-types'
@@ -55,6 +55,7 @@ import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
 import {
     createPlateCommentThread,
     deletePlateCommentThread,
+    getPlateCommentThreads,
     replyToPlateCommentThread,
     setPlateCommentThreadResolved
 } from '@/app/studio/editor/comment-actions'
@@ -62,16 +63,14 @@ import { hasPlateSuggestions } from '@/app/lib/plate/plate-types'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
-export default function ContentEntityEditor({ init, initialCommentThreads, user, lockToken, uploadPrefix, host }: {
+export default function ContentEntityEditor({ init, initialCommentThreads, user, uploadPrefix, host }: {
     init: HydratedContentEntity,
     initialCommentThreads: PuckCommentThread[],
     user: User,
-    lockToken: string,
     uploadPrefix: string,
     host: string
 }) {
     const [ loadingAdditional, setLoadingAdditional ] = useState(false)
-    const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
     const [ showTitleForm, setShowTitleForm ] = useState(false)
     const [ showShortContentForm, setShowShortContentForm ] = useState(false)
@@ -86,7 +85,13 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     const [ languageComparisonMode, setLanguageComparisonMode ] = useState(false)
     const [ commentThreads, setCommentThreads ] = useState(initialCommentThreads)
     const [ activeTab, setActiveTab ] = useState(0)
+    const [ tabListElement, setTabListElement ] = useState<HTMLElement | null>(null)
+    const [ collaboratorsByLanguage, setCollaboratorsByLanguage ] = useState<{
+        en: PlateCollaborator[]
+        zh: PlateCollaborator[]
+    }>({ en: [], zh: [] })
     const tabsRef = useRef<TabsRef>(null)
+    const tabsContainerRef = useRef<HTMLDivElement>(null)
     const router = useRouter()
     const canWrite = user.roles.includes(Role.writer)
     const canModerate = user.roles.includes(Role.editor)
@@ -121,6 +126,23 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
         return () => {
             window.removeEventListener('hashchange', handleHashChange)
         }
+    }, [])
+
+    useEffect(() => {
+        if (activeTab !== 0) return
+        const refreshComments = async () => {
+            try {
+                setCommentThreads(await getPlateCommentThreads(init.id))
+            } catch (error) {
+                console.error('Failed to refresh collaborative comments:', error)
+            }
+        }
+        const interval = window.setInterval(() => void refreshComments(), 5000)
+        return () => window.clearInterval(interval)
+    }, [ activeTab, init.id ])
+
+    useEffect(() => {
+        setTabListElement(tabsContainerRef.current?.querySelector<HTMLElement>('[role="tablist"]') ?? null)
     }, [])
 
     // = Switch language
@@ -185,23 +207,14 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     useSaveShortcut(true, guardedSave)
 
     useEffect(() => {
-        if (!canWrite || showLockBroken) return
+        if (!canWrite) return
 
         const interval = window.setInterval(() => {
             if (hasChanges && !loading) void guardedSave()
         }, AUTO_SAVE_INTERVAL_MS)
 
         return () => window.clearInterval(interval)
-    }, [ canWrite, guardedSave, hasChanges, loading, showLockBroken ])
-
-    // = Locking
-    useEntityLock({
-        entityType: init.type,
-        entityId: post.id,
-        token: lockToken,
-        hasChanges,
-        onLockLost: () => setShowLockBroken(true)
-    })
+    }, [ canWrite, guardedSave, hasChanges, loading ])
 
     const isPublished = post.contentPublishedEN === post.contentDraftEN &&
         post.contentPublishedZH === post.contentDraftZH
@@ -219,6 +232,16 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
     const hasUnresolvedFeedback = commentThreads.some(thread => thread.resolvedAt == null) ||
         hasPlateSuggestions(post.contentDraftEN) || hasPlateSuggestions(post.contentDraftZH)
+    const visibleCollaborators = (languageComparisonMode
+        ? [ ...collaboratorsByLanguage.zh, ...collaboratorsByLanguage.en ]
+        : collaboratorsByLanguage[commentLanguage])
+
+    const updateChineseCollaborators = useCallback((users: PlateCollaborator[]) => {
+        setCollaboratorsByLanguage(current => ({ ...current, zh: users }))
+    }, [])
+    const updateEnglishCollaborators = useCallback((users: PlateCollaborator[]) => {
+        setCollaboratorsByLanguage(current => ({ ...current, en: users }))
+    }, [])
 
     async function createTextComment(language: ContentLanguage, quotedText: string,
                                      body: string): Promise<PuckCommentThread> {
@@ -261,6 +284,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
         return <PlateRichTextEditor
             documentKey={`${post.id}-${english ? 'en' : 'zh'}-${contentRevision}`}
             content={content}
+            collaboration={canWrite ? { entityId: post.id, language } : undefined}
             commentThreads={languageComments}
             canComment={canWrite}
             canDeleteComments={canDeleteComments}
@@ -273,6 +297,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
             onDeleteComment={deleteTextComment}
             onReplyComment={replyToTextComment}
             onSetCommentResolved={setTextCommentResolved}
+            onCollaboratorsChange={english ? updateEnglishCollaborators : updateChineseCollaborators}
             onChange={updatedContent => {
                 if (!canWrite) {
                     showPermissionDenied()
@@ -461,7 +486,6 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
         </Modal>
 
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
-        <LockBrokenPrompt show={showLockBroken} returnUri="/studio"/>
         <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} allowUnpick={false}
                      onPick={image => {
                          if (!canWrite) {
@@ -522,7 +546,8 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                 </div>
             </header>
 
-            <Tabs aria-label="文章编辑器选项卡" variant="default" ref={tabsRef}
+            <div ref={tabsContainerRef}>
+                <Tabs aria-label="文章编辑器选项卡" variant="default" ref={tabsRef}
                   onActiveTabChange={tab => {
                       setActiveTab(tab)
                       if (tab !== 0) setLanguageComparisonMode(false)
@@ -837,7 +862,23 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                         }}/>
                     </div>
                 </TabItem>
-            </Tabs>
+                </Tabs>
+                {tabListElement != null && activeTab === 0 && visibleCollaborators.length > 0 &&
+                    createPortal(<div className="ml-auto flex items-center -space-x-2 pl-3" aria-label="当前协作用户">
+                        {visibleCollaborators.map(collaborator => <Tooltip
+                            key={collaborator.clientId}
+                            content={collaborator.name}
+                            placement="top">
+            <span
+                tabIndex={0}
+                aria-label={collaborator.name}
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-white text-base font-semibold text-white"
+                style={{ backgroundColor: collaborator.color }}>
+                {Array.from(collaborator.name)[0]}
+            </span>
+                        </Tooltip>)}
+                    </div>, tabListElement)}
+            </div>
         </div>
     </>
 }

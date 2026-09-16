@@ -20,22 +20,44 @@ To run in development:
 
 ## Environment Variables
 
-| Name                      | Description                                                                                                                                                                         |
-|---------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `DATABASE_URI`            | The database URI to use. PostgreSQL is required.                                                                                                                                    |
-| `JWT_SECRET`              | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.                                                                                                        |
-| `HOST`                    | The location where this service is hosted. No trailing slashes.                                                                                                                     |
-| `UPLOAD_PATH`             | The directory where uploaded files are stored. In development, this is `public/uploads`.                                                                                            |
-| `UPLOAD_SERVE_PATH`       | The path where uploaded files are served. In development, this is `uploads`.                                                                                                        |
-| `CRON_KEY`                | Secret key required by cron-only API endpoints. Generate one with `openssl rand -hex 32`.                                                                                           |
-| `ONELOGIN_HOST`           | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                                                                     |
-| `ONELOGIN_CLIENT_ID`      | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                                                                                |
-| `ONELOGIN_CLIENT_SECRET`  | OneLogin client secret.                                                                                                                                                             |
-| `FEISHU_CLIENT_ID`        | Feishu app used for approval notifications. Starts with `cli_`.                                                                                                                     |
-| `FEISHU_CLIENT_SECRET`    | Feishu app used for approval notifications.                                                                                                                                         |
-| `FEISHU_AI_CLIENT_ID`     | Another Feishu app used for translating and sanitizing WeChat imports. Starts with `cli_`.                                                                                          |
-| `FEISHU_AI_CLIENT_SECRET` | Another Feishu app used for translating and sanitizing WeChat imports.                                                                                                              |
-| `FEISHU_AILY_AGENT_ID`    | Another Feishu app used for translating and sanitizing WeChat imports. You must create an agent and paste the agent ID here. Starts with `agent_`. It's in the browser address bar. |
+| Name                         | Description                                                                                                                                                                         |
+|------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DATABASE_URI`               | The database URI to use. PostgreSQL is required.                                                                                                                                    |
+| `JWT_SECRET`                 | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.                                                                                                        |
+| `HOST`                       | The location where this service is hosted. No trailing slashes.                                                                                                                     |
+| `UPLOAD_PATH`                | The directory where uploaded files are stored. In development, this is `public/uploads`.                                                                                            |
+| `UPLOAD_SERVE_PATH`          | The path where uploaded files are served. In development, this is `uploads`.                                                                                                        |
+| `CRON_KEY`                   | Secret key required by cron-only API endpoints. Generate one with `openssl rand -hex 32`.                                                                                           |
+| `ONELOGIN_HOST`              | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                                                                     |
+| `ONELOGIN_CLIENT_ID`         | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                                                                                |
+| `ONELOGIN_CLIENT_SECRET`     | OneLogin client secret.                                                                                                                                                             |
+| `FEISHU_CLIENT_ID`           | Feishu app used for approval notifications. Starts with `cli_`.                                                                                                                     |
+| `FEISHU_CLIENT_SECRET`       | Feishu app used for approval notifications.                                                                                                                                         |
+| `FEISHU_AI_CLIENT_ID`        | Another Feishu app used for translating and sanitizing WeChat imports. Starts with `cli_`.                                                                                          |
+| `FEISHU_AI_CLIENT_SECRET`    | Another Feishu app used for translating and sanitizing WeChat imports.                                                                                                              |
+| `FEISHU_AILY_AGENT_ID`       | Another Feishu app used for translating and sanitizing WeChat imports. You must create an agent and paste the agent ID here. Starts with `agent_`. It's in the browser address bar. |
+| `HOCUSPOCUS_PORT`            | Local port for the Plate collaboration server. Defaults to `1234`.                                                                                                                  |
+| `NEXT_PUBLIC_HOCUSPOCUS_URL` | Browser WebSocket URL for Plate collaboration, such as `ws://192.168.1.20/collaboration/`. Set this before running `npm run build`.                                                 |
+
+## Plate collaboration
+
+`npm run start` launches Next.js and Hocuspocus together. Apply
+`prisma/manual/2026-09-16-yjs-documents.sql` to PostgreSQL before starting the collaboration server.
+
+Keep Hocuspocus bound to `127.0.0.1` and proxy its WebSocket endpoint through Nginx:
+
+```nginx
+location /collaboration/ {
+    proxy_pass http://127.0.0.1:1234/;
+    proxy_http_version 1.1;
+    proxy_set_header Upgrade $http_upgrade;
+    proxy_set_header Connection "upgrade";
+    proxy_set_header Host $host;
+    proxy_read_timeout 3600s;
+    proxy_send_timeout 3600s;
+    proxy_buffering off;
+}
+```
 
 ## Backups
 
