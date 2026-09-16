@@ -5,19 +5,24 @@ import NextTopLoader from 'nextjs-toploader'
 import { ThemeInit } from '../../.flowbite-react/init'
 import { cookies, headers } from 'next/headers'
 import { ThemeProvider } from 'flowbite-react'
+import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 
-export const metadata: Metadata = {
-    title: 'Beijing Academy International Division',
-    description: 'Beijing Academy International Division (BAID) is a CIS-member international high school program in Beijing offering AP and Cambridge curricula.'
+async function getRequestLocale(): Promise<'en' | 'zh'> {
+    const pathname = (await headers()).get('X-Invoke-Path') || '/'
+    return pathname.startsWith('/zh') || (await cookies()).get('lang')?.value === 'zh' ? 'zh' : 'en'
+}
+
+export async function generateMetadata(): Promise<Metadata> {
+    const locale = await getRequestLocale()
+    const websiteMetadata = await getPublishedWebsiteMetadata()
+    return {
+        title: websiteMetadata[locale].title,
+        description: websiteMetadata[locale].description
+    }
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-    const pathname = (await headers()).get('X-Invoke-Path') || '/'
-    const locale =
-        pathname.startsWith('/zh') ||
-        (await cookies()).get('lang')?.value === 'zh'
-            ? 'zh'
-            : 'en'
+    const locale = await getRequestLocale()
 
     return (
         <html lang={locale} suppressHydrationWarning>
