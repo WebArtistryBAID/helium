@@ -62,6 +62,28 @@ export function isSerializedPlateValue(value: string): boolean {
     }
 }
 
+export function hasPlateSuggestions(value: string | HeliumPlateValue): boolean {
+    let parsed: unknown = value
+    if (typeof value === 'string') {
+        try {
+            parsed = JSON.parse(value)
+        } catch {
+            return false
+        }
+    }
+
+    function visit(node: unknown): boolean {
+        if (node == null || typeof node !== 'object') return false
+        if (Array.isArray(node)) return node.some(visit)
+
+        const record = node as Record<string, unknown>
+        if (Object.keys(record).some(key => key.startsWith(`${KEYS.suggestion}_`))) return true
+        return Array.isArray(record.children) && record.children.some(visit)
+    }
+
+    return visit(parsed)
+}
+
 export function extractContentImageIds(content: string): number[] {
     const ids = new Set<number>()
     for (const match of content.matchAll(/\[IMAGE:\s*(\d+)\s*]/g)) ids.add(Number(match[1]))

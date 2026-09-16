@@ -58,6 +58,7 @@ import {
     replyToPlateCommentThread,
     setPlateCommentThreadResolved
 } from '@/app/studio/editor/comment-actions'
+import { hasPlateSuggestions } from '@/app/lib/plate/plate-types'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
@@ -210,6 +211,8 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     const { cachedImages } = useImagePlaceholders({ content: displayedContent, uploadPrefix })
     const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
     const displayedCommentThreads = commentThreads.filter(thread => thread.language === commentLanguage)
+    const hasUnresolvedFeedback = commentThreads.some(thread => thread.resolvedAt == null) ||
+        hasPlateSuggestions(post.contentDraftEN) || hasPlateSuggestions(post.contentDraftZH)
 
     async function createTextComment(quotedText: string, body: string): Promise<PuckCommentThread> {
         const thread = await createPlateCommentThread({
@@ -795,7 +798,8 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                 </TabItem>
                 <TabItem title="审核与发布" icon={HiCloudUpload}>
                     <div className="mt-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <ApprovalProcess entityType={init.type} entityId={post.id} entity={post} doAlign={async () => {
+                        <ApprovalProcess entityType={init.type} entityId={post.id} entity={post}
+                                         hasUnresolvedFeedback={hasUnresolvedFeedback} doAlign={async () => {
                             await alignContentEntity(post.id)
                             await refresh()
                         }}/>

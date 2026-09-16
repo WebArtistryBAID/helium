@@ -20,5 +20,6 @@ export type WeChatTask = {
 export enum AlignEntityResponse {
     success = 'success',
     insufficientApprovals = 'insufficientApprovals',
+    unresolvedFeedback = 'unresolvedFeedback',
     notFound = 'notFound'
 }

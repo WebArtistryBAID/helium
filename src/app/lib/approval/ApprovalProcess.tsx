@@ -31,11 +31,15 @@ import { HydratedContentEntity, isAligned } from '@/app/lib/data-types'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 import ApprovalNotificationDialog from '@/app/lib/approval/ApprovalNotificationDialog'
 
-export default function ApprovalProcess({ entityType, entityId, entity, doAlign, showPageNavigation = true }: {
+export default function ApprovalProcess({
+                                            entityType, entityId, entity, doAlign, hasUnresolvedFeedback = false,
+                                            showPageNavigation = true
+                                        }: {
     entityType: EntityType,
     entityId: number,
     entity: HydratedContentEntity,
     doAlign: () => Promise<void>,
+    hasUnresolvedFeedback?: boolean,
     showPageNavigation?: boolean
 }) {
     const [ user, setUser ] = useState<User | null>(null)
@@ -265,10 +269,14 @@ export default function ApprovalProcess({ entityType, entityId, entity, doAlign,
                         </If>
                         <If condition={approvalsNames.editor.length >= (approvalsThreshold?.editor ?? 1) && approvalsNames.admin.length >= (approvalsThreshold?.admin ?? 1) &&
                             !isAligned(entity)}>
-                            <p className="mb-3">内容已审核完成，可以发表。</p>
+                            <p className="mb-3">{hasUnresolvedFeedback
+                                ? '有尚未解决的评论或建议，暂无法发表。'
+                                : '内容已审核完成，可以发表。'}</p>
                             <If condition={canApproveAsAdmin}>
-                                <Button disabled={loading} pill color="blue"
+                                <Button disabled={loading || hasUnresolvedFeedback} pill
+                                        color={hasUnresolvedFeedback ? 'gray' : 'blue'}
                                         onClick={async () => {
+                                            if (hasUnresolvedFeedback) return
                                             if (!canApproveAsAdmin) {
                                                 showPermissionDenied()
                                                 return

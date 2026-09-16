@@ -1,6 +1,6 @@
 'use server'
 
-import { EntityType, Role, UserAuditLogType } from '@/generated/prisma/client'
+import { CommentAnchorType, EntityType, Role, UserAuditLogType } from '@/generated/prisma/client'
 import {
     getContentEntityURI,
     HYDRATED_CONTENT_ENTITY_SELECT,
@@ -18,7 +18,7 @@ import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import { WEBSITE_METADATA_SLUG } from '@/app/lib/metadata/website-metadata-types'
 import { reconcilePuckCommentThreads } from '@/app/lib/puck/puck-comment-storage'
 import { sendPublicationNotification } from '@/app/lib/feishu/feishu-approval'
-import { isSerializedPlateValue, serializePlateValue } from '@/app/lib/plate/plate-types'
+import { hasPlateSuggestions, isSerializedPlateValue, serializePlateValue } from '@/app/lib/plate/plate-types'
 import { deserializeMarkdownToPlate } from '@/app/lib/plate/plate-markdown'
 
 const PAGE_SIZE = 24
@@ -467,6 +467,19 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
     })
     if (!thresholds.adminOk || !thresholds.editorOk) {
         return AlignEntityResponse.insufficientApprovals
+    }
+    if (post.type !== EntityType.page) {
+        const unresolvedCommentCount = await prisma.commentThread.count({
+            where: {
+                entityId: id,
+                anchorType: CommentAnchorType.text,
+                resolvedAt: null
+            }
+        })
+        if (unresolvedCommentCount > 0 || hasPlateSuggestions(post.contentDraftEN) ||
+            hasPlateSuggestions(post.contentDraftZH)) {
+            return AlignEntityResponse.unresolvedFeedback
+        }
     }
     await prisma.contentEntity.update({
         where: { id },
