@@ -38,6 +38,13 @@ export const LinkStatic = (props: SlateElementProps<TLinkElement>) =>
     <SlateElement {...props} as="a" attributes={{ ...props.attributes, href: props.element.url }}
                   className="text-blue-600 underline decoration-blue-300 underline-offset-2"/>
 
+function isImageNode(candidate: unknown): candidate is TImageElement & {
+    imageHeight?: number
+    imageWidth?: number
+} {
+    return candidate != null && typeof candidate === 'object' && 'type' in candidate && candidate.type === 'img'
+}
+
 export const ImageStatic = ({ children, ...props }: SlateElementProps<TImageElement & {
     alt?: string
     imageHeight?: number
@@ -46,30 +53,36 @@ export const ImageStatic = ({ children, ...props }: SlateElementProps<TImageElem
     const index = props.path[0]
     const previous = typeof index === 'number' ? props.editor.children[index - 1] : null
     const next = typeof index === 'number' ? props.editor.children[index + 1] : null
-    const grouped = (previous != null && 'type' in previous && previous.type === 'img') ||
-        (next != null && 'type' in next && next.type === 'img')
+    const grouped = isImageNode(previous) || isImageNode(next)
     let firstImageIndex = typeof index === 'number' ? index : 0
     while (firstImageIndex > 0) {
         const candidate = props.editor.children[firstImageIndex - 1]
-        if (!('type' in candidate) || candidate.type !== 'img') break
+        if (!isImageNode(candidate)) break
         firstImageIndex--
     }
     const firstImageNode = props.editor.children[firstImageIndex]
-    const groupAspectRatio = firstImageNode != null && 'imageWidth' in firstImageNode &&
-    'imageHeight' in firstImageNode && typeof firstImageNode.imageWidth === 'number' &&
+    const groupAspectRatio = isImageNode(firstImageNode) && typeof firstImageNode.imageWidth === 'number' &&
     typeof firstImageNode.imageHeight === 'number' && firstImageNode.imageWidth > 0 &&
     firstImageNode.imageHeight > 0
         ? `${firstImageNode.imageWidth} / ${firstImageNode.imageHeight}`
         : undefined
+    const imageStyle = {
+        borderRadius: '0.75rem',
+        ...(grouped && groupAspectRatio ? { aspectRatio: groupAspectRatio } : {})
+    }
 
     return <SlateElement {...props} as="figure"
-                         className={`box-border align-top ${
-                             grouped ? 'my-2 block w-full sm:w-1/2 sm:px-2' : 'my-5 block w-full'
+                         className={`box-border rounded-xl align-top ${
+                             grouped
+                                 ? 'my-2 block w-full sm:w-1/2 sm:px-2'
+                                 : 'mx-auto my-5 block w-fit max-w-full overflow-hidden'
                          }`}>
         <img src={props.element.url} alt={props.element.alt ?? ''} loading="lazy"
-             style={grouped && groupAspectRatio ? { aspectRatio: groupAspectRatio } : undefined}
-             className={`!m-0 mx-auto w-full !rounded-xl ${
-                 grouped ? 'max-h-[28rem] !object-cover' : 'max-h-[36rem] object-contain'
+             style={imageStyle}
+             className={`!m-0 mx-auto ${
+                 grouped
+                     ? 'w-full max-h-[28rem] !object-cover'
+                     : 'block h-auto max-h-[36rem] max-w-full object-contain'
              }`}/>
         {children}
     </SlateElement>

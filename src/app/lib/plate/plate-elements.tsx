@@ -136,38 +136,51 @@ export const LinkElement = (props: PlateElementProps<TLinkElement>) =>
     <PlateElement {...props} as="a" attributes={{ ...props.attributes, href: props.element.url }}
                   className="text-blue-600 underline decoration-blue-300 underline-offset-2"/>
 
+function isImageNode(candidate: unknown): candidate is TImageElement & { imageId?: number } {
+    return candidate != null && typeof candidate === 'object' && 'type' in candidate && candidate.type === 'img'
+}
+
 export const ImageElement = ({ children, ...props }: PlateElementProps<TImageElement & { imageId?: number }>) => {
     const { images, uploadPrefix } = useContext(PlateMediaContext)
     const editor = useEditorRef()
-    const path = usePath()
+    usePath()
     const selected = useSelected()
     const readOnly = useEditorReadOnly()
     const imageId = props.element.imageId
     const image = imageId == null ? null : images.get(imageId)
     const src = image == null ? props.element.url : `${uploadPrefix}/${image.sha1}.webp`
     const alt = image?.altText ?? ''
-    const index = path[0]
+    // usePath can briefly point at the previous position while Slate removes or moves a sibling.
+    // Resolve this element again so layout is always based on its current neighbours.
+    const currentPath = editor.api.findPath(props.element)
+    const index = currentPath?.length === 1 ? currentPath[0] : undefined
     const previous = typeof index === 'number' ? editor.children[index - 1] : null
     const next = typeof index === 'number' ? editor.children[index + 1] : null
-    const grouped = (previous != null && 'type' in previous && previous.type === 'img') ||
-        (next != null && 'type' in next && next.type === 'img')
+    const grouped = isImageNode(previous) || isImageNode(next)
     let firstImageIndex = typeof index === 'number' ? index : 0
     while (firstImageIndex > 0) {
         const candidate = editor.children[firstImageIndex - 1]
-        if (!('type' in candidate) || candidate.type !== 'img') break
+        if (!isImageNode(candidate)) break
         firstImageIndex--
     }
     const firstImageNode = editor.children[firstImageIndex]
-    const firstImageId = firstImageNode != null && 'imageId' in firstImageNode &&
-    typeof firstImageNode.imageId === 'number' ? firstImageNode.imageId : null
+    const firstImageId = isImageNode(firstImageNode) && typeof firstImageNode.imageId === 'number'
+        ? firstImageNode.imageId
+        : null
     const firstImage = firstImageId == null ? null : images.get(firstImageId)
     const groupAspectRatio = firstImage != null && firstImage.width > 0 && firstImage.height > 0
         ? `${firstImage.width} / ${firstImage.height}`
         : undefined
+    const imageStyle = {
+        borderRadius: '0.75rem',
+        ...(grouped && groupAspectRatio ? { aspectRatio: groupAspectRatio } : {})
+    }
 
     return <PlateElement {...props} as="div"
                          className={`relative box-border rounded-xl border-2 align-top ${
-                             grouped ? 'my-2 block w-full sm:w-1/2 sm:px-2' : 'my-5 block w-full'
+                             grouped
+                                 ? 'my-2 block w-full sm:w-1/2 sm:px-2'
+                                 : 'mx-auto my-5 block w-fit max-w-full overflow-hidden'
                          } ${selected ? 'border-blue-500' : 'border-transparent'}`}>
         {selected && !readOnly && <div contentEditable={false} className="absolute right-2 top-2 z-10">
             <Button pill size="xs" color="red"
@@ -187,9 +200,11 @@ export const ImageElement = ({ children, ...props }: PlateElementProps<TImageEle
         </div>}
         {src
             ? <img contentEditable={false} src={src} alt={alt}
-                   style={grouped && groupAspectRatio ? { aspectRatio: groupAspectRatio } : undefined}
-                   className={`!m-0 mx-auto w-full !rounded-xl ${
-                       grouped ? 'max-h-[28rem] !object-cover' : 'max-h-[36rem] object-contain'
+                   style={imageStyle}
+                   className={`!m-0 mx-auto ${
+                       grouped
+                           ? 'w-full max-h-[28rem] !object-cover'
+                           : 'block h-auto max-h-[36rem] max-w-full object-contain'
                    }`}/>
             : <div contentEditable={false}
                    className="flex min-h-32 items-center justify-center rounded-3xl bg-gray-100 text-sm text-gray-500">
