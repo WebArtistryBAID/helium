@@ -93,7 +93,7 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
     // = Switch language
     function switchLanguage() {
         setActiveCommentComponentId(null)
-        setInEnglish(!inEnglish)
+        setInEnglish(current => !current)
     }
 
     // = Save
