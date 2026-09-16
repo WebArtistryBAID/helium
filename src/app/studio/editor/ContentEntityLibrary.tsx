@@ -57,7 +57,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
     const [ deletingWeChat, setDeletingWeChat ] = useState<string[]>([])
     const previousTaskIds = useRef<string[]>([])
     const [ loading, setLoading ] = useState(false)
-    const [ uploadServePath, setUploadServePath ] = useState<string>('')
+    const [ uploadServePath, setUploadServePath ] = useState<string>('/uploads')
     const {
         permissionDenied,
         showPermissionDenied,

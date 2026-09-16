@@ -15,7 +15,9 @@ export type ImagePage = Paginated<Image> & {
 }
 
 export async function getUploadServePath(): Promise<string> {
-    return process.env.UPLOAD_SERVE_PATH!
+    const configuredPath = process.env.UPLOAD_SERVE_PATH?.trim()
+    if (configuredPath == null || configuredPath === '') return '/uploads'
+    return configuredPath.startsWith('/') ? configuredPath : `/${configuredPath}`
 }
 
 export async function getImage(id: number): Promise<Image | null> {
@@ -38,7 +40,7 @@ export async function getImages(page: number): Promise<ImagePage> {
         items: images,
         page,
         pages: Math.ceil(count / PAGE_SIZE),
-        uploadServePath: process.env.UPLOAD_SERVE_PATH!
+        uploadServePath: await getUploadServePath()
     }
 }
 
@@ -63,7 +65,7 @@ export async function searchImages(query: string, page: number): Promise<ImagePa
         items: images,
         page,
         pages: Math.ceil(count / PAGE_SIZE),
-        uploadServePath: process.env.UPLOAD_SERVE_PATH!
+        uploadServePath: await getUploadServePath()
     }
 }
 
