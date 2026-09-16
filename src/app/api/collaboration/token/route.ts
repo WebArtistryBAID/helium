@@ -9,13 +9,22 @@ export async function GET(request: NextRequest): Promise<Response> {
         const user = await requireUserWithRole(Role.writer)
         const entityId = Number(request.nextUrl.searchParams.get('entityId'))
         const language = request.nextUrl.searchParams.get('language')
+        const kind = request.nextUrl.searchParams.get('kind') === 'puck' ? 'puck' : 'plate'
         if (!Number.isInteger(entityId) || !Object.values(ContentLanguage).includes(language as ContentLanguage)) {
             return NextResponse.json({ error: 'invalid-request' }, { status: 400 })
         }
-        const entity = await prisma.contentEntity.findUnique({ where: { id: entityId }, select: { id: true } })
+        const entity = await prisma.contentEntity.findUnique({
+            where: { id: entityId },
+            select: { id: true, type: true }
+        })
         if (entity == null) return NextResponse.json({ error: 'not-found' }, { status: 404 })
+        if (kind === 'puck' && entity.type !== 'page') {
+            return NextResponse.json({ error: 'invalid-document-kind' }, { status: 400 })
+        }
 
-        const room = `content-entity:${entityId}:${language}`
+        const room = kind === 'puck'
+            ? `puck-page:${entityId}:${language}`
+            : `content-entity:${entityId}:${language}`
         const token = await new SignJWT({ room, entityId, language })
             .setSubject(String(user.id))
             .setIssuedAt()

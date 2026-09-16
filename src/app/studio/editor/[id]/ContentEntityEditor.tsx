@@ -60,6 +60,7 @@ import {
     setPlateCommentThreadResolved
 } from '@/app/studio/editor/comment-actions'
 import { hasPlateSuggestions } from '@/app/lib/plate/plate-types'
+import { replacePlateCollaborationDocument } from '@/app/lib/plate/plate-collaboration'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
@@ -746,6 +747,18 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                                                 setLoadingAdditional(true)
                                                 try {
                                                     const restored = await restoreContentEntityDraftFromPublished(post.id)
+                                                    await Promise.all([
+                                                        replacePlateCollaborationDocument({
+                                                            content: restored.contentDraftEN,
+                                                            entityId: post.id,
+                                                            language: 'en'
+                                                        }),
+                                                        replacePlateCollaborationDocument({
+                                                            content: restored.contentDraftZH,
+                                                            entityId: post.id,
+                                                            language: 'zh'
+                                                        })
+                                                    ])
                                                     setPost(restored)
                                                     setContentRevision(current => current + 1)
                                                     setRestoreConfirm(false)

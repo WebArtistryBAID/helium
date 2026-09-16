@@ -62,7 +62,7 @@ export default function ImageGallery({ title, slides, uploadPrefix, autoplay = f
 }
 
 function GallerySlideView({ slide, uploadPrefix }: { slide: GallerySlide, uploadPrefix: string | undefined }) {
-    return <div className="relative h-[65svh] min-h-[24rem] w-full sm:min-h-[28rem] md:h-screen">
+    return <div className="relative h-[100svh] min-h-[100vh] w-full md:h-screen md:min-h-0">
         <img src={`${uploadPrefix}/${slide.image?.sha1}.webp`} alt={slide.image?.altText ?? ''}
              className="h-full w-full object-cover"/>
         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent"/>

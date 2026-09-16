@@ -1,6 +1,6 @@
 'use client'
 
-import { ReactNode, useEffect, useState } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
 import { Alert, Badge, Button, Textarea } from 'flowbite-react'
 import { ActionBar, createUsePuck } from '@puckeditor/core'
 import { HiArrowLeft, HiChatBubbleLeftRight, HiCheck, HiChevronDown, HiChevronUp } from 'react-icons/hi2'
@@ -8,6 +8,53 @@ import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
 
 const COMMENT_HIGHLIGHT_SELECTOR = '[data-puck-comment-highlight]'
 const usePuckSelector = createUsePuck()
+
+type PuckCommentsContextValue = {
+    activeComponentId: string | null
+    canComment: boolean
+    canDelete: boolean
+    threadCounts: Record<string, number>
+    threads: PuckCommentThread[]
+    onOpen: (componentId: string) => void
+    onClose: () => void
+    onCreate: (componentId: string, body: string) => Promise<void>
+    onDelete: (threadId: string) => Promise<void>
+    onReply: (threadId: string, body: string) => Promise<void>
+    onSetResolved: (threadId: string, resolved: boolean) => Promise<void>
+}
+
+const PuckCommentsContext = createContext<PuckCommentsContextValue | null>(null)
+
+export function PuckCommentsProvider({ children, value }: {
+    children: ReactNode
+    value: PuckCommentsContextValue
+}) {
+    return <PuckCommentsContext.Provider value={value}>{children}</PuckCommentsContext.Provider>
+}
+
+function usePuckCommentsContext(): PuckCommentsContextValue {
+    const value = useContext(PuckCommentsContext)
+    if (value == null) throw new Error('Puck comments must be rendered inside PuckCommentsProvider')
+    return value
+}
+
+export function PuckCommentActionBarOverride(props: {
+    children: ReactNode
+    label?: string
+    parentAction: ReactNode
+}) {
+    const { activeComponentId, threadCounts, onOpen } = usePuckCommentsContext()
+    return <PuckCommentActionBar {...props} activeComponentId={activeComponentId}
+                                 threadCounts={threadCounts} onOpen={onOpen}/>
+}
+
+export function PuckCommentsFieldsOverride(props: { children: ReactNode }) {
+    const state = usePuckCommentsContext()
+    return <PuckComments {...props} activeComponentId={state.activeComponentId}
+                         canComment={state.canComment} canDelete={state.canDelete} threads={state.threads}
+                         onClose={state.onClose} onCreate={state.onCreate} onDelete={state.onDelete}
+                         onReply={state.onReply} onSetResolved={state.onSetResolved}/>
+}
 
 export function PuckCommentHighlights({ componentIds }: { componentIds: string[] }) {
     useEffect(() => {

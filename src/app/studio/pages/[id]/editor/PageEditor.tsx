@@ -11,12 +11,15 @@ import {
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
-import { useEntityLock } from '@/app/lib/lock/useEntityLock'
-import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
-import { Puck } from '@puckeditor/core'
+import { Puck, type Data } from '@puckeditor/core'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import StableInlineText from '@/app/lib/puck/StableInlineText'
-import PuckComments, { PuckCommentActionBar, PuckCommentHighlights } from '@/app/studio/pages/[id]/editor/PuckComments'
+import {
+    PuckCommentActionBarOverride,
+    PuckCommentHighlights,
+    PuckCommentsFieldsOverride,
+    PuckCommentsProvider
+} from '@/app/studio/pages/[id]/editor/PuckComments'
 import { Button, HelperText, Label, Modal, ModalBody, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
@@ -32,6 +35,14 @@ import {
     setPuckCommentThreadResolved
 } from '@/app/studio/pages/[id]/editor/comment-actions'
 import { collectPuckComponentIds } from '@/app/lib/puck/puck-component-ids'
+import {
+    collaborationStatusLabel,
+    PuckCollaborationBridge,
+    PuckCollaborativePreview,
+    PuckCollaboratorsPortal,
+    replacePuckCollaborationDocument,
+    usePuckCollaboration
+} from '@/app/lib/puck/PuckCollaboration'
 
 const STABLE_INLINE_TEXT_TRANSFORMS = {
     text: ({ componentId, field, isReadOnly, propPath, value }: any) =>
@@ -53,14 +64,12 @@ const STABLE_INLINE_TEXT_TRANSFORMS = {
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
-export default function PageEditor({ init, lockToken, user, host, initialCommentThreads }: {
+export default function PageEditor({ init, user, host, initialCommentThreads }: {
     init: HydratedContentEntity,
-    lockToken: string,
     user: User,
     host: string,
     initialCommentThreads: PuckCommentThread[]
 }) {
-    const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMetadata, setShowMetadata ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
@@ -106,20 +115,23 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
         refresh
     } = useSavableEntity({
         initial: init,
-        saveFn: async draft => await updateContentEntity({
-            id: draft.id,
-            titleDraftEN: draft.titleDraftEN,
-            titleDraftZH: draft.titleDraftZH,
-            slug: draft.slug,
-            contentDraftEN: draft.contentDraftEN,
-            contentDraftZH: draft.contentDraftZH,
-            shortContentDraftEN: null,
-            shortContentDraftZH: null,
-            categoryEN: null,
-            categoryZH: null,
-            coverImageDraftId: null,
-            createdAt: draft.createdAt
-        }),
+        saveFn: async draft => {
+            const current = await getContentEntity(draft.id)
+            return await updateContentEntity({
+                id: draft.id,
+                titleDraftEN: inEnglish ? draft.titleDraftEN : current?.titleDraftEN ?? draft.titleDraftEN,
+                titleDraftZH: inEnglish ? current?.titleDraftZH ?? draft.titleDraftZH : draft.titleDraftZH,
+                slug: draft.slug,
+                contentDraftEN: inEnglish ? draft.contentDraftEN : current?.contentDraftEN ?? draft.contentDraftEN,
+                contentDraftZH: inEnglish ? current?.contentDraftZH ?? draft.contentDraftZH : draft.contentDraftZH,
+                shortContentDraftEN: null,
+                shortContentDraftZH: null,
+                categoryEN: null,
+                categoryZH: null,
+                coverImageDraftId: null,
+                createdAt: draft.createdAt
+            })
+        },
         refreshFn: async () => (await getContentEntity(init.id))!,
         compareKeys: [
             'titleDraftEN',
@@ -148,23 +160,14 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
     useSaveShortcut(true, guardedSave)
 
     useEffect(() => {
-        if (!canWrite || showLockBroken) return
+        if (!canWrite) return
 
         const interval = window.setInterval(() => {
             if (hasChanges && !loading) void guardedSave()
         }, AUTO_SAVE_INTERVAL_MS)
 
         return () => window.clearInterval(interval)
-    }, [ canWrite, guardedSave, hasChanges, loading, showLockBroken ])
-
-    // = Locking
-    useEntityLock({
-        entityType: init.type,
-        entityId: draft.id,
-        token: lockToken,
-        hasChanges,
-        onLockLost: () => setShowLockBroken(true)
-    })
+    }, [ canWrite, guardedSave, hasChanges, loading ])
 
     const publishStatus = draft.contentPublishedEN === draft.contentDraftEN && draft.contentPublishedZH === draft.contentDraftZH
         ? { label: '已发布', color: 'blue' }
@@ -180,46 +183,64 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
             key: puckDocumentKey
         }
     }
+    const applyRemotePuckData = useCallback((data: Data) => {
+        setDraft(previous => inEnglish
+            ? {
+                ...previous,
+                contentDraftEN: JSON.stringify(data),
+                titleDraftEN: String(data.root.props?.title ?? '')
+            }
+            : {
+                ...previous,
+                contentDraftZH: JSON.stringify(data),
+                titleDraftZH: String(data.root.props?.title ?? '')
+            })
+    }, [ inEnglish, setDraft ])
+    const collaboration = usePuckCollaboration({
+        enabled: canWrite,
+        entityId: draft.id,
+        initialData: puckDataRef.current.data as Data,
+        language: inEnglish ? 'en' : 'zh',
+        userId: String(user.id),
+        userName: user.name,
+        onRemoteData: applyRemotePuckData
+    })
 
     const puckOverrideStateRef = useRef<{
-        activeComponentId: string | null
-        threadCounts: Record<string, number>
-        threads: PuckCommentThread[]
-        canComment: boolean
-        canDelete: boolean
         inEnglish: boolean
         loading: boolean
         hasChanges: boolean
+        collaboration: typeof collaboration
     } | null>(null)
     puckOverrideStateRef.current = {
-        activeComponentId: activeCommentComponentId,
-        threadCounts: commentThreadCounts,
-        threads: languageCommentThreads.filter(thread => thread.componentId === activeCommentComponentId),
-        canComment: canWrite,
-        canDelete: canDeleteComments,
         inEnglish,
         loading,
-        hasChanges
+        hasChanges,
+        collaboration
     }
     const puckOverridesRef = useRef<Record<string, (props?: any) => ReactNode> | null>(null)
     if (puckOverridesRef.current == null) {
         puckOverridesRef.current = {
-            actionBar: (props: any) => {
+            header: ({ children }: { children: ReactNode }) => {
                 const state = puckOverrideStateRef.current!
-                return <PuckCommentActionBar {...props} activeComponentId={state.activeComponentId}
-                                             threadCounts={state.threadCounts}
-                                             onOpen={componentId => setActiveCommentComponentId(current =>
-                                                 current === componentId ? null : componentId
-                                             )}/>
+                return <>
+                    {children}
+                    <PuckCollaboratorsPortal collaborators={state.collaboration.collaborators}/>
+                    <span className="sr-only" role="status">
+                        {collaborationStatusLabel(state.collaboration.status)}
+                    </span>
+                </>
             },
-            fields: (props: any) => {
+            preview: ({ children }: { children: ReactNode }) => {
                 const state = puckOverrideStateRef.current!
-                return <PuckComments {...props} activeComponentId={state.activeComponentId}
-                                     canComment={state.canComment} canDelete={state.canDelete} threads={state.threads}
-                                     onClose={() => setActiveCommentComponentId(null)} onCreate={createComponentComment}
-                                     onDelete={deleteComponentComment} onReply={replyToComponentComment}
-                                     onSetResolved={setComponentCommentResolved}/>
+                return <PuckCollaborativePreview cursors={state.collaboration.remoteCursors}
+                                                 onCursorLeave={state.collaboration.clearCursor}
+                                                 onCursorMove={state.collaboration.updateCursor}>
+                    {children}
+                </PuckCollaborativePreview>
             },
+            actionBar: (props: any) => <PuckCommentActionBarOverride {...props}/>,
+            fields: (props: any) => <PuckCommentsFieldsOverride {...props}/>,
             headerActions: () => {
                 const state = puckOverrideStateRef.current!
                 return <>
@@ -311,8 +332,6 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
-        <LockBrokenPrompt show={showLockBroken} returnUri="/studio/pages"/>
-
         <Modal show={showMetadata} size="xl" popup onClose={() => setShowMetadata(false)}>
             <ModalHeader className="px-6 pt-6 pb-4">页面信息</ModalHeader>
             <ModalBody>
@@ -372,17 +391,29 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                     <div className="flex flex-wrap gap-2">
                         <If condition={canWrite}>
                             <Button pill size="sm" color="alternative" className="whitespace-nowrap"
-                                    onClick={() => {
+                                    disabled={loadingAdditional}
+                                    onClick={async () => {
                                         if (!canWrite) {
                                             showPermissionDenied()
                                             return
                                         }
-                                        setDraft(prev => ({
-                                            ...prev,
-                                            contentDraftEN: prev.contentDraftZH,
-                                            titleDraftEN: prev.titleDraftZH
-                                        }))
-                                        setPuckRevision(current => current + 1)
+                                        setLoadingAdditional(true)
+                                        try {
+                                            const content = draft.contentDraftZH
+                                            await replacePuckCollaborationDocument({
+                                                data: JSON.parse(content) as Data,
+                                                entityId: draft.id,
+                                                language: 'en'
+                                            })
+                                            setDraft(prev => ({
+                                                ...prev,
+                                                contentDraftEN: content,
+                                                titleDraftEN: prev.titleDraftZH
+                                            }))
+                                            setPuckRevision(current => current + 1)
+                                        } finally {
+                                            setLoadingAdditional(false)
+                                        }
                                     }}>用中文内容覆盖英文</Button>
                         </If>
                         <If condition={canWrite && draft.titlePublishedEN != null && draft.titlePublishedZH != null &&
@@ -396,6 +427,18 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                                 setLoadingAdditional(true)
                                 try {
                                     const restored = await restoreContentEntityDraftFromPublished(draft.id)
+                                    await Promise.all([
+                                        replacePuckCollaborationDocument({
+                                            data: JSON.parse(restored.contentDraftEN) as Data,
+                                            entityId: draft.id,
+                                            language: 'en'
+                                        }),
+                                        replacePuckCollaborationDocument({
+                                            data: JSON.parse(restored.contentDraftZH) as Data,
+                                            entityId: draft.id,
+                                            language: 'zh'
+                                        })
+                                    ])
                                     setDraft(restored)
                                     setPuckRevision(current => current + 1)
                                     setRestoreConfirm(false)
@@ -485,6 +528,7 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                 fieldTransforms={STABLE_INLINE_TEXT_TRANSFORMS}
                 onAction={(_action, appState, previousAppState) => {
                     removeDeletedComponentComments(appState.data, previousAppState.data)
+                    collaboration.updateFromPuck(appState.data)
                 }}
                 onChange={data => {
                     if (!canWrite) {
@@ -506,7 +550,26 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                     }
                 }}
                 overrides={puckOverridesRef.current}
-            />
+            >
+                <PuckCommentsProvider value={{
+                    activeComponentId: activeCommentComponentId,
+                    canComment: canWrite,
+                    canDelete: canDeleteComments,
+                    threadCounts: commentThreadCounts,
+                    threads: languageCommentThreads.filter(thread => thread.componentId === activeCommentComponentId),
+                    onOpen: componentId => setActiveCommentComponentId(current =>
+                        current === componentId ? null : componentId
+                    ),
+                    onClose: () => setActiveCommentComponentId(null),
+                    onCreate: createComponentComment,
+                    onDelete: deleteComponentComment,
+                    onReply: replyToComponentComment,
+                    onSetResolved: setComponentCommentResolved
+                }}>
+                    <PuckCollaborationBridge register={collaboration.registerPuck}/>
+                    <Puck.Layout/>
+                </PuckCommentsProvider>
+            </Puck>
         </div>
     </>
 }
