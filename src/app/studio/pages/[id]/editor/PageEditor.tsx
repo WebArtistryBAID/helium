@@ -31,6 +31,7 @@ import {
     createPuckCommentThread,
     deletePuckComponentCommentThreads,
     deletePuckCommentThread,
+    getPuckCommentThreads,
     replyToPuckCommentThread,
     setPuckCommentThreadResolved
 } from '@/app/studio/pages/[id]/editor/comment-actions'
@@ -196,6 +197,13 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                 titleDraftZH: String(data.root.props?.title ?? '')
             })
     }, [ inEnglish, setDraft ])
+    const refreshCommentThreads = useCallback(async () => {
+        try {
+            setCommentThreads(await getPuckCommentThreads(draft.id))
+        } catch (error) {
+            console.error('Failed to refresh collaborative comments:', error)
+        }
+    }, [ draft.id ])
     const collaboration = usePuckCollaboration({
         enabled: canWrite,
         entityId: draft.id,
@@ -203,6 +211,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         language: inEnglish ? 'en' : 'zh',
         userId: String(user.id),
         userName: user.name,
+        onCommentsChanged: refreshCommentThreads,
         onRemoteData: applyRemotePuckData
     })
 
@@ -272,6 +281,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                 body
             })
             setCommentThreads(current => [ ...current, thread ])
+            collaboration.signalCommentsChanged()
         } catch (error) {
             handlePermissionError(error)
             throw error
@@ -284,6 +294,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             setCommentThreads(current => current.map(thread => thread.id === threadId
                 ? { ...thread, comments: [ ...thread.comments, comment ], updatedAt: comment.updatedAt }
                 : thread))
+            collaboration.signalCommentsChanged()
         } catch (error) {
             handlePermissionError(error)
             throw error
@@ -294,6 +305,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         try {
             const updated = await setPuckCommentThreadResolved({ threadId, resolved })
             setCommentThreads(current => current.map(thread => thread.id === threadId ? updated : thread))
+            collaboration.signalCommentsChanged()
         } catch (error) {
             handlePermissionError(error)
             throw error
@@ -304,6 +316,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         try {
             await deletePuckCommentThread(threadId)
             setCommentThreads(current => current.filter(thread => thread.id !== threadId))
+            collaboration.signalCommentsChanged()
         } catch (error) {
             handlePermissionError(error)
             throw error
@@ -325,13 +338,22 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             entityId: draft.id,
             language: commentLanguage,
             componentIds: deletedIds
-        }).catch(error => {
-            if (!handlePermissionError(error)) console.error('Failed to delete component comments:', error)
-        })
+        }).then(() => collaboration.signalCommentsChanged())
+            .catch(error => {
+                if (!handlePermissionError(error)) console.error('Failed to delete component comments:', error)
+            })
     }
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+        <Modal show={canWrite && collaboration.status === 'offline'} size="md" dismissible={false}>
+            <ModalHeader className="border-b-0">无法连接到编辑器</ModalHeader>
+            <ModalBody>
+                <p className="text-sm text-gray-600">
+                    网络连接恢复后，编辑器将自动重新连接。
+                </p>
+            </ModalBody>
+        </Modal>
         <Modal show={showMetadata} size="xl" popup onClose={() => setShowMetadata(false)}>
             <ModalHeader className="px-6 pt-6 pb-4">页面信息</ModalHeader>
             <ModalBody>

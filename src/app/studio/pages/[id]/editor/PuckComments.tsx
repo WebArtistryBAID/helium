@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, ReactNode, useContext, useEffect, useState } from 'react'
+import { createContext, ReactNode, useContext, useEffect, useMemo, useState } from 'react'
 import { Alert, Badge, Button, Textarea } from 'flowbite-react'
 import { ActionBar, createUsePuck } from '@puckeditor/core'
 import { HiArrowLeft, HiChatBubbleLeftRight, HiCheck, HiChevronDown, HiChevronUp } from 'react-icons/hi2'
@@ -123,6 +123,16 @@ function displayTime(value: Date | string): string {
         hour: '2-digit',
         minute: '2-digit'
     })
+}
+
+function latestActivityTime(thread: PuckCommentThread): number {
+    let latest = Math.max(new Date(thread.createdAt).getTime(), new Date(thread.updatedAt).getTime())
+    if (thread.resolvedAt != null) latest = Math.max(latest, new Date(thread.resolvedAt).getTime())
+    for (const comment of thread.comments) {
+        latest = Math.max(latest, new Date(comment.createdAt).getTime(), new Date(comment.updatedAt).getTime())
+        if (comment.deletedAt != null) latest = Math.max(latest, new Date(comment.deletedAt).getTime())
+    }
+    return latest
 }
 
 function ThreadCard({ thread, canComment, canDelete, onDelete, onReply, onSetResolved }: {
@@ -329,6 +339,8 @@ export default function PuckComments({
     const [ error, setError ] = useState<string | null>(null)
     const selectedComponentId = usePuckSelector(state => state.selectedItem?.props.id)
     const unresolvedThreadCount = threads.filter(thread => thread.resolvedAt == null).length
+    const sortedThreads = useMemo(() => [ ...threads ].sort((first, second) =>
+        latestActivityTime(second) - latestActivityTime(first)), [ threads ])
 
     if (activeComponentId == null || selectedComponentId !== activeComponentId) return children
 
@@ -375,7 +387,7 @@ export default function PuckComments({
             </div>
         </>}
 
-        {threads.map(thread => <ThreadCard
+        {sortedThreads.map(thread => <ThreadCard
             key={thread.id}
             thread={thread}
             canComment={canComment}
