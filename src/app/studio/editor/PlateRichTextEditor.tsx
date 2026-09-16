@@ -169,6 +169,7 @@ export default function PlateRichTextEditor({
         .filter(thread => thread.resolvedAt == null)
         .map(thread => thread.id)), [ commentThreads ])
     const suggestions = useMemo(() => collectPlateSuggestions(editor), [ editor, suggestionRevision ])
+    const suggestionIds = useMemo(() => new Set(suggestions.map(suggestion => suggestion.suggestionId)), [ suggestions ])
 
     useEffect(() => {
         if (!readOnly && initial.converted && onChange) {
@@ -266,6 +267,7 @@ export default function PlateRichTextEditor({
         <PlateMediaProvider images={images} uploadPrefix={uploadPrefix}>
             <PlateCommentProvider activeId={activeThreadId} unresolvedIds={unresolvedCommentIds}
                                   onActivate={threadId => {
+                                      if (!unresolvedCommentIds.has(threadId)) return
                                       setActiveThreadId(threadId)
                                       setPendingRange(null)
                                       setPendingQuote(null)
@@ -274,7 +276,9 @@ export default function PlateRichTextEditor({
                 <div className={(showComments || showSuggestions) && !readOnly
                     ? 'grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]'
                     : ''}>
-                    <PlateSuggestionProvider activeId={activeSuggestionId} onActivate={suggestionId => {
+                    <PlateSuggestionProvider activeId={activeSuggestionId} suggestionIds={suggestionIds}
+                                             onActivate={suggestionId => {
+                                                 if (!suggestionIds.has(suggestionId)) return
                         setActiveSuggestionId(suggestionId)
                         setShowSuggestions(true)
                         setShowComments(false)
@@ -466,7 +470,10 @@ export default function PlateRichTextEditor({
                             onReply={onReplyComment}
                             onSetResolved={async (threadId, resolved) => {
                                 await onSetCommentResolved(threadId, resolved)
-                                if (resolved) clearCommentSelection()
+                                if (resolved) {
+                                    if (activeThreadId === threadId) setActiveThreadId(null)
+                                    clearCommentSelection()
+                                }
                             }}
                         />}
                     {showSuggestions && !readOnly && <PlateSuggestionsPanel

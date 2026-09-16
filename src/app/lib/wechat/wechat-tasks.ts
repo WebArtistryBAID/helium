@@ -5,6 +5,8 @@ import { synchronizeWeChatArticle } from '@/app/lib/wechat/wechat-worker'
 
 export type RunningWeChatTask = Omit<WeChatTask, 'canCancel'> & {
     userId: number
+    sourceUrl: string
+    coverImageId: number | null
     controller: AbortController
     done: Promise<void>
     cleanup?: () => Promise<void>
@@ -32,6 +34,7 @@ export function startWeChatTask(url: string, coverImageId: number | null, user: 
     }
     const task: RunningWeChatTask = {
         id: randomUUID(), startedAt: Date.now(), userId: user.id,
+        sourceUrl: parsed.href, coverImageId,
         status: WeChatWorkerStatus.download, controller: new AbortController(), done: Promise.resolve()
     }
     tasks.set(task.id, task)
@@ -44,6 +47,15 @@ export function startWeChatTask(url: string, coverImageId: number | null, user: 
         console.error(`WeChat task ${task.id} failed:`, error)
     })
     return task.id
+}
+
+export async function retryWeChatTask(id: string, user: User): Promise<string> {
+    const task = tasks.get(id)
+    if (!task || task.status !== 'error') throw new Error('Task cannot be retried')
+    if (task.userId !== user.id && !user.roles.includes(Role.admin)) throw new Error('Unauthorized')
+    await task.cleanup?.()
+    tasks.delete(id)
+    return startWeChatTask(task.sourceUrl, task.coverImageId, user)
 }
 
 export async function cancelWeChatTask(id: string, user: User) {

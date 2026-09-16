@@ -32,7 +32,8 @@ const PlateCommentContext = createContext<{
 const PlateSuggestionContext = createContext<{
     activeId: string | null
     onActivate: (suggestionId: string) => void
-}>({ activeId: null, onActivate: () => undefined })
+    suggestionIds: Set<string>
+}>({ activeId: null, onActivate: () => undefined, suggestionIds: new Set() })
 
 export function PlateMediaProvider({ children, images, uploadPrefix }: {
     children: ReactNode
@@ -53,22 +54,23 @@ export function PlateCommentProvider({ activeId, children, onActivate, unresolve
     </PlateCommentContext.Provider>
 }
 
-export function PlateSuggestionProvider({ activeId, children, onActivate }: {
+export function PlateSuggestionProvider({ activeId, children, onActivate, suggestionIds }: {
     activeId: string | null
     children: ReactNode
     onActivate: (suggestionId: string) => void
+    suggestionIds: Set<string>
 }) {
-    return <PlateSuggestionContext.Provider value={{ activeId, onActivate }}>
+    return <PlateSuggestionContext.Provider value={{ activeId, onActivate, suggestionIds }}>
         {children}
     </PlateSuggestionContext.Provider>
 }
 
 function useBlockSuggestion(element: PlateElementProps['element']) {
-    const { activeId, onActivate } = useContext(PlateSuggestionContext)
+    const { activeId, onActivate, suggestionIds } = useContext(PlateSuggestionContext)
     const suggestion = 'suggestion' in element && typeof element.suggestion === 'object' && element.suggestion != null
         ? element.suggestion as { id: string, type: string }
         : null
-    if (suggestion == null) return { className: '', attributes: {} }
+    if (suggestion == null || !suggestionIds.has(suggestion.id)) return { className: '', attributes: {} }
 
     return {
         className: suggestion.type === 'remove'
@@ -209,9 +211,9 @@ export const SuperscriptLeaf = (props: PlateLeafProps) => <PlateLeaf {...props} 
 export const UnderlineLeaf = (props: PlateLeafProps) => <PlateLeaf {...props} as="u"/>
 
 export const SuggestionLeaf = (props: PlateLeafProps) => {
-    const { activeId, onActivate } = useContext(PlateSuggestionContext)
+    const { activeId, onActivate, suggestionIds } = useContext(PlateSuggestionContext)
     const suggestion = getInlineSuggestionData(props.leaf)
-    if (suggestion == null) return <PlateLeaf {...props}/>
+    if (suggestion == null || !suggestionIds.has(suggestion.id)) return <PlateLeaf {...props}/>
 
     const active = activeId === suggestion.id
     const className = suggestion.type === 'remove'
@@ -231,14 +233,13 @@ export const SuggestionLeaf = (props: PlateLeafProps) => {
 export const CommentLeaf = (props: PlateLeafProps) => {
     const { activeId, onActivate, unresolvedIds } = useContext(PlateCommentContext)
     const ids = getCommentKeys(props.leaf).map(getCommentKeyId)
-    const threadId = ids.find(id => unresolvedIds.has(id)) ?? ids[0]
+    const threadId = ids.find(id => unresolvedIds.has(id))
     const active = threadId != null && activeId === threadId
-    const unresolved = ids.some(id => unresolvedIds.has(id))
+    const unresolved = threadId != null
 
     return <PlateLeaf {...props} as="span"
-                      attributes={{
-                          ...props.attributes,
-                          onClick: () => threadId && onActivate(threadId)
+                      attributes={threadId == null ? props.attributes : {
+                          ...props.attributes, onClick: () => onActivate(threadId)
                       }}
-                      className={`${unresolved ? 'bg-yellow-200' : ''} ${active ? 'ring-2 ring-blue-500' : ''} cursor-pointer rounded-sm`}/>
+                      className={`${unresolved ? 'cursor-pointer bg-yellow-200' : ''} ${active ? 'ring-2 ring-blue-500' : ''} rounded-sm`}/>
 }

@@ -2,21 +2,15 @@
 
 import {
     Button,
-    Label,
-    Modal,
-    ModalBody,
-    ModalFooter,
-    ModalHeader,
     Pagination,
     TabItem,
     Tabs,
-    TabsRef,
-    TextInput
+    TabsRef
 } from 'flowbite-react'
 import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
 import { Image, Role, User } from '@/generated/prisma/browser'
-import { createImage, deleteImage, getImages } from '@/app/studio/media/media-actions'
+import { deleteImage, getImages } from '@/app/studio/media/media-actions'
 import type { ImagePage } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
@@ -42,10 +36,6 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     const [ loading, setLoading ] = useState(false)
     const [ selectedImage, setSelectedImage ] = useState<Image | null>(null)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
-    const [ showUploadForm, setShowUploadForm ] = useState(false)
-    const [ imageName, setImageName ] = useState('')
-    const [ imageAlt, setImageAlt ] = useState('')
-    const [ imageHash, setImageHash ] = useState('')
     const [ currentPage, setCurrentPage ] = useState(0)
     const {
         permissionDenied,
@@ -73,65 +63,6 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
-
-        <Modal show={showUploadForm} size="md" popup onClose={() => setShowUploadForm(false)}>
-            <ModalHeader/>
-            <ModalBody>
-                <div className="space-y-6">
-                    <h3 className="text-xl font-bold">设置图片信息</h3>
-                    <div>
-                        <div className="mb-2 block">
-                            <Label htmlFor="name">名称</Label>
-                        </div>
-                        <TextInput id="name" value={imageName}
-                                   onChange={e => setImageName(e.currentTarget.value)}
-                                   required/>
-                    </div>
-                    <div>
-                        <div className="mb-2 block">
-                            <Label htmlFor="alt">解释文字</Label>
-                        </div>
-                        <TextInput id="alt" value={imageAlt} placeholder="简单说明图片内容，由屏幕阅读器读出..."
-                                   onChange={e => setImageAlt(e.currentTarget.value)}
-                                   required/>
-                    </div>
-
-                    <img width={500} height={200} src={page.uploadServePath + '/' + imageHash + '.webp'}
-                         alt="已上传文件"
-                         className="rounded-xl w-full lg:max-w-sm object-cover mb-3"/>
-                </div>
-            </ModalBody>
-            <ModalFooter>
-                <Button pill color="blue" disabled={loading} onClick={async () => {
-                    if (!canWrite) {
-                        showPermissionDenied()
-                        return
-                    }
-                    if (!imageName || !imageAlt) return
-                    setLoading(true)
-                    try {
-                        setSelectedImage(await createImage({
-                            name: imageName,
-                            altText: imageAlt,
-                            sha1: imageHash
-                        }))
-                        setCurrentPage(0)
-                        setPage(await getImages(0))
-                        setShowUploadForm(false)
-                        tabsRef.current?.setActiveTab(0)
-                    } catch (error) {
-                        if (!handlePermissionError(error)) {
-                            console.error('Failed to create image:', error)
-                        }
-                    } finally {
-                        setLoading(false)
-                    }
-                }}>确认</Button>
-                <Button pill color="alternative" disabled={loading} onClick={() => setShowUploadForm(false)}>
-                    取消
-                </Button>
-            </ModalFooter>
-        </Modal>
 
         <div className="p-8">
             <Tabs aria-label="媒体库选项卡" variant="default" ref={tabsRef}>
@@ -254,22 +185,11 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                 </TabItem>
                 {canWrite ? (
                     <TabItem title="上传" icon={HiArrowUpTray}>
-                    <div className="flex flex-col justify-center items-center">
-                        <div className="mb-3">
-                            <UploadAreaClient uploadPrefix={page.uploadServePath} onDone={hash => {
-                                if (!canWrite) {
-                                    showPermissionDenied()
-                                    return
-                                }
-                                setImageHash(hash)
-                                setImageName('')
-                                setImageAlt('')
-                                setShowUploadForm(true)
-                            }}/>
-                        </div>
-
-                        <p>上传超过 1 MB 的图片会严重降低访问速度。</p>
-                    </div>
+                        <UploadAreaClient uploadPrefix={page.uploadServePath} onAdded={async image => {
+                            setSelectedImage(image)
+                            setCurrentPage(0)
+                            setPage(await getImages(0))
+                        }}/>
                 </TabItem>
                 ) : null}
             </Tabs>

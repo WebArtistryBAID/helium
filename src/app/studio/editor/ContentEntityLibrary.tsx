@@ -12,7 +12,12 @@ import If from '@/app/lib/If'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { WeChatTask } from '@/app/studio/editor/entity-types'
-import { createPostFromWeChat, deleteWeChatTask, getWeChatTasks } from '@/app/studio/editor/wechat-actions'
+import {
+    createPostFromWeChat,
+    deleteWeChatTask,
+    getWeChatTasks,
+    retryFailedWeChatTask
+} from '@/app/studio/editor/wechat-actions'
 import { EntityType, Role, User } from '@/generated/prisma/browser'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 
@@ -218,7 +223,21 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                                     <h3 className="break-words font-semibold text-gray-900">{task.title || `无标题`}</h3>
                                     <p className="text-sm text-gray-500">{new Date(task.startedAt).toLocaleString('zh-CN')}</p>
                                 </div>
-                            <div className="shrink-0">
+                                <div className="flex shrink-0 gap-2">
+                                    {task.status === 'error' && <Button pill size="sm" color="alternative"
+                                                                        disabled={!task.canCancel || deletingWeChat.includes(task.id)}
+                                                                        onClick={async () => {
+                                                                            setDeletingWeChat(ids => [ ...ids, task.id ])
+                                                                            setWeChatError('')
+                                                                            try {
+                                                                                await retryFailedWeChatTask(task.id)
+                                                                                setWeChatTasks(await getWeChatTasks())
+                                                                            } catch (error) {
+                                                                                if (!handlePermissionError(error)) setWeChatError('重试任务失败，请稍后再试。')
+                                                                            } finally {
+                                                                                setDeletingWeChat(ids => ids.filter(id => id !== task.id))
+                                                                            }
+                                                                        }}>重试</Button>}
                                 <Button pill size="sm" color={task.status === 'error' ? 'red' : 'alternative'}
                                         disabled={!task.canCancel || task.status === 'cancelling' || deletingWeChat.includes(task.id)}
                                         onClick={async () => {

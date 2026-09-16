@@ -96,6 +96,15 @@ export async function createImage(data: {
     return image
 }
 
+export async function deletePendingImageUpload(sha1: string): Promise<void> {
+    await requireUserWithRole(Role.writer)
+    if (!/^[a-f0-9]{40}$/.test(sha1)) throw new Error('Invalid image hash')
+    const image = await prisma.image.findUnique({ where: { sha1 }, select: { id: true } })
+    if (image != null) throw new Error('Image is already in the media library')
+    await fs.rm(path.join(process.env.UPLOAD_PATH!, `${sha1}.webp`), { force: true })
+    await fs.rm(path.join(process.env.UPLOAD_PATH!, `${sha1}_thumb.webp`), { force: true })
+}
+
 export async function deleteImage(id: number): Promise<void> {
     const user = await requireUserWithRole(Role.writer)
     const image = await prisma.image.findUniqueOrThrow({
