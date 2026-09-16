@@ -1,7 +1,7 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import SchoolLogo from '@/app/[[...slug]]/SchoolLogo'
 import RouterLinks from '@/app/[[...slug]]/RouterLinks'
@@ -41,12 +41,6 @@ export default function GlobalHeader({ websiteMetadata }: {
     const [ mounted, setMounted ] = useState(false)
     const [ viewportHeight, setViewportHeight ] = useState(0)
     const [ surface, setSurface ] = useState('light')
-
-    useLayoutEffect(() => {
-        window.scrollTo({ top: 0, left: 0, behavior: 'auto' })
-        setScrollY(0)
-        setHeaderVisible(true)
-    }, [ pathname ])
 
     useEffect(() => {
         setMounted(true)

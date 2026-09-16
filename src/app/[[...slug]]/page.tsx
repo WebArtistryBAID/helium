@@ -133,13 +133,13 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
             notFound()
         }
         return (
-            <>
+            <div className="min-h-screen">
                 <GlobalHeader websiteMetadata={websiteMetadata}/>
                 <main id="main-content" tabIndex={-1}>
                     <AnyContentEntityPage entity={entity} params={params}/>
                 </main>
                 <GlobalFooter websiteMetadata={websiteMetadata}/>
-            </>
+            </div>
         )
     }
 
@@ -148,7 +148,7 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         notFound()
     }
     return (
-        <>
+        <div className="min-h-screen">
             <GlobalHeader websiteMetadata={websiteMetadata}/>
             <main id="main-content" tabIndex={-1}>
                 <Render config={PUCK_CONFIG}
@@ -157,6 +157,6 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
                             : await resolveAllData(JSON.parse(entity.contentPublishedZH!), PUCK_CONFIG)}/>
             </main>
             <GlobalFooter websiteMetadata={websiteMetadata}/>
-        </>
+        </div>
     )
 }
