@@ -6,15 +6,15 @@ import {
     cancelWeChatTask,
     listWeChatTasks,
     retryWeChatTask,
-    startWeChatTask
+    startWeChatTasks
 } from '@/app/lib/wechat/wechat-tasks'
 
 export async function getWeChatTasks() {
     return listWeChatTasks(await requireUserWithRole(Role.writer))
 }
 
-export async function createPostFromWeChat(url: string, coverImageId: number | null) {
-    return startWeChatTask(url, coverImageId, await requireUserWithRole(Role.writer))
+export async function createPostsFromWeChat(input: string, coverImageId: number | null) {
+    return startWeChatTasks(input, coverImageId, await requireUserWithRole(Role.writer))
 }
 
 export async function deleteWeChatTask(id: string) {

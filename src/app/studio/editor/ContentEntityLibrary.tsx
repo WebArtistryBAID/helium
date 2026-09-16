@@ -7,13 +7,26 @@ import {
     createContentEntity,
     getContentEntities
 } from '@/app/studio/editor/entity-actions'
-import { Alert, Button, Card, Label, Modal, ModalBody, ModalFooter, ModalHeader, Pagination, Progress, TextInput } from 'flowbite-react'
+import {
+    Alert,
+    Button,
+    Card,
+    Label,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
+    Pagination,
+    Progress,
+    Textarea,
+    TextInput
+} from 'flowbite-react'
 import If from '@/app/lib/If'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { WeChatTask } from '@/app/studio/editor/entity-types'
 import {
-    createPostFromWeChat,
+    createPostsFromWeChat,
     deleteWeChatTask,
     getWeChatTasks,
     retryFailedWeChatTask
@@ -159,12 +172,15 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                         <div className="mb-2 block">
                             <Label htmlFor="wechat-link">链接</Label>
                         </div>
-                        <TextInput id="wechat-link" value={wechatLink} placeholder="https://mp.weixin.qq.com/..."
-                                   onChange={e => setWeChatLink(e.currentTarget.value)}
-                                   required/>
+                        <Textarea id="wechat-link" value={wechatLink}
+                                  placeholder="https://mp.weixin.qq.com/..., https://mp.weixin.qq.com/..."
+                                  rows={5}
+                                  onChange={e => setWeChatLink(e.currentTarget.value)}
+                                  required/>
                     </div>
                     <p className="text-sm">同步需要 5 到 10
                         分钟。同步完成后，请检查排版、中文内容及自动翻译。图片会自动放入媒体库。</p>
+                    <p className="text-sm">同步多篇文章时，请使用英文逗号 (,) 分隔每条链接。</p>
                 </div>
             </ModalBody>
             <ModalFooter>
@@ -173,8 +189,8 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                     setStartingWeChat(true)
                     setWeChatError('')
                     try {
-                        const id = await createPostFromWeChat(wechatLink.trim(), null)
-                        previousTaskIds.current = [...previousTaskIds.current, id]
+                        const ids = await createPostsFromWeChat(wechatLink, null)
+                        previousTaskIds.current = [ ...previousTaskIds.current, ...ids ]
                         setWeChatLink('')
                         setShowWeChatLink(false)
                         setShowWeChatTasks(true)

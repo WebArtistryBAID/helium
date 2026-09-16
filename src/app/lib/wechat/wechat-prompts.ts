@@ -42,6 +42,8 @@ BAID 故事: #BAIDStory
 BAID 暑期实践: #SummerAtBAID
 BAID 暑期生活: #SummerAtBAID
 北中国际: BAID
+北中学子: BAer
+北中国际学子: BAIDer
 BA 大讲堂: BA Lectures
 北中小讲师: BAID Speaker
 世界大课堂: BA Global Classroom

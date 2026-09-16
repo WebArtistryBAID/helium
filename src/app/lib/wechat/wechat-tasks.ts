@@ -18,6 +18,23 @@ const state = globalThis as typeof globalThis & {
 }
 const tasks = state.heliumWeChatTasks ??= new Map<string, RunningWeChatTask>()
 
+function parseWeChatUrl(url: string): URL {
+    const parsed = new URL(url)
+    if (parsed.protocol !== 'https:' || parsed.hostname !== 'mp.weixin.qq.com' || parsed.username || parsed.password) {
+        throw new Error('请输入有效的微信公众号文章链接。')
+    }
+    return parsed
+}
+
+export function parseWeChatUrls(input: string): string[] {
+    if (input.includes('，')) throw new Error('请使用英文逗号 (,) 分隔链接。')
+    const values = input.split(',').map(value => value.trim())
+    if (values.length === 0 || values.some(value => value.length === 0)) {
+        throw new Error('请输入链接，并使用英文逗号 (,) 分隔每个链接。')
+    }
+    return values.map(value => parseWeChatUrl(value).href)
+}
+
 export function listWeChatTasks(user: User): WeChatTask[] {
     return Array.from(tasks.values())
         .sort((a, b) => b.startedAt - a.startedAt || b.id.localeCompare(a.id))
@@ -28,10 +45,7 @@ export function listWeChatTasks(user: User): WeChatTask[] {
 }
 
 export function startWeChatTask(url: string, coverImageId: number | null, user: User): string {
-    const parsed = new URL(url)
-    if (parsed.protocol !== 'https:' || parsed.hostname !== 'mp.weixin.qq.com' || parsed.username || parsed.password) {
-        throw new Error('请输入有效的微信公众号文章链接。')
-    }
+    const parsed = parseWeChatUrl(url)
     const task: RunningWeChatTask = {
         id: randomUUID(), startedAt: Date.now(), userId: user.id,
         sourceUrl: parsed.href, coverImageId,
@@ -47,6 +61,11 @@ export function startWeChatTask(url: string, coverImageId: number | null, user: 
         console.error(`WeChat task ${task.id} failed:`, error)
     })
     return task.id
+}
+
+export function startWeChatTasks(input: string, coverImageId: number | null, user: User): string[] {
+    const urls = parseWeChatUrls(input)
+    return urls.map(url => startWeChatTask(url, coverImageId, user))
 }
 
 export async function retryWeChatTask(id: string, user: User): Promise<string> {
