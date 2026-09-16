@@ -41,7 +41,7 @@ function BentoBox({
                 className="col-span-1 row-span-5 flex flex-col items-center justify-center rounded-3xl bg-red-700 p-5 text-center text-white sm:p-6 md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-1 lg:row-span-5 lg:p-8"
             >
                 <h3
-                    className="mb-5 break-words text-3xl font-bold leading-tight sm:text-4xl"
+                    className="mb-5 break-words text-3xl font-bold leading-tight"
                     role="heading">{motto}</h3>
 
                 <img
@@ -73,29 +73,29 @@ function BentoBox({
             <div
                 className="col-span-1 flex min-w-0 flex-col items-start gap-4 overflow-hidden rounded-3xl bg-linear-to-br from-orange-500/5 to-gray-50 p-5 sm:flex-row sm:items-center md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1">
                 <h3
-                    className="text-lg"
+                    className="min-w-0 flex-1 text-lg"
                     role="heading">
                     {facultyTitle}
                     <br/><span className="font-bold">{facultyText}</span>
                 </h3>
                 <div
                     aria-hidden="true"
-                    className="relative flex min-w-0 shrink-0 items-end justify-center">
+                    className="relative ml-auto flex shrink-0 items-center justify-end">
                     <img
                         src="/assets/components/bento/lj.jpg"
                         alt=""
                         loading="lazy"
-                        className="w-20 h-20 rounded-full relative z-10 translate-x-8 p-1 bg-yellow-100"/>
+                        className="relative z-10 size-16 rounded-full bg-yellow-100 p-1"/>
                     <img
                         src="/assets/components/bento/rj.jpg"
                         alt=""
                         loading="lazy"
-                        className="w-20 h-20 rounded-full relative z-20 p-1 bg-amber-100"/>
+                        className="relative z-20 -ml-5 size-16 rounded-full bg-amber-100 p-1"/>
                     <img
                         src="/assets/components/bento/lx.jpg"
                         alt=""
                         loading="lazy"
-                        className="w-20 h-20 rounded-full relative z-30 -translate-x-8 p-1 bg-red-100"/>
+                        className="relative z-30 -ml-5 size-16 rounded-full bg-red-100 p-1"/>
                 </div>
             </div>
 
