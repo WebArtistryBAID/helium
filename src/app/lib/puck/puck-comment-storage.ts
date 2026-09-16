@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { CommentAnchorType, ContentLanguage } from '@/generated/prisma/client'
+import { CommentAnchorType, ContentLanguage, Prisma } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
 import { collectPuckComponentIds } from '@/app/lib/puck/puck-component-ids'
 
@@ -12,7 +12,8 @@ function idsFromSerializedPuckData(content: string): Set<string> | null {
     }
 }
 
-export async function reconcilePuckCommentThreads(entityId: number, contentEN: string, contentZH: string) {
+export async function reconcilePuckCommentThreads(entityId: number, contentEN: string, contentZH: string,
+                                                  database: Pick<Prisma.TransactionClient, 'commentThread'> = prisma) {
     const idsByLanguage = {
         [ContentLanguage.en]: idsFromSerializedPuckData(contentEN),
         [ContentLanguage.zh]: idsFromSerializedPuckData(contentZH)
@@ -22,7 +23,7 @@ export async function reconcilePuckCommentThreads(entityId: number, contentEN: s
         const ids = idsByLanguage[language]
         if (ids == null) continue
         const componentIds = [ ...ids ]
-        await prisma.commentThread.deleteMany({
+        await database.commentThread.deleteMany({
             where: {
                 entityId,
                 language,

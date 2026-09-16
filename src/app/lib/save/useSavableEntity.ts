@@ -2,7 +2,7 @@
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 
-type SaveFn<T> = (draft: T) => Promise<T>
+type SaveFn<T> = (draft: T, previous: T) => Promise<T>
 type RefreshFn<T> = () => Promise<T>
 type EqualsFn<T> = (a: T, b: T) => boolean
 
@@ -121,6 +121,7 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
     }, [ areEqual, draft, previous ])
 
     const mountedRef = useRef(true)
+    const loadingRef = useRef(false)
     useEffect(() => {
         mountedRef.current = true
 
@@ -130,24 +131,31 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
     }, [])
 
     const save = useCallback(async () => {
-        if (loading) return
+        if (loadingRef.current) return
+        loadingRef.current = true
         setLoading(true)
+        const savedDraft = deepClone(draftRef.current)
+        const savedPrevious = deepClone(previousRef.current)
         try {
-            const updated = await saveFnRef.current(draftRef.current)
+            const updated = await saveFnRef.current(savedDraft, savedPrevious)
             if (!mountedRef.current) return
             const nextDraft = deepClone(updated)
             const nextPrevious = deepClone(updated)
-            draftRef.current = nextDraft
             previousRef.current = nextPrevious
-            setDraft(nextDraft)
             setPrevious(nextPrevious)
+            if (areEqual(draftRef.current, savedDraft)) {
+                draftRef.current = nextDraft
+                setDraft(nextDraft)
+            }
         } finally {
+            loadingRef.current = false
             if (mountedRef.current) setLoading(false)
         }
-    }, [ loading ])
+    }, [ areEqual ])
 
     const refresh = useCallback(async () => {
-        if (loading) return
+        if (loadingRef.current) return
+        loadingRef.current = true
         setLoading(true)
         try {
             const fresh = await refreshFnRef.current()
@@ -159,9 +167,10 @@ export function useSavableEntity<T>(opts: UseSavableEntityOptions<T>): UseSavabl
             setDraft(nextDraft)
             setPrevious(nextPrevious)
         } finally {
+            loadingRef.current = false
             if (mountedRef.current) setLoading(false)
         }
-    }, [ loading ])
+    }, [])
 
     return { draft, setDraft, previous, setPrevious, hasChanges, loading, save, refresh }
 }

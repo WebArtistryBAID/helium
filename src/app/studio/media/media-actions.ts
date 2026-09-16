@@ -75,27 +75,30 @@ export async function createImage(data: {
     sha1: string
 }): Promise<Image> {
     const user = await requireUserWithRole(Role.writer)
+    if (!/^[a-f0-9]{40}$/.test(data.sha1)) throw new Error('Invalid image hash')
     const metadata = await sharp(await fs.readFile(path.join(process.env.UPLOAD_PATH!, data.sha1 + '.webp'))).metadata()
 
-    const image = await prisma.image.create({
-        data: {
-            name: data.name,
-            altText: data.altText,
-            sha1: data.sha1,
-            width: metadata.width,
-            height: metadata.height,
-            sizeKB: Math.ceil((metadata.size ?? 0) / 1024),
-            uploaderId: user.id
-        }
+    return prisma.$transaction(async tx => {
+        const image = await tx.image.create({
+            data: {
+                name: data.name,
+                altText: data.altText,
+                sha1: data.sha1,
+                width: metadata.width,
+                height: metadata.height,
+                sizeKB: Math.ceil((metadata.size ?? 0) / 1024),
+                uploaderId: user.id
+            }
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.uploadImage,
+                userId: user.id,
+                values: [ image.id.toString(), data.sha1 ]
+            }
+        })
+        return image
     })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.uploadImage,
-            userId: user.id,
-            values: [image.id.toString(), data.sha1]
-        }
-    })
-    return image
 }
 
 export async function deletePendingImageUpload(sha1: string): Promise<void> {
@@ -112,14 +115,21 @@ export async function deleteImage(id: number): Promise<void> {
     const image = await prisma.image.findUniqueOrThrow({
         where: { id }
     })
-    await fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '.webp'), { force: true })
-    await fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '_thumb.webp'), { force: true })
-    await prisma.image.delete({ where: { id } })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.deleteImage,
-            userId: user.id,
-            values: [id.toString(), image.sha1]
-        }
+    await prisma.$transaction(async tx => {
+        await tx.image.delete({ where: { id } })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.deleteImage,
+                userId: user.id,
+                values: [ id.toString(), image.sha1 ]
+            }
+        })
     })
+    const cleanupResults = await Promise.allSettled([
+        fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '.webp'), { force: true }),
+        fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '_thumb.webp'), { force: true })
+    ])
+    for (const result of cleanupResults) {
+        if (result.status === 'rejected') console.error('Failed to remove image files', result.reason)
+    }
 }

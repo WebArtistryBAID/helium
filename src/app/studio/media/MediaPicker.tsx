@@ -23,9 +23,16 @@ export default function MediaPicker({ open, onClose, allowUnpick, onPick }: Prop
 
     useEffect(() => {
         if (!open) return;
-        (async () => {
-            setContent(await getImages(0))
-        })()
+        let cancelled = false
+        ;(async () => {
+            const next = await getImages(0)
+            if (!cancelled) setContent(next)
+        })().catch(error => {
+            if (!cancelled) console.error('Failed to load images', error)
+        })
+        return () => {
+            cancelled = true
+        }
     }, [ open ])
 
     return (

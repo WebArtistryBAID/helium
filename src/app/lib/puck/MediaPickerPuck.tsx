@@ -19,20 +19,29 @@ export default function MediaPickerPuck({ name, onChange, value }:
     const [ uploadPrefix, setUploadPrefix ] = useState('')
 
     useEffect(() => {
-        (async () => {
+        ;(async () => {
             setUploadPrefix(await getUploadServePath())
-        })()
+        })().catch(error => {
+            console.error('Failed to load upload path', error)
+        })
     }, [])
 
     useEffect(() => {
+        let cancelled = false;
         (async () => {
             if (value != null) {
                 try {
-                    setFoundImage(await getImage(parseInt(value)))
+                    const image = await getImage(parseInt(value))
+                    if (!cancelled) setFoundImage(image)
                 } catch {
                 }
+            } else {
+                setFoundImage(null)
             }
         })()
+        return () => {
+            cancelled = true
+        }
     }, [ value ])
 
     return <>

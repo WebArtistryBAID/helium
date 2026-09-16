@@ -3,7 +3,6 @@
 import { CommentAnchorType, ContentLanguage, EntityType, Role } from '@/generated/prisma/client'
 import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import { prisma } from '@/app/lib/prisma'
-import { collectPuckComponentIds } from '@/app/lib/puck/puck-component-ids'
 import type { PuckComment, PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
 
 const COMMENT_AUTHOR_SELECT = {
@@ -32,7 +31,7 @@ function normalizedBody(body: string): string {
 async function requirePage(entityId: number) {
     const entity = await prisma.contentEntity.findUnique({
         where: { id: entityId },
-        select: { id: true, type: true, contentDraftEN: true, contentDraftZH: true }
+        select: { id: true, type: true }
     })
     if (entity == null || entity.type !== EntityType.page) throw new Error('Page not found')
     return entity
@@ -58,10 +57,10 @@ export async function createPuckCommentThread(input: {
     body: string
 }): Promise<PuckCommentThread> {
     const user = await requireUserWithRole(Role.writer)
-    const entity = await requirePage(input.entityId)
-    const content = input.language === ContentLanguage.en ? entity.contentDraftEN : entity.contentDraftZH
-    const componentIds = collectPuckComponentIds(JSON.parse(content))
-    if (!componentIds.has(input.componentId)) throw new Error('Component not found')
+    await requirePage(input.entityId)
+    if (input.componentId.trim().length === 0 || input.componentId.length > 500) {
+        throw new Error('Invalid component id')
+    }
 
     return prisma.commentThread.create({
         data: {

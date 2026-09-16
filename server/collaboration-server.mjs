@@ -82,7 +82,18 @@ function fromYValue(value) {
 }
 
 function initialPuckState(content) {
-    const data = JSON.parse(content)
+    let data
+    try {
+        const parsed = JSON.parse(content)
+        data = parsed != null && typeof parsed === 'object' && Array.isArray(parsed.content) &&
+        parsed.root != null && typeof parsed.root === 'object' &&
+        parsed.root.props != null && typeof parsed.root.props === 'object' &&
+        parsed.zones != null && typeof parsed.zones === 'object'
+            ? parsed
+            : { content: [], root: { props: { title: '' } }, zones: {} }
+    } catch {
+        data = { content: [], root: { props: { title: '' } }, zones: {} }
+    }
     const document = new Y.Doc()
     const root = document.getMap('data')
     document.transact(() => {
@@ -102,6 +113,44 @@ const server = new Server({
     port,
     debounce: 1000,
     maxDebounce: 5000,
+    async onRequest({ request, response, instance }) {
+        if (new URL(request.url ?? '/', 'http://localhost').pathname !== '/invalidate') return
+        if (request.method !== 'POST' || request.headers['x-collaboration-secret'] !== process.env.JWT_SECRET) {
+            response.writeHead(401)
+            response.end()
+            throw null
+        }
+        const chunks = []
+        let length = 0
+        for await (const chunk of request) {
+            length += chunk.length
+            if (length > 1_048_576) {
+                response.writeHead(413)
+                response.end()
+                throw null
+            }
+            chunks.push(chunk)
+        }
+        let payload = {}
+        try {
+            payload = JSON.parse(Buffer.concat(chunks).toString('utf8') || '{}')
+        } catch {
+            response.writeHead(400)
+            response.end()
+            throw null
+        }
+        if (payload.all !== true) {
+            response.writeHead(400)
+            response.end()
+            throw null
+        }
+        const documents = Array.from(instance.documents.values())
+        instance.closeConnections()
+        await Promise.all(documents.map(document => instance.unloadDocument(document)))
+        response.writeHead(204)
+        response.end()
+        throw null
+    },
     async onAuthenticate({ documentName, token }) {
         const room = parseRoom(documentName)
         const { payload } = await jwtVerify(token, secret, {

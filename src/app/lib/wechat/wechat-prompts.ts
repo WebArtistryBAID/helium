@@ -33,8 +33,8 @@ export const TRANSLATE_LITERAL = `
 
 专有名词:
 北京中学 Beijing Academy
-北京中学国际部 Beijing Academy International Division (尽量缩写为 BAID)
-北中外籍人员子女学校: International School of Beijing Academy (尽量缩写为 ISBA)
+北京中学国际部 Beijing Academy International Division (尽量缩写为 BAID，标题中必须缩写为 BAID)
+北中外籍人员子女学校: International School of Beijing Academy (尽量缩写为 ISBA，标题中必须缩写为 ISBA)
 毕业生故事: #GraduateStory
 毕业生特辑: #GraduateFeature
 喜报: #Congrats
@@ -69,6 +69,13 @@ BA 大讲堂: BA Lectures
 校友联络处: Alumni Association
 中秋诗会: Zhongqiu Poem Festival
 大地课程: Nature Exploration
+中秋节: Zhongqiu Festival
+端午节: Duanwu Festival
+清明节: Qingming Festival
+重阳节: Chongyang Festival
+元宵节: Yuanxiao Festival
+七夕节: Qixi Festival
+腊八节: Laba Festival (所有中国传统节日名称都应该用拼音表示，禁止翻译为英文)
 语文 (指课程): Chinese Literature
 通用技术 (指课程): General Technologies
 信息技术 (指课程): Information Technologies

@@ -6,6 +6,7 @@ import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
 import PreviewToolbar from '@/app/studio/pages/[id]/preview/PreviewToolbar'
 import { Role } from '@/generated/prisma/client'
 import { WEBSITE_METADATA_SLUG, WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/metadata/website-metadata-types'
+import { parsePuckData } from '@/app/lib/puck/puck-data'
 
 export default async function StudioPagePreview({ params, searchParams }: {
     params: Promise<{ id: string }>
@@ -26,6 +27,8 @@ export default async function StudioPagePreview({ params, searchParams }: {
     return <>
         <PreviewToolbar pageId={entity.id} currentLang={lang} isAdmin={user.roles.includes(Role.admin)}/>
         <Render config={PUCK_CONFIG}
-                data={lang === 'zh' ? JSON.parse(entity.contentDraftZH) : JSON.parse(entity.contentDraftEN)}/>
+                data={lang === 'zh'
+                    ? parsePuckData(entity.contentDraftZH, entity.titleDraftZH)
+                    : parsePuckData(entity.contentDraftEN, entity.titleDraftEN)}/>
     </>
 }

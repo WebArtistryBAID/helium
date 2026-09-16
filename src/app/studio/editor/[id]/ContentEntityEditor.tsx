@@ -161,20 +161,33 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
         refresh
     } = useSavableEntity({
         initial: init,
-        saveFn: async draft => await updateContentEntity({
-            id: draft.id,
-            titleDraftEN: draft.titleDraftEN,
-            titleDraftZH: draft.titleDraftZH,
-            categoryEN: draft.categoryEN,
-            categoryZH: draft.categoryZH,
-            slug: draft.slug,
-            contentDraftEN: draft.contentDraftEN,
-            contentDraftZH: draft.contentDraftZH,
-            shortContentDraftEN: draft.shortContentDraftEN,
-            shortContentDraftZH: draft.shortContentDraftZH,
-            coverImageDraftId: draft.coverImageDraft?.id,
-            createdAt: draft.createdAt
-        }),
+        saveFn: async (draft, previous) => {
+            const saveEnglish = inEnglish || languageComparisonMode
+            const saveChinese = !inEnglish || languageComparisonMode
+            return await updateContentEntity({
+                id: draft.id,
+                titleDraftEN: saveEnglish && draft.titleDraftEN !== previous.titleDraftEN
+                    ? draft.titleDraftEN : undefined,
+                titleDraftZH: saveChinese && draft.titleDraftZH !== previous.titleDraftZH
+                    ? draft.titleDraftZH : undefined,
+                categoryEN: saveEnglish && draft.categoryEN !== previous.categoryEN
+                    ? draft.categoryEN : undefined,
+                categoryZH: saveChinese && draft.categoryZH !== previous.categoryZH
+                    ? draft.categoryZH : undefined,
+                slug: draft.slug !== previous.slug ? draft.slug : undefined,
+                contentDraftEN: saveEnglish && draft.contentDraftEN !== previous.contentDraftEN
+                    ? draft.contentDraftEN : undefined,
+                contentDraftZH: saveChinese && draft.contentDraftZH !== previous.contentDraftZH
+                    ? draft.contentDraftZH : undefined,
+                shortContentDraftEN: saveEnglish && draft.shortContentDraftEN !== previous.shortContentDraftEN
+                    ? draft.shortContentDraftEN : undefined,
+                shortContentDraftZH: saveChinese && draft.shortContentDraftZH !== previous.shortContentDraftZH
+                    ? draft.shortContentDraftZH : undefined,
+                coverImageDraftId: draft.coverImageDraft?.id !== previous.coverImageDraft?.id
+                    ? draft.coverImageDraft?.id ?? null : undefined,
+                createdAt: String(draft.createdAt) !== String(previous.createdAt) ? draft.createdAt : undefined
+            })
+        },
         refreshFn: async () => (await getContentEntity(init.id))!,
         compareKeys: [
             'titleDraftEN',

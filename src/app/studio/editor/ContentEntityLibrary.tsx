@@ -74,11 +74,21 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
     }, [ search ])
 
     useEffect(() => {
-        (async () => {
-            setUploadServePath(await getUploadServePath())
-            const res = await getContentEntities(currentPage, type, debouncedSearch || undefined)
-            setPage(res)
-        })()
+        let cancelled = false
+        ;(async () => {
+            const [ nextUploadServePath, result ] = await Promise.all([
+                getUploadServePath(),
+                getContentEntities(currentPage, type, debouncedSearch || undefined)
+            ])
+            if (cancelled) return
+            setUploadServePath(nextUploadServePath)
+            setPage(result)
+        })().catch(error => {
+            if (!cancelled) console.error('Failed to load content entities', error)
+        })
+        return () => {
+            cancelled = true
+        }
     }, [ canWrite, currentPage, debouncedSearch, handlePermissionError, type ])
 
     useEffect(() => {

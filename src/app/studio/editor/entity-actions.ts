@@ -20,6 +20,7 @@ import { reconcilePuckCommentThreads } from '@/app/lib/puck/puck-comment-storage
 import { sendPublicationNotification } from '@/app/lib/feishu/feishu-approval'
 import { hasPlateSuggestions, isSerializedPlateValue, serializePlateValue } from '@/app/lib/plate/plate-types'
 import { deserializeMarkdownToPlate } from '@/app/lib/plate/plate-markdown'
+import { parsePuckData } from '@/app/lib/puck/puck-data'
 
 const PAGE_SIZE = 24
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
@@ -133,7 +134,7 @@ export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[
     })
 }
 
-const lastRefresh = 0
+let lastRefresh = 0
 
 export async function refreshPageData(): Promise<void> {
     if (Date.now() - lastRefresh < 3600 * 1000) {
@@ -149,13 +150,16 @@ export async function refreshPageData(): Promise<void> {
         await prisma.contentEntity.update({
             where: { id: page.id },
             data: {
-                contentDraftEN: JSON.stringify(await resolveAllData(JSON.parse(page.contentDraftEN), PUCK_CONFIG)),
-                contentDraftZH: JSON.stringify(await resolveAllData(JSON.parse(page.contentDraftZH), PUCK_CONFIG)),
-                contentPublishedEN: page.contentPublishedEN == null ? null : JSON.stringify(await resolveAllData(JSON.parse(page.contentPublishedEN), PUCK_CONFIG)),
-                contentPublishedZH: page.contentPublishedZH == null ? null : JSON.stringify(await resolveAllData(JSON.parse(page.contentPublishedZH), PUCK_CONFIG))
+                contentDraftEN: JSON.stringify(await resolveAllData(parsePuckData(page.contentDraftEN, page.titleDraftEN), PUCK_CONFIG)),
+                contentDraftZH: JSON.stringify(await resolveAllData(parsePuckData(page.contentDraftZH, page.titleDraftZH), PUCK_CONFIG)),
+                contentPublishedEN: page.contentPublishedEN == null ? null : JSON.stringify(await resolveAllData(
+                    parsePuckData(page.contentPublishedEN, page.titlePublishedEN ?? ''), PUCK_CONFIG)),
+                contentPublishedZH: page.contentPublishedZH == null ? null : JSON.stringify(await resolveAllData(
+                    parsePuckData(page.contentPublishedZH, page.titlePublishedZH ?? ''), PUCK_CONFIG))
             }
         })
     }
+    lastRefresh = Date.now()
 }
 
 export async function getContentEntityBySlug(slug: string): Promise<HydratedContentEntity | null> {
@@ -395,24 +399,26 @@ export async function unpublishContentEntity(id: number): Promise<void> {
         throw new Error('Website metadata must be managed from website settings')
     }
 
-    await prisma.contentEntity.update({
-        where: { id },
-        data: {
-            titlePublishedEN: null,
-            titlePublishedZH: null,
-            coverImagePublishedId: null,
-            shortContentPublishedEN: null,
-            shortContentPublishedZH: null,
-            contentPublishedEN: null,
-            contentPublishedZH: null
-        }
-    })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.unpublishEntity,
-            userId: user.id,
-            values: [ post.id.toString(), post.titleDraftEN ]
-        }
+    await prisma.$transaction(async tx => {
+        await tx.contentEntity.update({
+            where: { id },
+            data: {
+                titlePublishedEN: null,
+                titlePublishedZH: null,
+                coverImagePublishedId: null,
+                shortContentPublishedEN: null,
+                shortContentPublishedZH: null,
+                contentPublishedEN: null,
+                contentPublishedZH: null
+            }
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.unpublishEntity,
+                userId: user.id,
+                values: [ post.id.toString(), post.titleDraftEN ]
+            }
+        })
     })
 }
 
@@ -426,31 +432,40 @@ export async function restoreContentEntityDraftFromPublished(id: number): Promis
         current.contentPublishedEN == null || current.contentPublishedZH == null) {
         throw new Error('Content entity has no complete published version')
     }
+    const publishedTitleEN = current.titlePublishedEN
+    const publishedTitleZH = current.titlePublishedZH
+    const publishedShortContentEN = current.shortContentPublishedEN
+    const publishedShortContentZH = current.shortContentPublishedZH
+    const publishedContentEN = current.contentPublishedEN
+    const publishedContentZH = current.contentPublishedZH
 
-    const restored = await prisma.contentEntity.update({
-        where: { id },
-        data: {
-            titleDraftEN: current.titlePublishedEN,
-            titleDraftZH: current.titlePublishedZH,
-            shortContentDraftEN: current.shortContentPublishedEN,
-            shortContentDraftZH: current.shortContentPublishedZH,
-            contentDraftEN: current.contentPublishedEN,
-            contentDraftZH: current.contentPublishedZH,
-            coverImageDraftId: current.coverImagePublishedId
-        },
-        select: HYDRATED_CONTENT_ENTITY_SELECT
-    })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.writerEditEntity,
-            userId: user.id,
-            values: [ restored.id.toString(), restored.titleDraftEN ]
+    const restored = await prisma.$transaction(async tx => {
+        const updated = await tx.contentEntity.update({
+            where: { id },
+            data: {
+                titleDraftEN: publishedTitleEN,
+                titleDraftZH: publishedTitleZH,
+                shortContentDraftEN: publishedShortContentEN,
+                shortContentDraftZH: publishedShortContentZH,
+                contentDraftEN: publishedContentEN,
+                contentDraftZH: publishedContentZH,
+                coverImageDraftId: current.coverImagePublishedId
+            },
+            select: HYDRATED_CONTENT_ENTITY_SELECT
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.writerEditEntity,
+                userId: user.id,
+                values: [ updated.id.toString(), updated.titleDraftEN ]
+            }
+        })
+        await tx.approval.deleteMany({ where: { entityId: id } })
+        if (current.type === EntityType.page) {
+            await reconcilePuckCommentThreads(id, updated.contentDraftEN, updated.contentDraftZH, tx)
         }
+        return updated as HydratedContentEntity
     })
-    await prisma.approval.deleteMany({ where: { entityId: id } })
-    if (current.type === EntityType.page) {
-        await reconcilePuckCommentThreads(id, restored.contentDraftEN, restored.contentDraftZH)
-    }
     return restored
 }
 
@@ -481,24 +496,26 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
             return AlignEntityResponse.unresolvedFeedback
         }
     }
-    await prisma.contentEntity.update({
-        where: { id },
-        data: {
-            titlePublishedEN: post.titleDraftEN,
-            titlePublishedZH: post.titleDraftZH,
-            contentPublishedEN: post.contentDraftEN,
-            contentPublishedZH: post.contentDraftZH,
-            shortContentPublishedEN: post.shortContentDraftEN,
-            shortContentPublishedZH: post.shortContentDraftZH,
-            coverImagePublishedId: post.coverImageDraftId
-        }
-    })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.adminPublishEntity,
-            userId: user.id,
-            values: [ post.id.toString(), post.titleDraftEN ]
-        }
+    await prisma.$transaction(async tx => {
+        await tx.contentEntity.update({
+            where: { id },
+            data: {
+                titlePublishedEN: post.titleDraftEN,
+                titlePublishedZH: post.titleDraftZH,
+                contentPublishedEN: post.contentDraftEN,
+                contentPublishedZH: post.contentDraftZH,
+                shortContentPublishedEN: post.shortContentDraftEN,
+                shortContentPublishedZH: post.shortContentDraftZH,
+                coverImagePublishedId: post.coverImageDraftId
+            }
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.adminPublishEntity,
+                userId: user.id,
+                values: [ post.id.toString(), post.titleDraftEN ]
+            }
+        })
     })
     const livePath = post.slug === WEBSITE_METADATA_SLUG
         ? '/'
@@ -524,53 +541,53 @@ export async function deleteContentEntity(id: number): Promise<void> {
     if (current?.slug === WEBSITE_METADATA_SLUG) {
         throw new Error('Website metadata cannot be deleted')
     }
-    const post = await prisma.contentEntity.delete({
-        where: {
-            id
-        }
-    })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.deleteEntity,
-            userId: user.id,
-            values: [ post.id.toString(), post.titleDraftEN ]
-        }
+    await prisma.$transaction(async tx => {
+        const post = await tx.contentEntity.delete({ where: { id } })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.deleteEntity,
+                userId: user.id,
+                values: [ post.id.toString(), post.titleDraftEN ]
+            }
+        })
     })
 }
 
 // = CREATING AND EDITING
 export async function createContentEntity(type: EntityType, titleEN: string, titleZH: string): Promise<SimplifiedContentEntity> {
     const user = await requireUserWithRole(Role.writer)
-    const post = await prisma.contentEntity.create({
-        data: {
-            type,
-            titleDraftEN: titleEN,
-            titleDraftZH: titleZH,
-            slug: createAutomaticSlug(titleEN),
-            contentDraftEN: type === EntityType.page ? JSON.stringify({
-                content: [],
-                root: { props: { title: titleEN } },
-                zones: {}
-            }) : '',
-            contentDraftZH: type === EntityType.page ? JSON.stringify({
-                content: [],
-                root: { props: { title: titleZH } },
-                zones: {}
-            }) : '',
-            contentPublishedEN: null,
-            contentPublishedZH: null,
-            creatorId: user.id
-        },
-        select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+    return prisma.$transaction(async tx => {
+        const post = await tx.contentEntity.create({
+            data: {
+                type,
+                titleDraftEN: titleEN,
+                titleDraftZH: titleZH,
+                slug: createAutomaticSlug(titleEN),
+                contentDraftEN: type === EntityType.page ? JSON.stringify({
+                    content: [],
+                    root: { props: { title: titleEN } },
+                    zones: {}
+                }) : '',
+                contentDraftZH: type === EntityType.page ? JSON.stringify({
+                    content: [],
+                    root: { props: { title: titleZH } },
+                    zones: {}
+                }) : '',
+                contentPublishedEN: null,
+                contentPublishedZH: null,
+                creatorId: user.id
+            },
+            select: SIMPLIFIED_CONTENT_ENTITY_SELECT
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.writerCreateEntity,
+                userId: user.id,
+                values: [ post.id.toString(), titleEN ]
+            }
+        })
+        return post
     })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.writerCreateEntity,
-            userId: user.id,
-            values: [ post.id.toString(), titleEN ]
-        }
-    })
-    return post
 }
 
 export async function updateContentEntity(data: {
@@ -598,37 +615,35 @@ export async function updateContentEntity(data: {
     }
     const contentDraftEN = normalizeContent(data.contentDraftEN)
     const contentDraftZH = normalizeContent(data.contentDraftZH)
-    const post = await prisma.contentEntity.update({
-        where: { id: data.id },
-        data: {
-            slug: data.slug,
-            createdAt: data.createdAt,
-            categoryEN: data.categoryEN,
-            categoryZH: data.categoryZH,
-            titleDraftEN: data.titleDraftEN,
-            titleDraftZH: data.titleDraftZH,
-            shortContentDraftEN: data.shortContentDraftEN,
-            shortContentDraftZH: data.shortContentDraftZH,
-            contentDraftEN,
-            contentDraftZH,
-            coverImageDraftId: data.coverImageDraftId
-        },
-        select: HYDRATED_CONTENT_ENTITY_SELECT
-    })
-    await prisma.userAuditLog.create({
-        data: {
-            type: UserAuditLogType.writerEditEntity,
-            userId: user.id,
-            values: [ data.id.toString(), post.titleDraftEN ]
+    return prisma.$transaction(async tx => {
+        const post = await tx.contentEntity.update({
+            where: { id: data.id },
+            data: {
+                slug: data.slug,
+                createdAt: data.createdAt,
+                categoryEN: data.categoryEN,
+                categoryZH: data.categoryZH,
+                titleDraftEN: data.titleDraftEN,
+                titleDraftZH: data.titleDraftZH,
+                shortContentDraftEN: data.shortContentDraftEN,
+                shortContentDraftZH: data.shortContentDraftZH,
+                contentDraftEN,
+                contentDraftZH,
+                coverImageDraftId: data.coverImageDraftId
+            },
+            select: HYDRATED_CONTENT_ENTITY_SELECT
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.writerEditEntity,
+                userId: user.id,
+                values: [ data.id.toString(), post.titleDraftEN ]
+            }
+        })
+        await tx.approval.deleteMany({ where: { entityId: data.id } })
+        if (current?.type === EntityType.page) {
+            await reconcilePuckCommentThreads(data.id, post.contentDraftEN, post.contentDraftZH, tx)
         }
+        return post
     })
-    await prisma.approval.deleteMany({
-        where: {
-            entityId: data.id
-        }
-    })
-    if (current?.type === EntityType.page && data.contentDraftEN != null && data.contentDraftZH != null) {
-        await reconcilePuckCommentThreads(data.id, data.contentDraftEN, data.contentDraftZH)
-    }
-    return post
 }

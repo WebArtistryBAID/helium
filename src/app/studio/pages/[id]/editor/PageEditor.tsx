@@ -44,6 +44,7 @@ import {
     replacePuckCollaborationDocument,
     usePuckCollaboration
 } from '@/app/lib/puck/PuckCollaboration'
+import { parsePuckData } from '@/app/lib/puck/puck-data'
 
 const STABLE_INLINE_TEXT_TRANSFORMS = {
     text: ({ componentId, field, isReadOnly, propPath, value }: any) =>
@@ -180,7 +181,8 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
     const puckDataRef = useRef<{ data: ReturnType<typeof JSON.parse>, key: string } | null>(null)
     if (puckDataRef.current?.key !== puckDocumentKey) {
         puckDataRef.current = {
-            data: JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH),
+            data: parsePuckData(inEnglish ? draft.contentDraftEN : draft.contentDraftZH,
+                inEnglish ? draft.titleDraftEN : draft.titleDraftZH),
             key: puckDocumentKey
         }
     }
@@ -423,7 +425,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                                         try {
                                             const content = draft.contentDraftZH
                                             await replacePuckCollaborationDocument({
-                                                data: JSON.parse(content) as Data,
+                                                data: parsePuckData(content, draft.titleDraftZH),
                                                 entityId: draft.id,
                                                 language: 'en'
                                             })
@@ -451,12 +453,12 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                                     const restored = await restoreContentEntityDraftFromPublished(draft.id)
                                     await Promise.all([
                                         replacePuckCollaborationDocument({
-                                            data: JSON.parse(restored.contentDraftEN) as Data,
+                                            data: parsePuckData(restored.contentDraftEN, restored.titleDraftEN),
                                             entityId: draft.id,
                                             language: 'en'
                                         }),
                                         replacePuckCollaborationDocument({
-                                            data: JSON.parse(restored.contentDraftZH) as Data,
+                                            data: parsePuckData(restored.contentDraftZH, restored.titleDraftZH),
                                             entityId: draft.id,
                                             language: 'zh'
                                         })

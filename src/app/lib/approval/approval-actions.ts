@@ -1,7 +1,7 @@
 'use server'
 
 import { EntityType, Role } from '@/generated/prisma/client'
-import { requireUserWithRole } from '@/app/login/login-actions'
+import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import { prisma } from '@/app/lib/prisma'
 import { sendApprovalNotification } from '@/app/lib/feishu/feishu-approval'
 import {
@@ -55,11 +55,13 @@ export async function removeAllApprovals(params: {
     entityType: EntityType
     entityId: number
 }) {
+    await requireUserWithRole(Role.admin)
     const { entityType, entityId } = params
     await prisma.approval.deleteMany({ where: { entityType, entityId } })
 }
 
 export async function getApprovalCounts(entityType: EntityType, entityId: number) {
+    await requireUser()
     const rows = await prisma.approval.groupBy({
         by: [ 'role' ],
         where: { entityType, entityId },
@@ -75,6 +77,7 @@ export async function getApprovalCounts(entityType: EntityType, entityId: number
 }
 
 export async function getApprovalNames(entityType: EntityType, entityId: number) {
+    await requireUser()
     const rows = await prisma.approval.findMany({
         where: { entityType, entityId },
         select: { userId: true, role: true }
@@ -91,6 +94,7 @@ export async function getApprovalNames(entityType: EntityType, entityId: number)
 
 // Pull thresholds from DB config if present, otherwise fall back to code
 export async function getThresholds(entityType: EntityType) {
+    await requireUser()
     const cfg = await prisma.approvalConfig.findUnique({ where: { entityType } })
     return {
         [Role.editor]: cfg?.minEditor ?? 1,

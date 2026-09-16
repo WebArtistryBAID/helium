@@ -10,6 +10,7 @@ import { retrieveMetadata } from '@/app/[[...slug]]/metadata-utils'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { Metadata } from 'next'
 import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
+import { parsePuckData } from '@/app/lib/puck/puck-data'
 
 export async function generateMetadata({ params }: {
     params: Promise<{ slug: string[] | undefined }>
@@ -153,8 +154,8 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
             <main id="main-content" tabIndex={-1}>
                 <Render config={PUCK_CONFIG}
                         data={finalLocale === 'en'
-                            ? await resolveAllData(JSON.parse(entity.contentPublishedEN!), PUCK_CONFIG)
-                            : await resolveAllData(JSON.parse(entity.contentPublishedZH!), PUCK_CONFIG)}/>
+                            ? await resolveAllData(parsePuckData(entity.contentPublishedEN ?? '', entity.titlePublishedEN ?? ''), PUCK_CONFIG)
+                            : await resolveAllData(parsePuckData(entity.contentPublishedZH ?? '', entity.titlePublishedZH ?? ''), PUCK_CONFIG)}/>
             </main>
             <GlobalFooter websiteMetadata={websiteMetadata}/>
         </div>

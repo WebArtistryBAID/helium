@@ -47,13 +47,19 @@ export default function UserLibrary({ init }: { init: Paginated<User> }) {
     }, [ search ])
 
     useEffect(() => {
-        (async () => {
+        let cancelled = false
+        ;(async () => {
             const res = await getUsers(currentPage, {
                 ...filters,
                 keyword: debouncedSearch || undefined
             })
-            setPage(res)
-        })()
+            if (!cancelled) setPage(res)
+        })().catch(error => {
+            if (!cancelled) console.error('Failed to load users', error)
+        })
+        return () => {
+            cancelled = true
+        }
     }, [ currentPage, debouncedSearch, filters ])
 
     function updateFilter<K extends keyof UserFilters>(key: K, value: UserFilters[K]) {

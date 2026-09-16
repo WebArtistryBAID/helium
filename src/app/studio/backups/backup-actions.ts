@@ -10,6 +10,7 @@ import {
     restoreContentBackup
 } from '@/app/lib/backups'
 import type { BackupFile } from '@/app/lib/backups'
+import { invalidateCollaborationDocuments } from '@/app/lib/collaboration/invalidate'
 
 export async function getBackupsAction(): Promise<BackupFile[]> {
     await requireUserWithRole(Role.admin)
@@ -25,7 +26,9 @@ export async function createManualBackupAction(): Promise<BackupFile[]> {
 
 export async function restoreBackupAction(filename: string): Promise<{ backups: BackupFile[]; restoredCount: number }> {
     await requireUserWithRole(Role.admin)
+    await invalidateCollaborationDocuments()
     const restoredCount = await restoreContentBackup(filename)
+    await invalidateCollaborationDocuments()
     return {
         backups: await listBackups(),
         restoredCount
