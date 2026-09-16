@@ -8,7 +8,7 @@
     "dev:collaboration": "node --env-file=.env server/collaboration-server.mjs",
     "build": "next build",
     "start": "concurrently --kill-others-on-fail --names next,collaboration \"npm run start:next\" \"npm run start:collaboration\"",
-    "start:next": "next start --port 52323",
+    "start:next": "node --env-file=.env server/next-server.mjs",
     "start:collaboration": "node --env-file=.env server/collaboration-server.mjs",
     "lint": "eslint ."
   },

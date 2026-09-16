@@ -36,6 +36,7 @@ To run in development:
 | `FEISHU_AI_CLIENT_ID`        | Another Feishu app used for translating and sanitizing WeChat imports. Starts with `cli_`.                                                                                          |
 | `FEISHU_AI_CLIENT_SECRET`    | Another Feishu app used for translating and sanitizing WeChat imports.                                                                                                              |
 | `FEISHU_AILY_AGENT_ID`       | Another Feishu app used for translating and sanitizing WeChat imports. You must create an agent and paste the agent ID here. Starts with `agent_`. It's in the browser address bar. |
+| `NEXT_PORT`                  | Port used by the production Next.js server. Defaults to `52323`.                                                                                                                    |
 | `HOCUSPOCUS_PORT`            | Local port for the Plate collaboration server. Defaults to `1234`.                                                                                                                  |
 | `NEXT_PUBLIC_HOCUSPOCUS_URL` | Browser WebSocket URL for Plate collaboration, such as `ws://192.168.1.20/collaboration/`. Set this before running `npm run build`.                                                 |
 
