@@ -43,6 +43,7 @@ import {
     getWebsiteMetadataEditorState,
     saveWebsiteMetadata
 } from '@/app/studio/metadata/website-metadata-actions'
+import { createClientId } from '@/app/lib/client-id'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
@@ -51,7 +52,7 @@ type LinkField = keyof Pick<WebsiteLink, 'name' | 'url'>
 type FooterTextField = keyof Omit<WebsiteFooterContent, 'items'>
 
 function newItemId(prefix: string) {
-    return `${prefix}-${crypto.randomUUID()}`
+    return `${prefix}-${createClientId()}`
 }
 
 function moveItem<T>(items: T[], index: number, direction: -1 | 1): T[] {

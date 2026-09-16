@@ -7,6 +7,7 @@ import { HiArrowUpTray } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
 import type { Image } from '@/generated/prisma/browser'
 import { createImage, deletePendingImageUpload } from '@/app/studio/media/media-actions'
+import { createClientId } from '@/app/lib/client-id'
 
 type UploadStatus = 'uploading' | 'cancelling' | 'complete' | 'error'
 
@@ -85,7 +86,7 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
         }
 
         setActionError('')
-        const id = crypto.randomUUID()
+        const id = createClientId()
         const xhr = new XMLHttpRequest()
         const task: UploadTask = {
             id,
