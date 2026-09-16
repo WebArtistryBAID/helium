@@ -463,6 +463,8 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                         <Button pill size="md" color="alternative"
                                 onClick={() => setShowMetadata(true)}>页面信息</Button>
                         <Button pill size="md" color="alternative"
+                                onClick={() => router.push(`/studio/pages/${draft.id}/preview`)}>预览</Button>
+                        <Button pill size="md" color="alternative"
                                 onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
                         <If condition={canWrite}>
                             <Button pill size="md" color="blue" disabled={loading || !hasChanges} onClick={guardedSave}>
