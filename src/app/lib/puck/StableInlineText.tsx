@@ -1,7 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { usePuck } from '@puckeditor/core'
+import { createUsePuck } from '@puckeditor/core'
+
+const usePuckSelector = createUsePuck()
 
 type StableInlineTextProps = {
     componentId: string
@@ -43,7 +45,9 @@ export default function StableInlineText({
     const ref = useRef<HTMLSpanElement>(null)
     const [ isHovering, setIsHovering ] = useState(false)
     const [ isFocused, setIsFocused ] = useState(false)
-    const { dispatch, getItemById, getSelectorForId } = usePuck()
+    const dispatch = usePuckSelector(state => state.dispatch)
+    const getItemById = usePuckSelector(state => state.getItemById)
+    const getSelectorForId = usePuckSelector(state => state.getSelectorForId)
 
     // Do not rewrite an active editable node. Replacing its children resets the browser selection,
     // which is especially noticeable when an older asynchronous update arrives after a keystroke.

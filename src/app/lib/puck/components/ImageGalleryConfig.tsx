@@ -4,6 +4,36 @@ import { convertDatesToStrings } from '@/app/lib/data-types'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import ImageGallery from '@/app/lib/puck/components/ImageGallery'
 
+type EditableGallerySlide = {
+    image: string | null | undefined
+    title: string | undefined
+    titleSize: string | undefined
+    content: string | undefined
+    link: string | undefined
+    linkText: string | undefined
+}
+
+async function resolveSlide(slide: EditableGallerySlide | null | undefined) {
+    if (slide == null) return null
+    const imageId = Number(slide.image)
+    let image = null
+    if (Number.isInteger(imageId) && imageId > 0) {
+        try {
+            image = convertDatesToStrings(await getImage(imageId))
+        } catch (error) {
+            console.error(`Unable to resolve slideshow image ${imageId}:`, error)
+        }
+    }
+    return {
+        title: slide.title,
+        titleSize: slide.titleSize,
+        content: slide.content,
+        link: slide.link,
+        linkText: slide.linkText,
+        image
+    }
+}
+
 const ImageGalleryConfig: ComponentConfig = {
     label: '全屏图片轮播',
     fields: {
@@ -112,24 +142,7 @@ const ImageGalleryConfig: ComponentConfig = {
         if (trigger === 'move') return { props }
         return {
             props: {
-                resolvedSlides: await Promise.all((props.slides ?? []).map(async (slide: {
-                    image: string | null | undefined,
-                    title: string | undefined,
-                    titleSize: string | undefined,
-                    content: string | undefined,
-                    link: string | undefined,
-                    linkText: string | undefined
-                }) => {
-                    if (!slide) return null
-                    return {
-                        title: slide.title,
-                        titleSize: slide.titleSize,
-                        content: slide.content,
-                        link: slide.link,
-                        linkText: slide.linkText,
-                        image: (slide.image == null || slide.image === '') ? null : convertDatesToStrings(await getImage(parseInt(slide.image)))
-                    }
-                })),
+                resolvedSlides: await Promise.all((props.slides ?? []).map(resolveSlide)),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

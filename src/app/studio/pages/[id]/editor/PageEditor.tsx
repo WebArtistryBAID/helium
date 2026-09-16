@@ -10,7 +10,7 @@ import {
 } from '@/app/studio/editor/entity-actions'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { Puck } from '@puckeditor/core'
@@ -172,6 +172,14 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
             ? { label: '有更新未发布', color: 'warning' }
             : { label: '草稿', color: 'gray' }
     const pageUrl = `${host.replace(/\/+$/, '')}/${draft.slug.replace(/^\/+/, '')}`
+    const puckDocumentKey = `${inEnglish ? 'en' : 'zh'}-${puckRevision}`
+    const puckDataRef = useRef<{ data: ReturnType<typeof JSON.parse>, key: string } | null>(null)
+    if (puckDataRef.current?.key !== puckDocumentKey) {
+        puckDataRef.current = {
+            data: JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH),
+            key: puckDocumentKey
+        }
+    }
 
     async function createComponentComment(componentId: string, body: string) {
         try {
@@ -410,9 +418,9 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
         <div className="page-editor">
             <PuckCommentHighlights componentIds={Object.keys(commentThreadCounts)}/>
             <Puck
-                key={`${inEnglish ? 'en' : 'zh'}-${puckRevision}`} // Force re-render
+                key={puckDocumentKey} // Force re-render only for intentional document changes
                 config={PUCK_CONFIG}
-                data={JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH)} // Avoid empty string error
+                data={puckDataRef.current.data}
                 fieldTransforms={STABLE_INLINE_TEXT_TRANSFORMS}
                 onAction={(_action, appState, previousAppState) => {
                     removeDeletedComponentComments(appState.data, previousAppState.data)

@@ -2,11 +2,12 @@
 
 import { ReactNode, useEffect, useState } from 'react'
 import { Alert, Badge, Button, Textarea } from 'flowbite-react'
-import { ActionBar, usePuck } from '@puckeditor/core'
+import { ActionBar, createUsePuck } from '@puckeditor/core'
 import { HiArrowLeft, HiChatBubbleLeftRight, HiCheck, HiChevronDown, HiChevronUp } from 'react-icons/hi2'
 import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
 
 const COMMENT_HIGHLIGHT_SELECTOR = '[data-puck-comment-highlight]'
+const usePuckSelector = createUsePuck()
 
 export function PuckCommentHighlights({ componentIds }: { componentIds: string[] }) {
     useEffect(() => {
@@ -225,8 +226,8 @@ export function PuckCommentActionBar({ children, label, parentAction, activeComp
     threadCounts: Record<string, number>
     onOpen: (componentId: string) => void
 }) {
-    const { selectedItem, dispatch } = usePuck()
-    const componentId = selectedItem?.props.id
+    const dispatch = usePuckSelector(state => state.dispatch)
+    const componentId = usePuckSelector(state => state.selectedItem?.props.id)
 
     return <ActionBar>
         <ActionBar.Group>
@@ -279,8 +280,7 @@ export default function PuckComments({
     const [ body, setBody ] = useState('')
     const [ loading, setLoading ] = useState(false)
     const [ error, setError ] = useState<string | null>(null)
-    const { selectedItem } = usePuck()
-    const selectedComponentId = selectedItem?.props.id
+    const selectedComponentId = usePuckSelector(state => state.selectedItem?.props.id)
     const unresolvedThreadCount = threads.filter(thread => thread.resolvedAt == null).length
 
     if (activeComponentId == null || selectedComponentId !== activeComponentId) return children
