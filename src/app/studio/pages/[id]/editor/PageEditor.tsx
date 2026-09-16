@@ -10,7 +10,7 @@ import {
 } from '@/app/studio/editor/entity-actions'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { Puck } from '@puckeditor/core'
@@ -178,6 +178,67 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
         puckDataRef.current = {
             data: JSON.parse(inEnglish ? draft.contentDraftEN : draft.contentDraftZH),
             key: puckDocumentKey
+        }
+    }
+
+    const puckOverrideStateRef = useRef<{
+        activeComponentId: string | null
+        threadCounts: Record<string, number>
+        threads: PuckCommentThread[]
+        canComment: boolean
+        canDelete: boolean
+        inEnglish: boolean
+        loading: boolean
+        hasChanges: boolean
+    } | null>(null)
+    puckOverrideStateRef.current = {
+        activeComponentId: activeCommentComponentId,
+        threadCounts: commentThreadCounts,
+        threads: languageCommentThreads.filter(thread => thread.componentId === activeCommentComponentId),
+        canComment: canWrite,
+        canDelete: canDeleteComments,
+        inEnglish,
+        loading,
+        hasChanges
+    }
+    const puckOverridesRef = useRef<Record<string, (props?: any) => ReactNode> | null>(null)
+    if (puckOverridesRef.current == null) {
+        puckOverridesRef.current = {
+            actionBar: (props: any) => {
+                const state = puckOverrideStateRef.current!
+                return <PuckCommentActionBar {...props} activeComponentId={state.activeComponentId}
+                                             threadCounts={state.threadCounts}
+                                             onOpen={componentId => setActiveCommentComponentId(current =>
+                                                 current === componentId ? null : componentId
+                                             )}/>
+            },
+            fields: (props: any) => {
+                const state = puckOverrideStateRef.current!
+                return <PuckComments {...props} activeComponentId={state.activeComponentId}
+                                     canComment={state.canComment} canDelete={state.canDelete} threads={state.threads}
+                                     onClose={() => setActiveCommentComponentId(null)} onCreate={createComponentComment}
+                                     onDelete={deleteComponentComment} onReply={replyToComponentComment}
+                                     onSetResolved={setComponentCommentResolved}/>
+            },
+            headerActions: () => {
+                const state = puckOverrideStateRef.current!
+                return <>
+                    <Button pill size="md" color="alternative"
+                            onClick={switchLanguage}>切换到{state.inEnglish ? '中文' : '英文'}</Button>
+                    <Button pill size="md" color="alternative"
+                            onClick={() => setShowMetadata(true)}>页面信息</Button>
+                    <Button pill size="md" color="alternative"
+                            onClick={() => router.push(`/studio/pages/${draft.id}/preview`)}>预览</Button>
+                    <Button pill size="md" color="alternative"
+                            onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
+                    <If condition={canWrite}>
+                        <Button pill size="md" color="blue" disabled={state.loading || !state.hasChanges}
+                                onClick={guardedSave}>
+                            {state.loading ? '保存中…' : state.hasChanges ? '保存更改' : '已保存'}
+                        </Button>
+                    </If>
+                </>
+            }
         }
     }
 
@@ -444,43 +505,7 @@ export default function PageEditor({ init, lockToken, user, host, initialComment
                         }))
                     }
                 }}
-                overrides={{
-                    actionBar: props => <PuckCommentActionBar
-                        {...props}
-                        activeComponentId={activeCommentComponentId}
-                        threadCounts={commentThreadCounts}
-                        onOpen={componentId => setActiveCommentComponentId(current =>
-                            current === componentId ? null : componentId
-                        )}
-                    />,
-                    fields: props => <PuckComments
-                        {...props}
-                        activeComponentId={activeCommentComponentId}
-                        canComment={canWrite}
-                        canDelete={canDeleteComments}
-                        threads={languageCommentThreads.filter(thread => thread.componentId === activeCommentComponentId)}
-                        onClose={() => setActiveCommentComponentId(null)}
-                        onCreate={createComponentComment}
-                        onDelete={deleteComponentComment}
-                        onReply={replyToComponentComment}
-                        onSetResolved={setComponentCommentResolved}
-                    />,
-                    headerActions: () => <>
-                        <Button pill size="md" color="alternative"
-                                onClick={switchLanguage}>切换到{inEnglish ? '中文' : '英文'}</Button>
-                        <Button pill size="md" color="alternative"
-                                onClick={() => setShowMetadata(true)}>页面信息</Button>
-                        <Button pill size="md" color="alternative"
-                                onClick={() => router.push(`/studio/pages/${draft.id}/preview`)}>预览</Button>
-                        <Button pill size="md" color="alternative"
-                                onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
-                        <If condition={canWrite}>
-                            <Button pill size="md" color="blue" disabled={loading || !hasChanges} onClick={guardedSave}>
-                                {loading ? '保存中…' : hasChanges ? '保存更改' : '已保存'}
-                            </Button>
-                        </If>
-                    </>
-                }}
+                overrides={puckOverridesRef.current}
             />
         </div>
     </>

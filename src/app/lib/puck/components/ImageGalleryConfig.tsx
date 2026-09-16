@@ -5,7 +5,7 @@ import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import ImageGallery from '@/app/lib/puck/components/ImageGallery'
 
 type EditableGallerySlide = {
-    image: string | null | undefined
+    image: string | number | { id?: number } | null | undefined
     title: string | undefined
     titleSize: string | undefined
     content: string | undefined
@@ -15,7 +15,10 @@ type EditableGallerySlide = {
 
 async function resolveSlide(slide: EditableGallerySlide | null | undefined) {
     if (slide == null) return null
-    const imageId = Number(slide.image)
+    const imageValue = slide.image
+    const imageId = typeof imageValue === 'object' && imageValue != null
+        ? Number(imageValue.id)
+        : Number(imageValue)
     let image = null
     if (Number.isInteger(imageId) && imageId > 0) {
         try {
