@@ -17,7 +17,7 @@ import {
     TextInput
 } from 'flowbite-react'
 import {
-    HiArrowLeft,
+    HiArrowLeft, HiArrowsRightLeft,
     HiCalendarDays,
     HiCheckCircle,
     HiClock,
@@ -83,9 +83,9 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     const [ restoreConfirm, setRestoreConfirm ] = useState(false)
     const [ contentRevision, setContentRevision ] = useState(0)
     const [ inEnglish, setInEnglish ] = useState(false)
+    const [ languageComparisonMode, setLanguageComparisonMode ] = useState(false)
     const [ commentThreads, setCommentThreads ] = useState(initialCommentThreads)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [ _, setActiveTab ] = useState(0)
+    const [ activeTab, setActiveTab ] = useState(0)
     const tabsRef = useRef<TabsRef>(null)
     const router = useRouter()
     const canWrite = user.roles.includes(Role.writer)
@@ -101,10 +101,15 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     useEffect(() => {
         const handleHashChange = () => {
             if (window.location.hash === '#approval') {
+                setLanguageComparisonMode(false)
+                setActiveTab(2)
                 tabsRef.current?.setActiveTab(2)
             } else if (window.location.hash === '#preview') {
+                setLanguageComparisonMode(false)
+                setActiveTab(1)
                 tabsRef.current?.setActiveTab(1)
             } else if (window.location.hash === '#editor') {
+                setActiveTab(0)
                 tabsRef.current?.setActiveTab(0)
             }
         }
@@ -208,16 +213,18 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     const displayedDate = typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt
     const contentUrl = `${host.replace(/\/+$/, '')}${getContentEntityURI(displayedDate, post.slug)}`
     const editButtonClass = 'shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600'
-    const { cachedImages } = useImagePlaceholders({ content: displayedContent, uploadPrefix })
+    const { cachedImages: chineseImages } = useImagePlaceholders({ content: post.contentDraftZH, uploadPrefix })
+    const { cachedImages: englishImages } = useImagePlaceholders({ content: post.contentDraftEN, uploadPrefix })
+    const cachedImages = inEnglish ? englishImages : chineseImages
     const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
-    const displayedCommentThreads = commentThreads.filter(thread => thread.language === commentLanguage)
     const hasUnresolvedFeedback = commentThreads.some(thread => thread.resolvedAt == null) ||
         hasPlateSuggestions(post.contentDraftEN) || hasPlateSuggestions(post.contentDraftZH)
 
-    async function createTextComment(quotedText: string, body: string): Promise<PuckCommentThread> {
+    async function createTextComment(language: ContentLanguage, quotedText: string,
+                                     body: string): Promise<PuckCommentThread> {
         const thread = await createPlateCommentThread({
             entityId: post.id,
-            language: commentLanguage,
+            language,
             quotedText,
             body
         })
@@ -245,6 +252,36 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
             handlePermissionError(error)
             throw error
         }
+    }
+
+    function renderPlateEditor(language: ContentLanguage) {
+        const english = language === ContentLanguage.en
+        const content = english ? post.contentDraftEN : post.contentDraftZH
+        const languageComments = commentThreads.filter(thread => thread.language === language)
+        return <PlateRichTextEditor
+            documentKey={`${post.id}-${english ? 'en' : 'zh'}-${contentRevision}`}
+            content={content}
+            commentThreads={languageComments}
+            canComment={canWrite}
+            canDeleteComments={canDeleteComments}
+            currentUserId={String(user.id)}
+            currentUserName={user.name}
+            images={english ? englishImages : chineseImages}
+            readOnly={!canWrite}
+            uploadPrefix={uploadPrefix}
+            onCreateComment={(quotedText, body) => createTextComment(language, quotedText, body)}
+            onDeleteComment={deleteTextComment}
+            onReplyComment={replyToTextComment}
+            onSetCommentResolved={setTextCommentResolved}
+            onChange={updatedContent => {
+                if (!canWrite) {
+                    showPermissionDenied()
+                    return
+                }
+                setPost(previous => english
+                    ? { ...previous, contentDraftEN: updatedContent }
+                    : { ...previous, contentDraftZH: updatedContent })
+            }}/>
     }
 
     return <>
@@ -462,10 +499,17 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                         </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
-                        <Button pill color="alternative" onClick={switchLanguage}>
+                        {activeTab === 0 && <Button pill color="alternative" onClick={() => {
+                            setLanguageComparisonMode(current => !current)
+                            setInEnglish(false)
+                        }}>
+                            <HiArrowsRightLeft className="mr-2 h-4 w-4"/>
+                            {languageComparisonMode ? '退出对照模式' : '对照模式'}
+                        </Button>}
+                        {!languageComparisonMode && <Button pill color="alternative" onClick={switchLanguage}>
                             <HiLanguage className="mr-2 h-4 w-4"/>
                             {inEnglish ? '英文 · 切换到中文' : '中文 · 切换到英文'}
-                        </Button>
+                        </Button>}
                         <If condition={canWrite}>
                             <Button pill color="blue"
                                     disabled={loading || !hasChanges}
@@ -479,44 +523,35 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
             </header>
 
             <Tabs aria-label="文章编辑器选项卡" variant="default" ref={tabsRef}
-                  onActiveTabChange={(tab) => setActiveTab(tab)}>
+                  onActiveTabChange={tab => {
+                      setActiveTab(tab)
+                      if (tab !== 0) setLanguageComparisonMode(false)
+                  }}>
                 <TabItem active title="内容" icon={HiNewspaper}>
-                    <div className="mt-5 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
+                    <div className={`mt-5 grid grid-cols-1 items-start gap-6 ${
+                        languageComparisonMode ? '' : 'xl:grid-cols-[minmax(0,1fr)_22rem]'
+                    }`}>
                         <section className="min-w-0 rounded-3xl border border-gray-200 bg-gray-50 p-4">
-                            <div className="mb-3 flex items-center justify-between px-1">
-                                <div>
-                                    <h2 className="font-semibold text-gray-900">正文</h2>
+                            {languageComparisonMode
+                                ? <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                                    <div className="min-w-0">
+                                        <h2 className="mb-3 px-1 font-semibold text-gray-900">中文</h2>
+                                        {renderPlateEditor(ContentLanguage.zh)}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h2 className="mb-3 px-1 font-semibold text-gray-900">英文</h2>
+                                        {renderPlateEditor(ContentLanguage.en)}
+                                    </div>
                                 </div>
-                            </div>
-                            <PlateRichTextEditor
-                                documentKey={`${post.id}-${inEnglish ? 'en' : 'zh'}-${contentRevision}`}
-                                content={displayedContent}
-                                commentThreads={displayedCommentThreads}
-                                canComment={canWrite}
-                                canDeleteComments={canDeleteComments}
-                                currentUserId={String(user.id)}
-                                currentUserName={user.name}
-                                images={cachedImages}
-                                readOnly={!canWrite}
-                                uploadPrefix={uploadPrefix}
-                                onCreateComment={createTextComment}
-                                onDeleteComment={deleteTextComment}
-                                onReplyComment={replyToTextComment}
-                                onSetCommentResolved={setTextCommentResolved}
-                                onChange={content => {
-                                    if (!canWrite) {
-                                        showPermissionDenied()
-                                        return
-                                    }
-                                    if (inEnglish) {
-                                        setPost(prev => ({ ...prev, contentDraftEN: content }))
-                                    } else {
-                                        setPost(prev => ({ ...prev, contentDraftZH: content }))
-                                    }
-                                }}/>
+                                : <>
+                                    <div className="mb-3 flex items-center justify-between px-1">
+                                        <h2 className="font-semibold text-gray-900">正文</h2>
+                                    </div>
+                                    {renderPlateEditor(commentLanguage)}
+                                </>}
                         </section>
 
-                        <aside className="space-y-4">
+                        {!languageComparisonMode && <aside className="space-y-4">
                             <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <div className="mb-5 flex items-start justify-between gap-4">
                                     <div className="min-w-0">
@@ -674,9 +709,6 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
 
                             <If condition={canWrite || canModerate}>
                                 <section className="rounded-3xl border border-red-100 bg-red-50/50 p-5">
-                                    <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">
-                                        内容管理
-                                    </p>
                                     <div className="flex flex-wrap gap-2">
                                         <If condition={canWrite && post.titlePublishedEN != null && post.titlePublishedZH != null &&
                                             post.contentPublishedEN != null && post.contentPublishedZH != null}>
@@ -756,7 +788,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                                     </div>
                                 </section>
                             </If>
-                        </aside>
+                        </aside>}
                     </div>
                 </TabItem>
                 <TabItem title="预览" icon={HiSearch}>
