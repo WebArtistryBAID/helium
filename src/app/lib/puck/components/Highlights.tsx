@@ -26,18 +26,18 @@ function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | nu
             Highlights
         </h2>
         <div
-            className="flex flex-col md:flex-row container"
+            className="container flex flex-col lg:flex-row"
             aria-labelledby="highlights-heading"
             role="list"
         >
             {highlights?.map((highlight, index) => <div key={index}
-                                                        className="w-full md:w-1/3 md:border-r border-gray-200 last:md:border-r-0 p-6 md:p-12 bg-white group block"
+                                                        className="group block w-full border-b border-gray-200 bg-white p-5 last:border-b-0 sm:p-8 lg:w-1/3 lg:border-b-0 lg:border-r lg:p-10 lg:last:border-r-0"
                                                         role="listitem">
                 <div className="flex justify-center items-center w-full h-48 overflow-hidden rounded-3xl mb-5">
                     <img alt={highlight.image?.altText ?? ''} src={`${uploadPrefix}/${highlight.image?.sha1}.webp`}
                          className="w-full h-full object-cover group-hover-scale"/>
                 </div>
-                <p className="fancy-link text-3xl mb-1 font-serif font-bold">
+                <p className="fancy-link mb-1 break-words font-serif text-2xl font-bold sm:text-3xl">
                     {highlight.title}
                 </p>
                 <p>{highlight.text}</p>

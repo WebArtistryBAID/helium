@@ -10,16 +10,16 @@ function Statistics({ title, content }: {
     content: (StatsContent | undefined)[] | undefined
 }) {
     content = content?.filter((item) => item !== undefined && item.name !== undefined && item.value !== undefined)
-    return <section aria-labelledby="statistics-heading" className="container !py-16 !my-24">
-        <div className="flex flex-col md:flex-row">
-            <div className="w-full md:w-1/3 mb-8 md:mb-0">
+    return <section aria-labelledby="statistics-heading" className="container !my-16 !py-12 md:!my-24 md:!py-16">
+        <div className="flex flex-col gap-8 md:flex-row md:gap-10">
+            <div className="w-full md:w-1/3">
                 <h2 id="statistics-heading" className="text-3xl md:text-4xl font-bold">
                     {title}
                 </h2>
             </div>
             <div
                 aria-label="Statistics"
-                className="w-full md:w-2/3 grid grid-cols-1 md:grid-cols-2 gap-5"
+                className="grid w-full grid-cols-2 gap-6 md:w-2/3 md:grid-cols-2 md:gap-8"
                 role="list">
                 {content?.map((stat, index) => <div
                     key={index}
@@ -27,7 +27,7 @@ function Statistics({ title, content }: {
                     aria-label={`${stat?.name}: ${stat?.value}`}
                     role="listitem">
                     <div>
-                        <p aria-hidden className="text-5xl md:text-7xl text-red-900">
+                        <p aria-hidden className="break-words text-4xl text-red-900 sm:text-5xl lg:text-6xl">
                             {stat?.value}
                         </p>
                         <p className="text-base md:text-lg font-sans">

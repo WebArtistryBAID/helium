@@ -10,10 +10,10 @@ function TopText({ title, text, to = null, linkText = null }: {
 }) {
     return <div className="container">
         <div className="max-w-xl">
-            <h2 className="text-3xl font-serif font-bold">
+            <h2 className="break-words font-serif text-2xl font-bold sm:text-3xl">
                 {title}
             </h2>
-            <p className="text-xl">{text}</p>
+            <p className="text-lg leading-relaxed sm:text-xl">{text}</p>
             <If condition={to != null && to.length > 0}>
                 <div className="flex justify-end mt-5">
                     <ReadMore text={linkText ?? '了解更多'} to={to ?? ''}/>

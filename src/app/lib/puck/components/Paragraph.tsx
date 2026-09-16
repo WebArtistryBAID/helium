@@ -3,6 +3,14 @@ import { colorTypeField } from '@/app/lib/puck/custom-fields'
 import { Property } from 'csstype'
 import TextAlign = Property.TextAlign
 
+const PARAGRAPH_SIZE_CLASSES: Record<string, string> = {
+    sm: 'text-sm', base: 'text-base', lg: 'text-lg', xl: 'text-lg sm:text-xl',
+    '2xl': 'text-xl sm:text-2xl', '3xl': 'text-xl sm:text-2xl md:text-3xl',
+    '4xl': 'text-2xl sm:text-3xl md:text-4xl', '5xl': 'text-3xl sm:text-4xl md:text-5xl',
+    '6xl': 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl',
+    '7xl': 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl'
+}
+
 function Paragraph({ text, size, color, align, bold, italic }: {
     text: string,
     size: string,
@@ -11,7 +19,8 @@ function Paragraph({ text, size, color, align, bold, italic }: {
     bold: boolean,
     italic: boolean
 }) {
-    return <p className={`text-${size} ${bold ? 'font-bold' : ''} ${italic ? 'italic' : ''}`}
+    return <p
+        className={`break-words leading-relaxed ${PARAGRAPH_SIZE_CLASSES[size] ?? 'text-base'} ${bold ? 'font-bold' : ''} ${italic ? 'italic' : ''}`}
               style={{ color, textAlign: align as (TextAlign | undefined) }}>{text}</p>
 }
 

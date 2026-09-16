@@ -23,9 +23,9 @@ export default function Clubs({ title, init, uploadPrefix }: {
         })()
     }, [ currentPage ])
 
-    return <section aria-labelledby="clubs-heading" className="border-b border-gray-200 py-16 md:py-24">
+    return <section aria-labelledby="clubs-heading" className="border-b border-gray-200 py-12 md:py-20">
         <div className="container">
-            <h2 id="clubs-heading" className="mb-5 text-4xl font-bold">
+            <h2 id="clubs-heading" className="mb-5 break-words text-3xl font-bold sm:text-4xl">
                 {title}
             </h2>
 

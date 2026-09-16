@@ -1,9 +1,10 @@
 import { ComponentConfig } from '@puckeditor/core'
 
 function AnonymousQuote({ quote }: { quote: string }) {
-    return <section className="relative container py-24 px-4 md:px-36 my-12 md:my-24 items-center">
+    return <section
+        className="container relative my-12 items-center px-8 py-16 sm:px-12 md:my-20 md:px-24 md:py-20 lg:px-36">
         <div className="w-full">
-            <p className="text-3xl md:text-5xl !mb-3" style={{ lineHeight: '4rem' }}>{quote}</p>
+            <p className="!mb-3 break-words text-2xl leading-relaxed sm:text-3xl md:text-4xl md:leading-relaxed">{quote}</p>
         </div>
 
         <div className="absolute left-4 top-0">

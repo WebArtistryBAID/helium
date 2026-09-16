@@ -15,10 +15,10 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
     const language = useLanguage()
 
     return <>
-        <section aria-labelledby="news-heading" className="mt-24 border-black">
+        <section aria-labelledby="news-heading" className="mt-16 border-black md:mt-24">
             <div className="container mb-8 flex flex-col items-start gap-3 px-5 sm:flex-row sm:items-center md:px-0">
                 <h2 id="news-heading"
-                    className="mr-auto min-w-0 text-4xl font-bold lg:text-5xl xl:-mb-2 xl:text-6xl">
+                    className="mr-auto min-w-0 break-words text-3xl font-bold sm:text-4xl lg:text-5xl">
                     {title}
                 </h2>
 
@@ -40,22 +40,22 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
             </div>
         </section>
 
-        <section aria-labelledby="news-heading" className="section !mb-24 container">
-            <div className="w-full flex flex-col md:flex-row gap-8">
+        <section aria-labelledby="news-heading" className="section container !mb-16 md:!mb-24">
+            <div className="flex w-full flex-col gap-8 lg:flex-row">
                 {resolvedPosts.length > 0 ?
                     <Link
                         href={prefixLink(language, getContentEntityURI(resolvedPosts[0].createdAt, resolvedPosts[0].slug))}
-                          className="w-full md:w-2/3 group block">
-                    <div className="w-full h-64 md:h-96 overflow-hidden rounded-3xl mb-3">
+                        className="group block w-full lg:w-2/3">
+                        <div className="mb-3 h-56 w-full overflow-hidden rounded-3xl sm:h-72 md:h-96">
                         <img alt={resolvedPosts[0].coverImagePublished?.altText ?? ''}
                              src={`${uploadPrefix}/${resolvedPosts[0].coverImagePublished?.sha1}.webp`}
                              className="object-cover w-full h-full rounded-t-3xl transform transition-transform duration-300 ease-in-out group-hover:scale-105"/>
                     </div>
-                    <p className="text-3xl font-serif fancy-link">
+                        <p className="fancy-link break-words font-serif text-2xl sm:text-3xl">
                         {language === 'en' ? resolvedPosts[0].titlePublishedEN : resolvedPosts[0].titlePublishedZH}
                     </p>
                 </Link> : null}
-                <div className="w-full md:w-1/3">
+                <div className="w-full lg:w-1/3">
                     {resolvedPosts.length > 1 ? resolvedPosts.slice(1, 4).map(news => <div
                         className="pb-3 border-b border-black mb-5"
                         key={news.id}>

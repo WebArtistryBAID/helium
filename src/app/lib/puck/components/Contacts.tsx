@@ -26,15 +26,15 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
             aria-labelledby="contact-heading"
             role="region"
         >
-            <section aria-labelledby="contact-heading" className="section mt-12 md:!mt-24 py-12 md:!py-24 container">
-                <h2 id="contact-heading" className="text-4xl font-bold mb-5">
+            <section aria-labelledby="contact-heading" className="section container mt-12 py-12 md:!mt-20 md:!py-20">
+                <h2 id="contact-heading" className="mb-4 break-words text-3xl font-bold sm:text-4xl">
                     {title}
                 </h2>
                 {description ? (
-                    <p className="text-2xl !mb-3">{description}</p>
+                    <p className="!mb-4 text-lg sm:text-xl md:text-2xl">{description}</p>
                 ) : null}
 
-                <div className="rounded-3xl p-4 md:p-5 bg-white max-w-md w-full">
+                <div className="w-full max-w-md rounded-3xl bg-white p-4 sm:p-5">
                     {emailText ? <p className="font-bold">{emailText}</p> : null}
                     <ul aria-label="Contact emails" className="list-inside list-disc mb-2" role="list">
                         {(emails ?? []).map((email) => (

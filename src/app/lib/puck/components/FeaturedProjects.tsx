@@ -19,14 +19,14 @@ export default function FeaturedProjects({ title, projects, uploadPrefix }: {
     uploadPrefix: string | undefined
 }) {
     projects = projects?.filter((alum): alum is FeaturedProject => alum !== undefined) ?? []
-    return <section aria-label="Featured Projects" className="section container !my-24">
+    return <section aria-label="Featured Projects" className="section container !my-16 md:!my-24">
         <Swiper aria-live="polite" spaceBetween={10} slidesPerView={1}
                 modules={[ A11y, Pagination ]}>
             {projects.map((project, index) =>
                 <SwiperSlide key={index}>
                     <div aria-roledescription="carousel"
-                         className="flex flex-col md:flex-row items-center gap-8 md:mb-5" role="region">
-                        <div className="flex w-full items-center px-6 md:w-1/3 md:pl-8 md:pr-0">
+                         className="flex flex-col items-center gap-6 md:mb-5 md:flex-row md:gap-8" role="region">
+                        <div className="flex w-full items-center px-2 sm:px-6 md:w-1/3 md:pl-8 md:pr-0">
                             <div className="project-big-pic-box h-72 md:h-auto">
                                 <img src={`${uploadPrefix}/${project?.image?.sha1}.webp`}
                                      alt={project?.image?.altText ?? ''}
@@ -34,13 +34,13 @@ export default function FeaturedProjects({ title, projects, uploadPrefix }: {
                             </div>
                         </div>
                         <div className="w-full md:w-2/3">
-                            <div className="p-5 sm:p-8 md:p-20">
+                            <div className="p-5 sm:p-8 lg:p-14 xl:p-20">
                                 <div
                                     className="bg-[var(--standard-blue)] text-white px-4 py-2 rounded-full mb-4 inline-block">
                                     {title}
                                 </div>
                                 <div className="transition-all duration-300 md:h-80 justify-center flex flex-col">
-                                    <p className="mb-3 text-2xl sm:text-3xl">{project?.quote}</p>
+                                    <p className="mb-3 break-words text-xl leading-relaxed sm:text-2xl lg:text-3xl">{project?.quote}</p>
                                     <p className="mb-5 text-right">— {project?.name}</p>
                                     {project?.link && project?.linkText &&
                                         <ReadMore color="#103c74" text={project.linkText} to={project.link}/>}

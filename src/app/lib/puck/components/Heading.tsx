@@ -4,6 +4,13 @@ import React from 'react'
 import { Property } from 'csstype'
 import TextAlign = Property.TextAlign
 
+const HEADING_SIZE_CLASSES: Record<string, string> = {
+    sm: 'text-sm', base: 'text-base', lg: 'text-lg', xl: 'text-xl',
+    '2xl': 'text-xl sm:text-2xl', '3xl': 'text-2xl sm:text-3xl',
+    '4xl': 'text-3xl sm:text-4xl', '5xl': 'text-3xl sm:text-4xl md:text-5xl',
+    '6xl': 'text-4xl sm:text-5xl md:text-6xl', '7xl': 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl'
+}
+
 function Heading({ level, text, size, color, align, bold, italic }: {
     level: number,
     text: string,
@@ -14,7 +21,8 @@ function Heading({ level, text, size, color, align, bold, italic }: {
     italic: boolean
 }) {
     const Tag = `h${level}` as keyof React.JSX.IntrinsicElements
-    return <Tag className={`text-${size} ${bold ? 'font-bold' : ''} ${italic ? 'italic' : ''}`}
+    return <Tag
+        className={`break-words leading-tight ${HEADING_SIZE_CLASSES[size] ?? 'text-base'} ${bold ? 'font-bold' : ''} ${italic ? 'italic' : ''}`}
                 style={{ color, textAlign: align as (TextAlign | undefined) }}>{text}</Tag>
 }
 

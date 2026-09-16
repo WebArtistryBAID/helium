@@ -13,15 +13,16 @@ export default function Hero({ title, lightText, image, backgroundColor, uploadP
 }) {
     lightText = lightText ?? false
     return <>
-        <section aria-labelledby="hero-heading" className="px-6 sm:px-10 md:px-16 lg:px-24"
-                 style={{ backgroundColor, paddingTop: topPadding ? '12rem' : '' }}
+        <section aria-labelledby="hero-heading"
+                 className={`px-5 sm:px-8 md:px-12 lg:px-20 ${topPadding ? 'pt-24 sm:pt-32 lg:pt-48' : ''}`}
+                 style={{ backgroundColor }}
                  data-surface={lightText ? 'dark' : 'light'}>
             <motion.h1
                 id="hero-heading"
                 initial={{ opacity: 0, transform: 'translateY(16px)' }}
                 animate={{ opacity: 1, transform: 'translateY(0)' }}
                 transition={{ duration: 0.5 }}
-                className="text-[3rem] md:text-[4rem] lg:text-[6rem] font-bold !font-sans text-center"
+                className="break-words text-center text-4xl font-bold leading-tight sm:text-5xl md:text-6xl lg:text-7xl xl:text-8xl"
                 style={{ color: lightText ? 'white' : 'black' }}>
                 {title}
             </motion.h1>

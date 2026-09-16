@@ -44,7 +44,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
 
     return (
         <section id="curriculum" className="section container" aria-labelledby="curriculum-heading">
-            <h2 id="curriculum-heading" className="text-4xl font-bold !mb-8">
+            <h2 id="curriculum-heading" className="!mb-6 break-words text-3xl font-bold sm:text-4xl md:!mb-8">
                 {title}
             </h2>
 
@@ -78,7 +78,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
 
             {/* Desktop (tabs) */}
             <div className="hidden md:flex">
-                <div aria-label="Curriculum sections" className="w-1/4" role="tablist">
+                <div aria-label="Curriculum sections" className="w-1/3 pr-6 lg:w-1/4" role="tablist">
                     {safeCurricula.map((item, index) => {
                         const isActive = activeDesktopItem === index
                         return (
@@ -99,7 +99,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
                         )
                     })}
                 </div>
-                <div className="w-3/4">
+                <div className="w-2/3 lg:w-3/4">
                     {safeCurricula.map((item, index) => (
                         <div
                             id={`curriculum-panel-${index}`}
@@ -111,7 +111,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
                         >
                             <h3 className="text-2xl font-semibold mb-3">{item?.title}</h3>
                             <div className="mb-5">{item?.description}</div>
-                            <div className="grid grid-cols-3 gap-3">
+                            <div className="grid grid-cols-2 gap-3 lg:grid-cols-3">
                                 {(item?.courses ?? []).map((content, contentIndex) => (
                                     <div
                                         key={contentIndex}

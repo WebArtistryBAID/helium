@@ -54,7 +54,7 @@ export default function InFocusProjects({
             backgroundRepeat: 'no-repeat',
             backgroundSize: 'cover'
         }}
-                 className="relative flex min-h-[42rem] h-[100svh] w-full flex-col justify-center bg-cover bg-center md:h-[105vh]"
+                 className="relative flex h-[100svh] min-h-[34rem] w-full flex-col justify-center bg-cover bg-center sm:min-h-[40rem] md:h-[105vh] md:min-h-[42rem]"
                  aria-labelledby="hero-heading"
                  role="banner">
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
@@ -65,9 +65,10 @@ export default function InFocusProjects({
                     <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                                 animate={{ opacity: 1, transform: 'translateY(0)' }}
                                 transition={{ duration: 0.8 }}>
-                        <p className="text-lg uppercase text-center tracking-wider text-gray-300 !mb-3">In Focus</p>
+                        <p className="!mb-3 text-center text-sm uppercase tracking-wider text-gray-300 sm:text-base">In
+                            Focus</p>
                         <h1 id="hero-heading"
-                            className={`mb-3 text-white text-center font-bold font-serif text-4xl lg:text-5xl`}>
+                            className="mb-3 break-words text-center font-serif text-3xl font-bold text-white sm:text-4xl lg:text-5xl">
                             {title}
                         </h1>
                     </motion.div>
@@ -186,7 +187,7 @@ export default function InFocusProjects({
                         </div>
                     </>}
 
-                    <div className="col-span-1 md:col-span-2 p-8 text-white">
+                    <div className="col-span-1 p-5 text-white sm:p-8 md:col-span-2">
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                             {projects.length > 3 && <>
                                 <Link className="group block"
@@ -248,11 +249,11 @@ export default function InFocusProjects({
                     </div>
 
                     <div
-                        className="col-span-1 flex flex-col items-center justify-center px-5 py-20 text-center sm:px-16 md:col-span-2 md:px-32 md:py-32">
+                        className="col-span-1 flex flex-col items-center justify-center px-5 py-16 text-center sm:px-12 sm:py-20 md:col-span-2 md:px-24 md:py-28 lg:px-32 lg:py-32">
                         <p className="text-lg uppercase tracking-wider text-gray-600 !mb-3">
                             {startTopText}
                         </p>
-                        <h2 className="text-4xl">{startMainText}</h2>
+                        <h2 className="break-words text-3xl sm:text-4xl">{startMainText}</h2>
                     </div>
                 </div>
             </div>

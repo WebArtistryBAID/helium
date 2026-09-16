@@ -2,12 +2,13 @@ import { ComponentConfig } from '@puckeditor/core'
 
 function GridText({ title, texts }: { title: string | undefined, texts: (string | undefined)[] | undefined }) {
     texts = texts?.filter((text) => text != null) ?? []
-    return <section aria-labelledby="overview-heading" className="section container !py-16 !mb-24">
-        <h2 id="overview-heading" className="text-4xl font-sans font-bold mb-5">
+    return <section aria-labelledby="overview-heading" className="section container !mb-16 !py-12 md:!mb-24 md:!py-16">
+        <h2 id="overview-heading" className="mb-5 break-words font-sans text-3xl font-bold sm:text-4xl">
             {title}
         </h2>
-        <div className="w-full grid gap-8 grid-cols-1 md:grid-cols-2 lg:grid-cols-3 !text-2xl md:!text-xl lg:!text-2xl"
-             role="list" style={{ lineHeight: '3rem' }}>
+        <div
+            className="grid w-full grid-cols-1 gap-6 text-lg leading-relaxed sm:text-xl md:grid-cols-2 md:gap-8 lg:grid-cols-3"
+            role="list">
             {texts.map((text, index) => <p key={index} role="listitem">{text}</p>)}
         </div>
     </section>

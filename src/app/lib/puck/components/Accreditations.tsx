@@ -20,7 +20,7 @@ export default function Accreditations({ title, text, accreditations, uploadPref
     return <div className="bg-red-900">
         <section
             aria-labelledby="accreditation-heading"
-            className="section container !py-12 md:!py-16 gap-8 md:gap-16 text-white flex flex-col md:flex-row items-center !my-24">
+            className="section container !my-16 flex flex-col items-center gap-8 !py-12 text-white md:!my-24 md:flex-row md:gap-12 md:!py-16 lg:gap-16">
             <div
                 aria-label="Accreditations carousel"
                 aria-roledescription="carousel"
@@ -32,7 +32,7 @@ export default function Accreditations({ title, text, accreditations, uploadPref
                     {accreditations?.map((acc, index) =>
                         <SwiperSlide key={index}>
                             <div
-                                className="rounded-lg mx-4 md:mx-8 h-56 md:h-72 my-8 md:my-12 bg-white flex flex-col justify-center items-center">
+                                className="mx-2 my-6 flex h-48 flex-col items-center justify-center rounded-lg bg-white sm:mx-4 sm:h-56 md:mx-8 md:my-12 md:h-72">
                                 <img src={`${uploadPrefix}/${acc?.image?.sha1}.webp`} alt={acc?.image?.altText ?? ''}
                                      className="h-16 md:h-24 mb-3 md:mb-5"/>
                                 <p className="!font-sans text-black text-sm md:text-base">

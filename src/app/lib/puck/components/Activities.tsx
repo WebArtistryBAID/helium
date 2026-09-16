@@ -15,7 +15,7 @@ function ActivityTextBlock({ name, description, background, light }: {
         style={{
             background: background,
             color: light ? 'white' : 'black'
-        }} className="min-h-64 w-full p-6 sm:h-80 sm:p-8">
+        }} className="min-h-56 w-full p-5 sm:h-72 sm:p-7 lg:h-80 lg:p-8">
         <h3 className="text-xl mb-3 font-bold">
             {name}
         </h3>
@@ -65,7 +65,7 @@ export default function Activities({ title, resolvedActivities, uploadPrefix }: 
     const activities = resolvedActivities?.map(a => a?.activity).filter(a => a != null) ?? [] as HydratedContentEntity[]
     return <section aria-labelledby="activities-heading" className="section container">
         <div className="flex justify-end">
-            <h2 id="activities-heading" className="text-4xl font-bold mb-5">
+            <h2 id="activities-heading" className="mb-5 break-words text-3xl font-bold sm:text-4xl">
                 {title}
             </h2>
         </div>

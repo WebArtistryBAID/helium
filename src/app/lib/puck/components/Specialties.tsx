@@ -87,8 +87,9 @@ export default function Specialties({ items, uploadPrefix }: {
                     <div
                         className={`absolute bottom-0 p-10 pt-20 text-white from-red-900/70 to-transparent bg-gradient-to-t w-full transition-opacity duration-300 ${transition ? 'opacity-0' : ''}`}
                     >
-                        <h2 className="text-4xl font-bold mb-2">{active?.name}</h2>
-                        <p className="text-xl" dangerouslySetInnerHTML={{ __html: active?.description ?? '' }}/>
+                        <h2 className="mb-2 break-words text-3xl font-bold lg:text-4xl">{active?.name}</h2>
+                        <p className="text-lg lg:text-xl"
+                           dangerouslySetInnerHTML={{ __html: active?.description ?? '' }}/>
                     </div>
                 </div>
                 <div

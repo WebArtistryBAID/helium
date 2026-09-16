@@ -139,8 +139,9 @@ i {
 }
 
 .container {
+    width: 100%;
     max-width: 77rem;
-    @apply mx-auto;
+    @apply mx-auto px-5 sm:px-6 lg:px-8;
 }
 
 .at:after {

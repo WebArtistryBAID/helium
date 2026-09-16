@@ -1,15 +1,15 @@
 import { ComponentConfig } from '@puckeditor/core'
 
 function HorizontalTopText({ title, text }: { title: string | undefined, text: string | undefined }) {
-    return <section aria-labelledby="mission-heading" className="section !mt-24 container">
-        <div className="flex flex-col md:flex-row gap-5">
+    return <section aria-labelledby="mission-heading" className="section container !mt-16 md:!mt-24">
+        <div className="flex flex-col gap-5 md:flex-row md:gap-8">
             <div className="w-full md:w-1/3">
                 <h2 id="mission-heading" className="text-3xl md:text-4xl font-bold">
                     {title}
                 </h2>
             </div>
             <div className="w-full md:w-2/3">
-                <p className="text-2xl md:text-3xl lg:text-4xl" style={{ lineHeight: '3rem' }}>
+                <p className="break-words text-xl leading-relaxed sm:text-2xl md:text-3xl md:leading-relaxed lg:text-4xl">
                     {text}
                 </p>
             </div>

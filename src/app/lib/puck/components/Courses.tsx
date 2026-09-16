@@ -45,13 +45,13 @@ export default function Courses({ title, courses }: {
 
     return (
         <section aria-labelledby="courses-heading" className="section !my-16 container">
-            <h2 id="courses-heading" className="text-4xl font-bold md:text-right mb-5">
+            <h2 id="courses-heading" className="mb-5 break-words text-3xl font-bold sm:text-4xl md:text-right">
                 {title}
             </h2>
 
             <div
                 aria-label="Course categories"
-                className="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-8 gap-3 mb-5"
+                className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 lg:grid-cols-8"
                 role="tablist"
                 onKeyDown={onTabKeyDown}
             >
@@ -92,7 +92,7 @@ export default function Courses({ title, courses }: {
                         <Link href={prefixLink(language, getContentEntityURI(item?.createdAt, item?.slug))}
                             key={item?.id ?? Math.random()}
                             role="listitem"
-                              className="block text-2xl border-l-4 border-red-800 pl-3 col-span-1 md:col-span-2">
+                              className="col-span-1 block break-words border-l-4 border-red-800 pl-3 text-lg sm:text-xl md:col-span-2 lg:text-2xl">
                             {language === 'en' ? (item?.titlePublishedEN ?? '') : (item?.titlePublishedZH ?? '')}
                         </Link>
                     ))}

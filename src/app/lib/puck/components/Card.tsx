@@ -26,8 +26,8 @@ export default function Card({ href, image, title, shortContent, uploadPrefix }:
             </If>
         </div>
 
-        <div className="p-8">
-            <p className="text-xl font-bold mb-1 fancy-link">{title}</p>
+        <div className="p-5 sm:p-6 lg:p-8">
+            <p className="fancy-link mb-1 break-words text-lg font-bold sm:text-xl">{title}</p>
             <p className="text-sm secondary">{shortContent}</p>
         </div>
     </>

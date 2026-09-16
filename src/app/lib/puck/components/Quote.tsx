@@ -11,7 +11,7 @@ function Quote({ text, source, image, uploadPrefix }: {
     uploadPrefix: string | null
 }) {
     return <section
-        className="relative flex flex-col-reverse gap-5 md:flex-row container py-24 px-4 md:px-36 my-12 md:my-24 items-center"
+        className="container relative my-12 flex flex-col-reverse items-center gap-8 px-8 py-16 sm:px-12 md:my-20 md:flex-row md:px-20 md:py-20 lg:px-36"
         aria-labelledby="principal-quote-heading">
         <h2
             id="principal-quote-heading"
@@ -21,11 +21,11 @@ function Quote({ text, source, image, uploadPrefix }: {
         </h2>
         <div className="w-full md:w-1/2">
             <p
-                className="!text-3xl !mb-3"
+                className="!mb-3 break-words !text-2xl leading-relaxed sm:!text-3xl"
                 aria-label="Quote"
                 role="region"
-                style={{ lineHeight: '4rem' }}>{text}</p>
-            <p className="w-full text-right font-sans text-xl">
+            >{text}</p>
+            <p className="w-full text-right font-sans text-base sm:text-lg">
                 — {source}
             </p>
         </div>
@@ -33,7 +33,7 @@ function Quote({ text, source, image, uploadPrefix }: {
             <img
                 src={`${uploadPrefix}/${image?.sha1}.webp`}
                 alt={image?.altText ?? ''}
-                className="object-contain w-64 rounded-3xl"/>
+                className="h-auto w-48 max-w-full rounded-3xl object-contain sm:w-56 md:w-64"/>
         </div>
 
         <div

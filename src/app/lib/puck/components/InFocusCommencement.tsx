@@ -103,7 +103,7 @@ export default function InFocusCommencement({
         <section
             data-surface="dark"
             aria-labelledby="commencement-hero-heading"
-            className="relative flex min-h-[42rem] h-[100svh] items-end overflow-hidden bg-[#122a28] text-white md:min-h-[46rem] md:h-[105vh]"
+            className="relative flex h-[100svh] min-h-[34rem] items-end overflow-hidden bg-[#122a28] text-white sm:min-h-[40rem] md:h-[105vh] md:min-h-[46rem]"
             style={{
                 backgroundImage: heroImage,
                 backgroundPosition: `center ${scrollY * 0.35}px`,
@@ -128,7 +128,7 @@ export default function InFocusCommencement({
                         initial={{ opacity: 0, transform: 'translateY(20px)' }}
                         animate={{ opacity: 1, transform: 'translateY(0)' }}
                         transition={{ duration: 0.8, delay: 0.08 }}
-                        className={`!mb-6 font-serif leading-[1.05] ${language === 'en' ? 'text-4xl font-bold sm:text-6xl md:text-8xl' : 'text-2xl font-semibold sm:text-3xl md:text-4xl'}`}
+                        className={`!mb-6 break-words font-serif leading-[1.05] ${language === 'en' ? 'text-3xl font-bold sm:text-5xl md:text-7xl lg:text-8xl' : 'text-2xl font-semibold sm:text-3xl md:text-4xl'}`}
                     >
                         {heroTitle}
                     </motion.h1>
@@ -145,7 +145,7 @@ export default function InFocusCommencement({
         </section>
 
         <section data-surface={collageHasLightBackground ? 'light' : 'dark'}
-                 className="relative isolate overflow-hidden px-5 py-16 sm:px-8 sm:py-20 md:min-h-[56rem] md:py-28 lg:px-12"
+                 className="relative isolate overflow-hidden px-5 py-14 sm:px-8 sm:py-20 md:min-h-[48rem] md:py-24 lg:px-12"
                  style={{ backgroundColor: collageBackground }} aria-labelledby="commencement-collage-heading">
             <div
                 className="absolute inset-0"
@@ -178,7 +178,7 @@ export default function InFocusCommencement({
                 <div className="max-w-2xl">
                     <p className="!mb-5 text-xs font-semibold tracking-[0.24em]" style={{ color: collageMutedTextColor }}>{collageEyebrow}</p>
                     <h2 id="commencement-collage-heading"
-                        className={`!mb-6 font-serif leading-tight ${language === 'en' ? 'text-5xl font-bold sm:text-6xl md:text-7xl' : 'text-2xl font-semibold sm:text-3xl md:text-4xl'}`}
+                        className={`!mb-6 break-words font-serif leading-tight ${language === 'en' ? 'text-3xl font-bold sm:text-5xl md:text-6xl lg:text-7xl' : 'text-2xl font-semibold sm:text-3xl md:text-4xl'}`}
                         style={{ color: collageTextColor }}>{collageTitle}</h2>
                     <p className="mx-auto !mb-8 max-w-xl text-lg leading-8 md:text-xl" style={{ color: collageMutedTextColor }}>{collageDescription}</p>
                     {collageLink && collageLinkText && <div className="flex justify-center">
@@ -217,10 +217,10 @@ export default function InFocusCommencement({
                         whileInView={{ opacity: 1, transform: 'translateY(0)' }}
                         viewport={{ once: true, amount: 0.25 }}
                         transition={{ duration: 0.65 }}
-                        className="grid grid-cols-1 gap-7 border-b border-[#122a28]/20 py-16 md:grid-cols-12 md:gap-8 md:py-24"
+                        className="grid grid-cols-1 gap-6 border-b border-[#122a28]/20 py-12 md:grid-cols-12 md:gap-8 md:py-20 lg:py-24"
                     >
                         <div className={`md:col-span-3 ${reversed ? 'md:col-start-10' : ''}`}>
-                            <p className="!mb-3 font-serif text-5xl text-[#8b1d2c]/80 md:text-6xl">0{index + 1}</p>
+                            <p className="!mb-3 font-serif text-4xl text-[#8b1d2c]/80 sm:text-5xl md:text-6xl">0{index + 1}</p>
                             <p className="text-xs font-semibold tracking-[0.2em] text-[#122a28]/65">{chapter.eyebrow}</p>
                         </div>
                         <div

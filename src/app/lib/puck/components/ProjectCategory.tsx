@@ -23,7 +23,7 @@ export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }
         })()
     }, [ currentPage, titleEN ])
 
-    return <section className="container my-24 section">
+    return <section className="section container my-16 md:my-24">
         <h2 className="text-3xl font-bold mb-5">{language === 'en' ? titleEN : titleZH}</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">
             {page.items.map(project => <Card

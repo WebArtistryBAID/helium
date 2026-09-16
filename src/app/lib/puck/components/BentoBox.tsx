@@ -29,19 +29,19 @@ function BentoBox({
     lifeText: string | null,
     diversityText: string | null
 }) {
-    return <div className="w-full min-w-0 p-3">
+    return <div className="w-full min-w-0 px-2 py-3 sm:px-3">
         <h2
-            className="uppercase text-center tracking-widest mb-8 text-3xl"
+            className="mb-6 break-words text-center text-2xl uppercase tracking-widest sm:mb-8 sm:text-3xl"
             role="heading">{title}</h2>
 
         <div
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 auto-rows-min gap-x-6 gap-y-5 container"
         >
             <div
-                className="col-span-1 md:col-span-3 row-span-5 lg:col-start-1 lg:col-span-3 lg:row-start-1 lg:row-span-5 bg-red-700 rounded-3xl p-8 flex text-center justify-center items-center flex-col text-white"
+                className="col-span-1 row-span-5 flex flex-col items-center justify-center rounded-3xl bg-red-700 p-5 text-center text-white sm:p-6 md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-1 lg:row-span-5 lg:p-8"
             >
                 <h3
-                    className="text-4xl font-bold leading-tight mb-5"
+                    className="mb-5 break-words text-3xl font-bold leading-tight sm:text-4xl"
                     role="heading">{motto}</h3>
 
                 <img
@@ -54,7 +54,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 min-w-0 md:col-span-5 row-span-4 lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 from-yellow-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-8 flex flex-col md:flex-row items-center gap-8 overflow-hidden">
+                className="col-span-1 row-span-4 flex min-w-0 flex-col items-center gap-6 overflow-hidden rounded-3xl bg-linear-to-br from-yellow-500/5 to-gray-50 p-5 sm:p-6 md:col-span-5 md:flex-row lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 lg:gap-8 lg:p-8">
                 <div className="min-w-0 md:w-1/2">
                     <h3
                         className="text-2xl leading-tight mb-3 font-bold"
@@ -198,7 +198,7 @@ function BentoBox({
                     </svg>
                 </div>
 
-                <div className="px-8 flex items-center justify-center flex-col text-center">
+                <div className="flex flex-col items-center justify-center px-5 text-center sm:px-8">
                     <h3
                         className="text-2xl mb-1 font-bold"
                         role="heading">{academicsTitle}</h3>
@@ -209,7 +209,7 @@ function BentoBox({
 
             <div
                 style={{ backgroundImage: 'url(/assets/components/bento/life.webp)' }}
-                className="col-span-1 flex min-h-48 flex-col justify-end rounded-3xl bg-cover p-8 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-5 lg:row-span-2"
+                className="col-span-1 flex min-h-48 flex-col justify-end rounded-3xl bg-cover p-5 sm:p-6 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-5 lg:row-span-2 lg:p-8"
             >
                 <h3
                     className="text-white text-center font-bold"
@@ -217,7 +217,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-2 row-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-7 lg:row-span-2 from-sky-500/5 to-gray-50 bg-linear-to-br rounded-3xl p-8 flex justify-center items-center flex-col text-center">
+                className="col-span-1 row-span-2 flex flex-col items-center justify-center rounded-3xl bg-linear-to-br from-sky-500/5 to-gray-50 p-5 text-center sm:p-6 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-7 lg:row-span-2 lg:p-8">
                 <div className="mb-3">
                     <svg
                         className="w-20 h-20 text-blue-500"
