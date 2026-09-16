@@ -27,7 +27,7 @@ function initialPlateValue(content) {
 }
 
 const server = new Server({
-    address: '127.0.0.1',
+    address: '0.0.0.0',
     port,
     debounce: 1000,
     maxDebounce: 5000,
