@@ -33,7 +33,7 @@ export default function FullscreenVideo({
             return
         }
         setMinimumPosterTimeElapsed(false)
-        const timer = window.setTimeout(() => setMinimumPosterTimeElapsed(true), 3000)
+        const timer = window.setTimeout(() => setMinimumPosterTimeElapsed(true), 1500)
         return () => window.clearTimeout(timer)
     }, [ posterSrc, videoSrc ])
 
