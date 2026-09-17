@@ -2,7 +2,7 @@ import { Image } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 import { ComponentConfig } from '@puckeditor/core'
-import { imageTypeField } from '@/app/lib/puck/custom-fields'
+import { mediaTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
@@ -69,7 +69,7 @@ const HighlightsConfig: ComponentConfig = {
                     type: 'textarea',
                     contentEditable: true
                 },
-                image: imageTypeField('图片'),
+                image: mediaTypeField('图片', [ 'image' ]),
                 link: {
                     label: '链接',
                     type: 'text'

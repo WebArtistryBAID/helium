@@ -8,11 +8,13 @@ To run in production:
 
 * Using `pm2` allows for proper deployment in production.
 * Remember to set the environment variables.
+* Install FFmpeg so uploaded videos can receive WebP preview thumbnails.
 * Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier).
 
 To run in development:
 
 * Ensure that you have node.js and npm available.
+* Ensure that FFmpeg is available on `PATH`, or set `FFMPEG_PATH`.
 * Run `npm install`.
 * Copy `.env.example` to `.env` and fill the environment variables.
 * Run `npm run dev`.
@@ -27,6 +29,7 @@ To run in development:
 | `HOST`                       | The location where this service is hosted. No trailing slashes.                                                                                                                     |
 | `UPLOAD_PATH`                | The directory where uploaded files are stored. In development, this is `public/uploads`.                                                                                            |
 | `UPLOAD_SERVE_PATH`          | The path where uploaded files are served. In development, this is `uploads`.                                                                                                        |
+| `FFMPEG_PATH`                | Optional path to the FFmpeg executable used to generate video thumbnails. Defaults to `ffmpeg` on `PATH`.                                                                           |
 | `CRON_KEY`                   | Secret key required by cron-only API endpoints. Generate one with `openssl rand -hex 32`.                                                                                           |
 | `ONELOGIN_HOST`              | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                                                                     |
 | `ONELOGIN_CLIENT_ID`         | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                                                                                |

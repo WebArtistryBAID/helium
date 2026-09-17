@@ -1,5 +1,5 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import ImageGallery from '@/app/lib/puck/components/ImageGallery'
@@ -63,7 +63,7 @@ const ImageGalleryConfig: ComponentConfig = {
             label: '幻灯片',
             type: 'array',
             arrayFields: {
-                image: imageTypeField('图片'),
+                image: mediaTypeField('图片', [ 'image' ]),
                 title: {
                     label: '标题',
                     type: 'text',

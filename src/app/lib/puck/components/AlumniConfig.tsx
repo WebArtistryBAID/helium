@@ -1,5 +1,5 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { imageTypeField } from '@/app/lib/puck/custom-fields'
+import { mediaTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Alumni from '@/app/lib/puck/components/Alumni'
 import { convertDatesToStrings } from '@/app/lib/data-types'
@@ -26,7 +26,7 @@ const AlumniConfig: ComponentConfig = {
                     type: 'textarea',
                     contentEditable: true
                 },
-                image: imageTypeField('照片')
+                image: mediaTypeField('照片', [ 'image' ])
             }
         },
         resolvedAlumni: {

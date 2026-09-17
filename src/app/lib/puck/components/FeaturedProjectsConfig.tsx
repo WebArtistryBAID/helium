@@ -2,7 +2,7 @@ import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
 import { EntityType } from '@/generated/prisma/browser'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
-import { imageTypeField } from '@/app/lib/puck/custom-fields'
+import { mediaTypeField } from '@/app/lib/puck/custom-fields'
 import FeaturedProjects from '@/app/lib/puck/components/FeaturedProjects'
 import { convertDatesToStrings, getContentEntityURI } from '@/app/lib/data-types'
 
@@ -50,7 +50,7 @@ const FeaturedProjectsConfig: ComponentConfig = {
                     type: 'text',
                     contentEditable: true
                 },
-                image: imageTypeField('图片'),
+                image: mediaTypeField('图片', [ 'image' ]),
                 linkText: {
                     label: '链接文字',
                     type: 'text',

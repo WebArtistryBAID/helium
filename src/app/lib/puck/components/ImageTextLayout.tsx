@@ -1,5 +1,5 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { colorTypeField, imageTypeField } from '@/app/lib/puck/custom-fields'
+import { colorTypeField, mediaTypeField } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { Image } from '@/generated/prisma/client'
@@ -54,7 +54,7 @@ function ImageTextLayout({
 const ImageTextLayoutConfig: ComponentConfig = {
     label: '图文排布',
     fields: {
-        image: imageTypeField('图片'),
+        image: mediaTypeField('图片', [ 'image' ]),
         topText: {
             label: '顶部小标题',
             type: 'text',

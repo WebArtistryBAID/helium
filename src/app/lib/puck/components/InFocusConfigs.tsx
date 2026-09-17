@@ -1,5 +1,10 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { colorTypeField, imageTypeField, RESOLVED_CONTENT_ENTITY_TYPE, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import {
+    colorTypeField,
+    mediaTypeField,
+    RESOLVED_CONTENT_ENTITY_TYPE,
+    RESOLVED_IMAGE_TYPE
+} from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import InFocusProjects from '@/app/lib/puck/components/InFocusProjects'
 import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
@@ -11,7 +16,7 @@ import InFocusCommencement, { CommencementChapter, CommencementCollageImage } fr
 export const InFocusCommencementConfig: ComponentConfig = {
     label: '毕业季',
     fields: {
-        heroBg: imageTypeField('背景图片'),
+        heroBg: mediaTypeField('背景图片', [ 'image' ]),
         heroTitle: { label: '主标题', type: 'text', contentEditable: true },
         heroDescription: { label: '主描述', type: 'textarea', contentEditable: true },
         collageBackgroundColor: colorTypeField('拼贴背景颜色'),
@@ -24,7 +29,7 @@ export const InFocusCommencementConfig: ComponentConfig = {
             label: '拼贴图片',
             type: 'array',
             arrayFields: {
-                image: imageTypeField('图片')
+                image: mediaTypeField('图片', [ 'image' ])
             },
             max: 11
         },
@@ -128,7 +133,7 @@ export const InFocusCommencementConfig: ComponentConfig = {
 export const InFocusNewStudentsConfig: ComponentConfig = {
     label: '欢迎新生',
     fields: {
-        heroBg: imageTypeField('背景图片'),
+        heroBg: mediaTypeField('背景图片', [ 'image' ]),
         title: { label: '标题', type: 'text', contentEditable: true },
         description: { label: '描述', type: 'textarea', contentEditable: true },
 
@@ -139,7 +144,7 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
             type: 'array',
             arrayFields: {
                 href: { label: '链接', type: 'text' },
-                image: imageTypeField('图片'),
+                image: mediaTypeField('图片', [ 'image' ]),
                 title: { label: '标题', type: 'text', contentEditable: true },
                 shortContent: { label: '简介', type: 'textarea', contentEditable: true }
             },
@@ -148,7 +153,7 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
 
         resourcesTitle: { label: '资源标题', type: 'text', contentEditable: true },
         resourcesDescription: { label: '资源描述', type: 'textarea', contentEditable: true },
-        resourcesImage: imageTypeField('资源图片'),
+        resourcesImage: mediaTypeField('资源图片', [ 'image' ]),
         resources: {
             label: '资源列表',
             type: 'array',
@@ -336,7 +341,7 @@ export interface InFocusProject {
 export const InFocusProjectsConfig: ComponentConfig = {
     label: '自主项目',
     fields: {
-        heroBg: imageTypeField('背景图片'),
+        heroBg: mediaTypeField('背景图片', [ 'image' ]),
         title: {
             label: '标题',
             type: 'text',

@@ -6,7 +6,7 @@ import {
 import { HiArrowUpTray } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
 import type { Image } from '@/generated/prisma/browser'
-import { createImage, deletePendingImageUpload } from '@/app/studio/media/media-actions'
+import { createMedia, deletePendingImageUpload, type MediaType } from '@/app/studio/media/media-actions'
 import { createClientId } from '@/app/lib/client-id'
 
 type UploadStatus = 'uploading' | 'cancelling' | 'complete' | 'error'
@@ -20,6 +20,9 @@ type UploadTask = {
     status: UploadStatus
     error?: string
     hash?: string
+    mediaType?: MediaType
+    extension?: string
+    mimeType?: string
     xhr?: XMLHttpRequest
 }
 
@@ -50,15 +53,17 @@ function uploadErrorMessage(error: string): string {
         network: '网络错误，请稍后再试。',
         'no-permission': '你没有权限执行此操作。',
         'no-file': '未检测到文件，请重试。',
-        'not-image': '仅支持图片格式的文件。',
-        duplicate: '该图片已存在，无需重复上传。',
-        'upload-failed': '图片处理失败，请重试。',
+        'unsupported-media': '支持图片、MP4、WebM、MOV 和 OGV 视频。',
+        'file-too-large': '图片不得超过 20 MB，视频不得超过 250 MB。',
+        duplicate: '该媒体已存在，无需重复上传。',
+        'upload-failed': '媒体处理失败，请重试。',
         invalid: '服务器返回了无效响应，请重试。'
     } as Record<string, string>)[error] ?? error
 }
 
-export default function UploadAreaClient({ uploadPrefix, onAdded }: {
+export default function UploadAreaClient({ uploadPrefix, allowedMediaTypes, onAdded }: {
     uploadPrefix: string,
+    allowedMediaTypes: MediaType[],
     onAdded: (image: Image) => void
 }) {
     const inputRef = useRef<HTMLInputElement>(null)
@@ -79,6 +84,13 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
     const metadataTask = tasks.find(task => task.id === metadataTaskId && task.status === 'complete')
 
     function startUpload(file: File) {
+        const mediaType: MediaType | null = file.type.startsWith('image/')
+            ? 'image'
+            : file.type.startsWith('video/') ? 'video' : null
+        if (mediaType == null || !allowedMediaTypes.includes(mediaType)) {
+            setActionError(mediaType === 'video' ? '此媒体选择器不支持视频。' : '此媒体选择器不支持该文件。')
+            return
+        }
         const key = fileKey(file)
         if (uploadTasks.some(task => task.fileKey === key)) {
             setActionError(`无法重复添加 ${file.name}。`)
@@ -107,18 +119,32 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
             if (event.lengthComputable) updateTask(id, { progress: Math.round((event.loaded / event.total) * 100) })
         }
         xhr.onload = () => {
-            let response: { hash?: string, error?: string }
+            let response: {
+                hash?: string,
+                mediaType?: MediaType,
+                extension?: string,
+                mimeType?: string,
+                error?: string
+            }
             try {
-                response = JSON.parse(xhr.responseText) as { hash?: string, error?: string }
+                response = JSON.parse(xhr.responseText) as typeof response
             } catch {
                 response = { error: 'invalid' }
             }
 
             if (response.hash) {
                 const duplicate = uploadTasks.some(other => other.id !== id && other.hash === response.hash)
-                updateTask(id, duplicate
-                    ? { status: 'error', progress: 100, error: uploadErrorMessage('duplicate'), xhr: undefined }
-                    : { status: 'complete', progress: 100, hash: response.hash, xhr: undefined })
+                const validMetadata = response.mediaType != null && response.extension != null && response.mimeType != null
+                updateTask(id, duplicate || !validMetadata
+                    ? {
+                        status: 'error', progress: 100,
+                        error: uploadErrorMessage(duplicate ? 'duplicate' : 'invalid'), xhr: undefined
+                    }
+                    : {
+                        status: 'complete', progress: 100, hash: response.hash,
+                        mediaType: response.mediaType, extension: response.extension,
+                        mimeType: response.mimeType, xhr: undefined
+                    })
                 return
             }
             updateTask(id, {
@@ -146,10 +172,10 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
                 task.xhr?.abort()
                 return
             }
-            if (task.hash) await deletePendingImageUpload(task.hash)
+            if (task.hash) await deletePendingImageUpload(task.hash, task.extension)
             removeTask(task.id)
         } catch (error) {
-            console.error('Failed to delete image upload task:', error)
+            console.error('Failed to delete media upload task:', error)
             setActionError('删除上传任务失败，请重试。')
         }
     }
@@ -159,7 +185,7 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
             <ModalHeader/>
             <ModalBody>
                 <div className="space-y-6">
-                    <h3 className="text-xl font-bold">设置图片信息</h3>
+                    <h3 className="text-xl font-bold">设置媒体信息</h3>
                     <div>
                         <div className="mb-2 block"><Label htmlFor="upload-image-name">名称</Label></div>
                         <TextInput id="upload-image-name" value={imageName}
@@ -168,12 +194,18 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
                     <div>
                         <div className="mb-2 block"><Label htmlFor="upload-image-alt">解释文字</Label></div>
                         <TextInput id="upload-image-alt" value={imageAlt}
-                                   placeholder="简单说明图片内容，由屏幕阅读器读出..."
+                                   placeholder="简单说明媒体内容，由屏幕阅读器读出..."
                                    onChange={event => setImageAlt(event.currentTarget.value)} required/>
                     </div>
-                    {metadataTask?.hash && <img width={500} height={200}
-                                                src={`${uploadPrefix}/${metadataTask.hash}.webp`} alt="已上传文件"
-                                                className="w-full rounded-3xl object-cover lg:max-w-sm"/>}
+                    {metadataTask?.hash && metadataTask.mediaType === 'image' &&
+                        <img width={500} height={200}
+                             src={`${uploadPrefix}/${metadataTask.hash}.${metadataTask.extension}`} alt="已上传文件"
+                             className="w-full rounded-3xl object-cover lg:max-w-sm"/>}
+                    {metadataTask?.hash && metadataTask.mediaType === 'video' &&
+                        <video controls preload="metadata" className="w-full rounded-3xl lg:max-w-sm">
+                            <source src={`${uploadPrefix}/${metadataTask.hash}.${metadataTask.extension}`}
+                                    type={metadataTask.mimeType}/>
+                        </video>}
                 </div>
             </ModalBody>
             <ModalFooter>
@@ -183,14 +215,17 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
                             setSavingMetadata(true)
                             setActionError('')
                             try {
-                                const image = await createImage({
-                                    name: imageName.trim(), altText: imageAlt.trim(), sha1: metadataTask.hash
+                                if (!metadataTask.mediaType || !metadataTask.extension || !metadataTask.mimeType) return
+                                const image = await createMedia({
+                                    name: imageName.trim(), altText: imageAlt.trim(), sha1: metadataTask.hash,
+                                    mediaType: metadataTask.mediaType, extension: metadataTask.extension,
+                                    mimeType: metadataTask.mimeType
                                 })
                                 removeTask(metadataTask.id)
                                 setMetadataTaskId(null)
                                 onAdded(image)
                             } catch (error) {
-                                console.error('Failed to add uploaded image:', error)
+                                console.error('Failed to add uploaded media:', error)
                                 setActionError('加入媒体库失败，请重试。')
                             } finally {
                                 setSavingMetadata(false)
@@ -202,8 +237,12 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
         </Modal>
 
         <div className="grid w-full grid-cols-1 gap-4 xl:grid-cols-2">
-            <input ref={inputRef} type="file" multiple accept="image/*" className="hidden"
-                   aria-label="选择要上传的图片" onChange={event => {
+            <input ref={inputRef} type="file" multiple
+                   accept={[
+                       allowedMediaTypes.includes('image') ? 'image/*' : '',
+                       allowedMediaTypes.includes('video') ? 'video/mp4,video/webm,video/quicktime,video/ogg' : ''
+                   ].filter(Boolean).join(',')}
+                   className="hidden" aria-label="选择要上传的媒体" onChange={event => {
                 if (event.currentTarget.files) addFiles(event.currentTarget.files)
             }}/>
             <button type="button"
@@ -214,8 +253,8 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
                 addFiles(event.dataTransfer.files)
             }}>
                 <HiArrowUpTray className="mx-auto mb-2 size-8 text-gray-400" aria-hidden="true"/>
-                <p className="font-semibold text-gray-700">选择图片或拖拽到此处</p>
-                <p className="mt-1 text-sm text-gray-500">上传超过 1 MB 的图片会严重降低访问速度。</p>
+                <p className="font-semibold text-gray-700">选择媒体或拖拽到此处</p>
+                <p className="mt-1 text-sm text-gray-500">图片大小上限为 20 MB，视频大小上限为 250 MB。</p>
             </button>
 
             {actionError && <Alert color="failure" className="xl:col-span-2">{actionError}</Alert>}
@@ -255,10 +294,12 @@ export default function UploadAreaClient({ uploadPrefix, onAdded }: {
                         <span role="status" className="text-sm text-gray-600">{status}</span>
                     </div>
                     {task.error && <Alert color="failure">{task.error}</Alert>}
-                    {task.status === 'complete' && task.hash && <img width={500} height={200}
-                                                                     src={`${uploadPrefix}/${task.hash}_thumb.webp`}
-                                                                     alt="" aria-hidden="true"
-                                                                     className="h-28 w-40 rounded-3xl object-cover"/>}
+                    {task.status === 'complete' && task.hash && task.mediaType === 'image' &&
+                        <img width={500} height={200} src={`${uploadPrefix}/${task.hash}_thumb.webp`}
+                             alt="" aria-hidden="true" className="h-28 w-40 rounded-3xl object-cover"/>}
+                    {task.status === 'complete' && task.hash && task.mediaType === 'video' &&
+                        <img width={500} height={200} src={`${uploadPrefix}/${task.hash}_thumb.webp`}
+                             alt="" aria-hidden="true" className="h-28 w-40 rounded-3xl bg-black object-cover"/>}
                 </Card>
             })}
         </div>

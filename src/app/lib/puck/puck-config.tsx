@@ -32,6 +32,7 @@ import ProgramEligibilityConfig from '@/app/lib/puck/components/ProgramEligibili
 import ImageTextLayoutConfig from '@/app/lib/puck/components/ImageTextLayout'
 import PeopleConfig from '@/app/lib/puck/components/PeopleConfig'
 import ImageGalleryConfig from '@/app/lib/puck/components/ImageGalleryConfig'
+import FullscreenVideoConfig from '@/app/lib/puck/components/FullscreenVideoConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -69,7 +70,8 @@ export const PUCK_CONFIG: Config = {
         ProgramEligibilityConfig,
         ImageTextLayoutConfig,
         PeopleConfig,
-        ImageGalleryConfig
+        ImageGalleryConfig,
+        FullscreenVideoConfig
     },
     categories: {
         foundational: {
@@ -78,7 +80,9 @@ export const PUCK_CONFIG: Config = {
         },
         layout: {
             title: '布局',
-            components: [ 'ContainerConfig', 'SpacerConfig', 'ImageTextLayoutConfig', 'ImageGalleryConfig' ]
+            components: [
+                'ContainerConfig', 'SpacerConfig', 'ImageTextLayoutConfig', 'ImageGalleryConfig', 'FullscreenVideoConfig'
+            ]
         },
         sharedContent: {
             title: '共享内容',

@@ -1,6 +1,6 @@
 import { Image } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@puckeditor/core'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
@@ -162,7 +162,7 @@ const QuoteConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
-        image: imageTypeField('图片'),
+        image: mediaTypeField('图片', [ 'image' ]),
         resolvedImage: RESOLVED_IMAGE_TYPE,
         resolvedUploadPrefix: {
             type: 'text',

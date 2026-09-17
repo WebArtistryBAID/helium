@@ -1,6 +1,6 @@
 import { Image } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@puckeditor/core'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
@@ -103,7 +103,7 @@ const ContactsConfig: ComponentConfig = {
                 }
             }
         },
-        backgroundImage: imageTypeField('背景图片'),
+        backgroundImage: mediaTypeField('背景图片', [ 'image' ]),
         resolvedBackgroundImage: RESOLVED_IMAGE_TYPE,
         resolvedUploadPrefix: {
             type: 'text',

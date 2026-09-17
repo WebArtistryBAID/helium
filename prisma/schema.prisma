@@ -184,6 +184,9 @@ model Image {
   sha1       String   @unique
   name       String
   altText    String
+  mediaType  String   @default("image")
+  extension  String   @default("webp")
+  mimeType   String   @default("image/webp")
   width      Int
   height     Int
   sizeKB     Int

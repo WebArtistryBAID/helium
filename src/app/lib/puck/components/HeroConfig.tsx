@@ -1,5 +1,5 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { colorTypeField, imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { colorTypeField, mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import Hero from '@/app/lib/puck/components/Hero'
 import { convertDatesToStrings } from '@/app/lib/data-types'
@@ -12,7 +12,7 @@ const HeroConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
-        image: imageTypeField('图片'),
+        image: mediaTypeField('图片', [ 'image' ]),
         backgroundColor: colorTypeField('背景颜色'),
         lightText: {
             label: '浅色文字',

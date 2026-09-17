@@ -5,7 +5,7 @@ import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Autoplay, Pagination } from 'swiper/modules'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 
-const TITLE_SIZE_CLASSES: Record<string, string> = {
+export const TITLE_SIZE_CLASSES: Record<string, string> = {
     sm: 'text-sm',
     base: 'text-base',
     lg: 'text-lg',
@@ -65,15 +65,28 @@ function GallerySlideView({ slide, uploadPrefix }: { slide: GallerySlide, upload
     return <div className="relative h-[100svh] min-h-[100vh] w-full md:h-screen md:min-h-0">
         <img src={`${uploadPrefix}/${slide.image?.sha1}.webp`} alt={slide.image?.altText ?? ''}
              className="h-full w-full object-cover"/>
+        <FullscreenMediaText title={slide.title} titleSize={slide.titleSize} content={slide.content}
+                             link={slide.link} linkText={slide.linkText}/>
+    </div>
+}
+
+export function FullscreenMediaText({ title, titleSize, content, link, linkText }: {
+    title: string | undefined,
+    titleSize: string | undefined,
+    content: string | undefined,
+    link: string | undefined,
+    linkText: string | undefined
+}) {
+    return <>
         <div className="absolute inset-0 bg-linear-to-t from-black/50 via-transparent to-transparent"/>
         <div
             className="absolute inset-x-0 bottom-0 w-full px-6 pb-10 pt-6 sm:px-10 sm:pb-12 sm:pt-8 md:px-16 md:pb-16 md:pt-10">
-            <h3 className={`mb-1 max-w-4xl break-words font-bold leading-tight text-white ${slide.titleSize == null ? 'text-2xl sm:text-3xl' : (TITLE_SIZE_CLASSES[slide.titleSize] ?? 'text-3xl')}`}>
-                {slide.title}
+            <h3 className={`mb-1 max-w-4xl break-words font-bold leading-tight text-white ${titleSize == null ? 'text-2xl sm:text-3xl' : (TITLE_SIZE_CLASSES[titleSize] ?? 'text-3xl')}`}>
+                {title}
             </h3>
-            <p className="max-w-3xl text-sm text-white/90 sm:text-base">{slide.content}</p>
-            {slide.link && slide.linkText &&
-                <div className="mt-5"><ReadMore text={slide.linkText} to={slide.link} color="white"/></div>}
+            <p className="max-w-3xl text-sm text-white/90 sm:text-base">{content}</p>
+            {link && linkText &&
+                <div className="mt-5"><ReadMore text={linkText} to={link} color="white"/></div>}
         </div>
-    </div>
+    </>
 }

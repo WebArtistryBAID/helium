@@ -3,6 +3,7 @@ import withFlowbiteReact from 'flowbite-react/plugin/nextjs'
 
 const nextConfig: NextConfig = {
     experimental: {
+        proxyClientMaxBodySize: '250mb',
         serverActions: {
             allowedOrigins: [
                 'isba.beijingacademy.com.cn',
