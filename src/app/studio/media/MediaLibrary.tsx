@@ -43,6 +43,7 @@ export default function MediaLibrary({
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ currentPage, setCurrentPage ] = useState(0)
     const [ currentMediaType, setCurrentMediaType ] = useState<MediaType>(allowedMediaTypes[0] ?? 'image')
+    const [ refreshVersion, setRefreshVersion ] = useState(0)
     const {
         permissionDenied,
         showPermissionDenied,
@@ -78,7 +79,7 @@ export default function MediaLibrary({
         return () => {
             cancelled = true
         }
-    }, [ currentMediaType, currentPage ])
+    }, [ currentMediaType, currentPage, refreshVersion ])
 
     const renderMediaPanel = () => <>
                     <If condition={page.pages < 1}>
@@ -235,14 +236,10 @@ export default function MediaLibrary({
                 {canWrite ? (
                     <TabItem title="上传" icon={HiArrowUpTray}>
                         <UploadAreaClient uploadPrefix={page.uploadServePath} allowedMediaTypes={allowedMediaTypes}
-                                          onAdded={async image => {
-                                              const mediaType = image.mediaType as MediaType
-                                              const tabIndex = allowedMediaTypes.indexOf(mediaType)
-                            setSelectedImage(image)
+                                          onAdded={image => {
+                                              if (image.mediaType !== currentMediaType) return
                             setCurrentPage(0)
-                                              if (tabIndex >= 0) tabsRef.current?.setActiveTab(tabIndex)
-                                              setCurrentMediaType(mediaType)
-                                              setPage(await getMedia(0, [ mediaType ]))
+                                              setRefreshVersion(version => version + 1)
                         }}/>
                 </TabItem>
                 ) : null}
