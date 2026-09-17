@@ -20,6 +20,8 @@ import { packageUp } from 'package-up'
 import { deserializeMarkdownToPlate } from '@/app/lib/plate/plate-markdown'
 import { serializePlateValue } from '@/app/lib/plate/plate-types'
 
+const MAX_IMAGE_DIMENSION = 2000
+
 async function download(command: string, args: string[], cwd: string, signal: AbortSignal) {
     signal.throwIfAborted()
     await new Promise<void>((resolve, reject) => {
@@ -143,8 +145,16 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
         for (const file of toKeep) {
             signal.throwIfAborted()
             const buffer = await fs.readFile(path.join(articleDir, file))
-            const webp = await sharp(buffer).webp().toBuffer()
-            const thumbnail = await sharp(buffer).resize(300, 200, { fit: 'inside', withoutEnlargement: true }).webp().toBuffer()
+            const webp = await sharp(buffer)
+                .rotate()
+                .resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, { fit: 'inside', withoutEnlargement: true })
+                .webp()
+                .toBuffer()
+            const thumbnail = await sharp(buffer)
+                .rotate()
+                .resize(300, 200, { fit: 'inside', withoutEnlargement: true })
+                .webp()
+                .toBuffer()
             const hash = crypto.createHash('sha1').update(webp).digest('hex')
             const metadata = await sharp(webp).metadata()
             await fs.writeFile(path.join(directory, `${hash}.webp`), webp)

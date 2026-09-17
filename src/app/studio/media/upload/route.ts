@@ -13,6 +13,7 @@ export const runtime = 'nodejs'
 const MAX_IMAGE_BYTES = 20 * 1024 * 1024
 const MAX_VIDEO_BYTES = 250 * 1024 * 1024
 const MAX_INPUT_PIXELS = 40_000_000
+const MAX_IMAGE_DIMENSION = 2000
 const VIDEO_TYPES = new Map([
     [ 'video/mp4', 'mp4' ],
     [ 'video/webm', 'webm' ],
@@ -68,8 +69,16 @@ export async function POST(req: NextRequest): Promise<Response> {
         let thumbnailBuffer: Buffer | null = null
         if (isImage) {
             [ storedBuffer, thumbnailBuffer ] = await Promise.all([
-                sharp(fileBuffer, { limitInputPixels: MAX_INPUT_PIXELS }).webp().toBuffer(),
                 sharp(fileBuffer, { limitInputPixels: MAX_INPUT_PIXELS })
+                    .rotate()
+                    .resize(MAX_IMAGE_DIMENSION, MAX_IMAGE_DIMENSION, {
+                        fit: 'inside',
+                        withoutEnlargement: true
+                    })
+                    .webp()
+                    .toBuffer(),
+                sharp(fileBuffer, { limitInputPixels: MAX_INPUT_PIXELS })
+                    .rotate()
                     .resize(300, 200, { fit: 'inside', withoutEnlargement: true }).webp().toBuffer()
             ])
             extension = 'webp'
