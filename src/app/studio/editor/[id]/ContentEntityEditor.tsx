@@ -554,7 +554,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                                     disabled={loading || !hasChanges}
                                     onClick={guardedSave}>
                                 <HiCheckCircle className="mr-2 h-4 w-4"/>
-                                {loading ? '正在保存...' : '保存更改'}
+                                {loading ? '保存中…' : hasChanges ? '保存更改' : '已保存'}
                             </Button>
                         </If>
                     </div>

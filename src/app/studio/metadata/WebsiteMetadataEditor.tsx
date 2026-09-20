@@ -524,7 +524,7 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                             {canWrite ? <Button type="button" pill color="blue" disabled={loading || !hasChanges}
                                                 onClick={guardedSave}>
                                 <HiCheckCircle aria-hidden="true" className="mr-2 h-4 w-4"/>
-                                {loading ? '正在保存...' : '保存更改'}
+                                {loading ? '保存中…' : hasChanges ? '保存更改' : '已保存'}
                             </Button> : null}
                         </div>
                     </div>
