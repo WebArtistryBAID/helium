@@ -61,6 +61,7 @@ import {
 } from '@/app/studio/editor/comment-actions'
 import { hasPlateSuggestions } from '@/app/lib/plate/plate-types'
 import { replacePlateCollaborationDocument } from '@/app/lib/plate/plate-collaboration'
+import ContentEntityDisplay from '@/app/lib/ContentEntityDisplay'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
@@ -179,9 +180,9 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                     ? draft.contentDraftEN : undefined,
                 contentDraftZH: saveChinese && draft.contentDraftZH !== previous.contentDraftZH
                     ? draft.contentDraftZH : undefined,
-                shortContentDraftEN: saveEnglish && draft.shortContentDraftEN !== previous.shortContentDraftEN
+                shortContentDraftEN: draft.shortContentDraftEN !== previous.shortContentDraftEN
                     ? draft.shortContentDraftEN : undefined,
-                shortContentDraftZH: saveChinese && draft.shortContentDraftZH !== previous.shortContentDraftZH
+                shortContentDraftZH: draft.shortContentDraftZH !== previous.shortContentDraftZH
                     ? draft.shortContentDraftZH : undefined,
                 coverImageDraftId: draft.coverImageDraft?.id !== previous.coverImageDraft?.id
                     ? draft.coverImageDraft?.id ?? null : undefined,
@@ -845,37 +846,16 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                 <TabItem title="预览" icon={HiSearch}>
                     <div className="mt-5">
                         <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
-                            <If condition={post.coverImageDraft != null}>
-                                <div className="mx-auto w-full max-w-5xl px-4 pt-6 sm:px-8">
-                                    <img className="h-auto max-h-[24rem] w-full rounded-3xl object-cover"
-                                         alt={post.coverImageDraft?.altText ?? ''}
-                                         src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
-                                </div>
-                            </If>
-                            <div className={`mx-auto mb-14 w-full max-w-3xl px-6 sm:mb-20 sm:px-10 ${
-                                post.coverImageDraft == null ? 'pt-16' : 'pt-12 sm:pt-16'
-                            }`}>
-                                <article className="content-entity-article">
-                                    <If condition={post.type === EntityType.post}>
-                                        <header className="mb-10 border-b border-gray-200 pb-8">
-                                            <h1>{displayedTitle}</h1>
-                                            <time className="mt-4 block text-sm text-gray-600"
-                                                  dateTime={displayedDate.toISOString()}>
-                                                {displayedDate.toLocaleDateString(inEnglish ? 'en-US' : 'zh-CN')}
-                                            </time>
-                                        </header>
-                                    </If>
-                                    <If condition={post.type !== EntityType.post}>
-                                        <h1 className="text-center text-5xl">{displayedTitle}</h1>
-                                    </If>
-                                    <PlateRichTextEditor
-                                        documentKey={`preview-${post.id}-${inEnglish ? 'en' : 'zh'}-${contentRevision}`}
-                                        content={displayedContent}
-                                        images={cachedImages}
-                                        uploadPrefix={uploadPrefix}
-                                        readOnly/>
-                                </article>
-                            </div>
+                            <ContentEntityDisplay
+                                type={post.type}
+                                title={displayedTitle}
+                                subtitle={inEnglish ? post.titleDraftZH : post.titleDraftEN}
+                                content={displayedContent}
+                                coverImage={post.coverImageDraft}
+                                createdAt={displayedDate}
+                                locale={inEnglish ? 'en' : 'zh'}
+                                images={[ ...cachedImages.values() ]}
+                                uploadPrefix={uploadPrefix}/>
                         </div>
                     </div>
                 </TabItem>
