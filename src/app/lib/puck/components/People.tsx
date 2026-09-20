@@ -26,7 +26,7 @@ export default function People({ people, uploadPrefix }: { people: (Person | nul
                 <img src={`${uploadPrefix}/${person.image?.sha1}.webp`} alt={person.image?.altText ?? ''}
                      className="h-48 w-48 rounded-full object-cover object-center mb-3"/>
                 <p className="text-xl font-bold">{language === 'zh' ? person.nameZH : person.nameEN}</p>
-                <p className="text-lg opacity-90 mb-1">{person.title}</p>
+                <p className="text-lg opacity-90 mb-1 text-center">{person.title}</p>
                 <p className="opacity-80">{language === 'zh' ? person.descriptionZH : person.descriptionEN}</p>
             </Link>)}
     </div>
