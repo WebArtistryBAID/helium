@@ -116,7 +116,7 @@ export async function GET(request: NextRequest): Promise<NextResponse> {
         httpOnly: true,
         path: '/',
         sameSite: 'lax',
-        secure: process.env.NODE_ENV === 'production'
+        //secure: process.env.NODE_ENV === 'production'
     })
     return NextResponse.redirect(process.env.HOST! + redirectTarget)
 }
