@@ -31,11 +31,16 @@ type RemoteCursor = PuckCollaborator & {
 }
 
 type SharedCursorPosition = Pick<RemoteCursor, 'anchorId' | 'x' | 'y'>
+type PuckItemSelector = { index: number, zone: string }
 
 type PuckApiLike = {
-    appState: { data: Data }
+    appState: {
+        data: Data
+        ui: { itemSelector: PuckItemSelector | null }
+    }
     dispatch: (action: PuckAction) => void
-    getSelectorForId: (id: string) => { index: number, zone?: string | null } | null | undefined
+    getSelectorForId: (id: string) => PuckItemSelector | undefined
+    selectedItem: ComponentData | null
 }
 
 type GetPuck = () => PuckApiLike
@@ -105,6 +110,7 @@ function componentWithCurrentSlots(current: ComponentData | undefined, target: C
 
 function synchronizePuck(getPuck: GetPuck, target: Data) {
     let api = getPuck()
+    const selectedComponentId = api.selectedItem == null ? null : componentId(api.selectedItem)
     if (!equalJson(api.appState.data.root, target.root)) {
         api.dispatch({ type: 'replaceRoot', root: target.root, recordHistory: false })
     }
@@ -169,6 +175,14 @@ function synchronizePuck(getPuck: GetPuck, target: Data) {
                     recordHistory: false
                 })
             }
+        }
+    }
+
+    if (selectedComponentId != null) {
+        api = getPuck()
+        const itemSelector = api.getSelectorForId(selectedComponentId)
+        if (itemSelector != null && !equalJson(api.appState.ui.itemSelector, itemSelector)) {
+            api.dispatch({ type: 'setUi', ui: { itemSelector } })
         }
     }
 }
