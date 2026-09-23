@@ -38,6 +38,7 @@ import {
 import { HELIUM_PLATE_EDITOR_PLUGINS } from '@/app/lib/plate/plate-editor-config'
 import {
     EMPTY_PLATE_VALUE,
+    extractContentImageIds,
     type HeliumPlateValue,
     isPlateValue,
     serializePlateValue
@@ -258,6 +259,7 @@ export default function PlateRichTextEditor({
                                                 canDeleteComments = false,
                                                 currentUserId = '',
                                                 currentUserName = '',
+                                                currentEntityMediaIds = [],
                                                 documentKey,
                                                 images,
                                                 onCreateComment,
@@ -276,6 +278,7 @@ export default function PlateRichTextEditor({
     canDeleteComments?: boolean
     currentUserId?: string
     currentUserName?: string
+    currentEntityMediaIds?: number[]
     documentKey: string
     images: Map<number, Image>
     onCreateComment?: (quotedText: string, body: string) => Promise<PuckCommentThread>
@@ -516,6 +519,12 @@ export default function PlateRichTextEditor({
 
     return <>
         <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} allowUnpick={false}
+                     currentEntityMediaIds={showMediaLibrary
+                         ? Array.from(new Set([
+                             ...currentEntityMediaIds,
+                             ...extractContentImageIds(serializePlateValue(editor.children as HeliumPlateValue))
+                         ]))
+                         : undefined}
                      onPick={image => {
                          if (image == null) return
                          editor.tf.insertNodes({

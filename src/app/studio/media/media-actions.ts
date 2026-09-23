@@ -1,6 +1,6 @@
 'use server'
 
-import { Image, Role, UserAuditLogType } from '@/generated/prisma/client'
+import { Image, Prisma, Role, UserAuditLogType } from '@/generated/prisma/client'
 import { requireUser, requireUserWithRole } from '@/app/login/login-actions'
 import path from 'node:path'
 import fs from 'node:fs/promises'
@@ -16,6 +16,13 @@ export type ImagePage = Paginated<Image> & {
 }
 
 export type MediaType = 'image' | 'video'
+export type MediaScope = 'all' | 'mine' | 'entity'
+
+export type MediaFilters = {
+    query?: string
+    scope?: MediaScope
+    entityMediaIds?: number[]
+}
 
 export async function getUploadServePath(): Promise<string> {
     const configuredPath = process.env.UPLOAD_SERVE_PATH?.trim()
@@ -29,9 +36,23 @@ export async function getImage(id: number): Promise<Image | null> {
     })
 }
 
-export async function getMedia(page: number, mediaTypes: MediaType[] = [ 'image', 'video' ]): Promise<ImagePage> {
-    await requireUser()
-    const where = { mediaType: { in: mediaTypes } }
+export async function getMedia(page: number, mediaTypes: MediaType[] = [ 'image', 'video' ],
+                               filters: MediaFilters = {}): Promise<ImagePage> {
+    const user = await requireUser()
+    const query = filters.query?.trim().slice(0, 200) ?? ''
+    const entityMediaIds = (filters.entityMediaIds ?? [])
+        .filter(id => Number.isInteger(id) && id > 0)
+    const where: Prisma.ImageWhereInput = {
+        mediaType: { in: mediaTypes },
+        ...(query.length > 0 ? {
+            OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { altText: { contains: query, mode: 'insensitive' } }
+            ]
+        } : {}),
+        ...(filters.scope === 'mine' ? { uploaderId: user.id } : {}),
+        ...(filters.scope === 'entity' ? { id: { in: entityMediaIds } } : {})
+    }
     const [ count, images ] = await Promise.all([
         prisma.image.count({ where }),
         prisma.image.findMany({
@@ -61,29 +82,7 @@ export async function getImages(page: number): Promise<ImagePage> {
 }
 
 export async function searchImages(query: string, page: number): Promise<ImagePage> {
-    await requireUser()
-    const where = {
-        mediaType: 'image',
-        name: {
-            contains: query,
-            mode: 'insensitive' as const
-        }
-    }
-    const [ count, images ] = await Promise.all([
-        prisma.image.count({ where }),
-        prisma.image.findMany({
-            where,
-            orderBy: { createdAt: 'desc' },
-            skip: page * PAGE_SIZE,
-            take: PAGE_SIZE
-        })
-    ])
-    return {
-        items: images,
-        page,
-        pages: Math.ceil(count / PAGE_SIZE),
-        uploadServePath: await getUploadServePath()
-    }
+    return getMedia(page, [ 'image' ], { query })
 }
 
 export async function createImage(data: {

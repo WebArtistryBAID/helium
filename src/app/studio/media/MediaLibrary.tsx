@@ -3,15 +3,17 @@
 import {
     Button,
     Pagination,
+    Select,
     TabItem,
     Tabs,
-    TabsRef
+    TabsRef,
+    TextInput
 } from 'flowbite-react'
-import { HiArrowUpTray, HiPhoto, HiVideoCamera } from 'react-icons/hi2'
+import { HiArrowUpTray, HiMagnifyingGlass, HiPhoto, HiVideoCamera } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
 import { Image, Role, User } from '@/generated/prisma/browser'
 import { deleteImage, getMedia } from '@/app/studio/media/media-actions'
-import type { ImagePage, MediaType } from '@/app/studio/media/media-actions'
+import type { ImagePage, MediaScope, MediaType } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
 import { getMyUser } from '@/app/login/login-actions'
@@ -28,12 +30,14 @@ function formatSize(kb: number): string {
 const ALL_MEDIA_TYPES: MediaType[] = [ 'image', 'video' ]
 
 export default function MediaLibrary({
-                                         init, pickMode, allowUnpick, allowedMediaTypes = ALL_MEDIA_TYPES, onPick
+                                         init, pickMode, allowUnpick, allowedMediaTypes = ALL_MEDIA_TYPES,
+                                         currentEntityMediaIds, onPick
                                      }: {
     init: ImagePage,
     pickMode?: boolean,
     allowUnpick?: boolean,
     allowedMediaTypes?: MediaType[],
+    currentEntityMediaIds?: number[],
     onPick?: (image: Image | null) => void
 }) {
     const [ user, setUser ] = useState<User>()
@@ -43,6 +47,9 @@ export default function MediaLibrary({
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ currentPage, setCurrentPage ] = useState(0)
     const [ currentMediaType, setCurrentMediaType ] = useState<MediaType>(allowedMediaTypes[0] ?? 'image')
+    const [ query, setQuery ] = useState('')
+    const [ debouncedQuery, setDebouncedQuery ] = useState('')
+    const [ scope, setScope ] = useState<MediaScope>('all')
     const [ refreshVersion, setRefreshVersion ] = useState(0)
     const {
         permissionDenied,
@@ -61,6 +68,12 @@ export default function MediaLibrary({
     }, [])
 
     const allowedTypesKey = allowedMediaTypes.join(',')
+    const entityMediaIdsKey = currentEntityMediaIds?.join(',') ?? ''
+
+    useEffect(() => {
+        const timer = window.setTimeout(() => setDebouncedQuery(query), 250)
+        return () => window.clearTimeout(timer)
+    }, [ query ])
 
     useEffect(() => {
         if (!allowedMediaTypes.includes(currentMediaType)) {
@@ -71,7 +84,11 @@ export default function MediaLibrary({
     useEffect(() => {
         let cancelled = false
         ;(async () => {
-            const nextPage = await getMedia(currentPage, [ currentMediaType ])
+            const nextPage = await getMedia(currentPage, [ currentMediaType ], {
+                query: debouncedQuery,
+                scope,
+                entityMediaIds: currentEntityMediaIds
+            })
             if (!cancelled) setPage(nextPage)
         })().catch(error => {
             if (!cancelled) console.error('Failed to load media', error)
@@ -79,13 +96,42 @@ export default function MediaLibrary({
         return () => {
             cancelled = true
         }
-    }, [ currentMediaType, currentPage, refreshVersion ])
+    }, [ currentMediaType, currentPage, debouncedQuery, entityMediaIdsKey, refreshVersion, scope ])
+
+    useEffect(() => {
+        setCurrentPage(0)
+        setSelectedImage(null)
+        setDeleteConfirm(false)
+    }, [ debouncedQuery, scope ])
 
     const renderMediaPanel = () => <>
+        <div className="mb-5 flex gap-3">
+            <TextInput className="min-w-0 flex-1" icon={HiMagnifyingGlass} value={query}
+                       placeholder="按名称或解释性文字搜索"
+                       aria-label="搜索媒体"
+                       onChange={event => setQuery(event.currentTarget.value)}/>
+            <Select className="w-52 shrink-0" value={scope} aria-label="筛选媒体"
+                    theme={{
+                        field: {
+                            select: {
+                                sizes: {
+                                    md: 'py-2.5 pl-2.5 pr-12 text-sm'
+                                }
+                            }
+                        }
+                    }}
+                    onChange={event => setScope(event.currentTarget.value as MediaScope)}>
+                <option value="all">全部媒体</option>
+                <option value="mine">我上传的</option>
+                {currentEntityMediaIds != null && <option value="entity">当前内容中的媒体</option>}
+            </Select>
+        </div>
                     <If condition={page.pages < 1}>
                         <div className="flex flex-col justify-center items-center">
                             <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
-                            <p className="mb-3">暂时没有媒体</p>
+                            <p className="mb-3">
+                                {debouncedQuery.length > 0 || scope !== 'all' ? '没有符合条件的媒体' : '暂时没有媒体'}
+                            </p>
                             <If condition={canWrite}>
                                 <Button pill color="blue"
                                         onClick={() => tabsRef.current?.setActiveTab(allowedMediaTypes.length)}>上传</Button>
@@ -193,7 +239,11 @@ export default function MediaLibrary({
                                                         try {
                                                             await deleteImage(selectedImage.id)
                                                             setSelectedImage(null)
-                                                            setPage(await getMedia(currentPage, [ currentMediaType ]))
+                                                            setPage(await getMedia(currentPage, [ currentMediaType ], {
+                                                                query: debouncedQuery,
+                                                                scope,
+                                                                entityMediaIds: currentEntityMediaIds
+                                                            }))
                                                         } catch (error) {
                                                             if (!handlePermissionError(error)) {
                                                                 console.error('Failed to delete image:', error)

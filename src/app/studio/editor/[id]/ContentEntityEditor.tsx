@@ -59,7 +59,7 @@ import {
     replyToPlateCommentThread,
     setPlateCommentThreadResolved
 } from '@/app/studio/editor/comment-actions'
-import { hasPlateSuggestions } from '@/app/lib/plate/plate-types'
+import { extractContentImageIds, hasPlateSuggestions } from '@/app/lib/plate/plate-types'
 import { replacePlateCollaborationDocument } from '@/app/lib/plate/plate-collaboration'
 import ContentEntityDisplay from '@/app/lib/ContentEntityDisplay'
 
@@ -244,6 +244,11 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
     const { cachedImages: chineseImages } = useImagePlaceholders({ content: post.contentDraftZH, uploadPrefix })
     const { cachedImages: englishImages } = useImagePlaceholders({ content: post.contentDraftEN, uploadPrefix })
     const cachedImages = inEnglish ? englishImages : chineseImages
+    const currentEntityMediaIds = Array.from(new Set([
+        ...extractContentImageIds(post.contentDraftEN),
+        ...extractContentImageIds(post.contentDraftZH),
+        ...(post.coverImageDraftId == null ? [] : [ post.coverImageDraftId ])
+    ]))
     const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
     const hasUnresolvedFeedback = commentThreads.some(thread => thread.resolvedAt == null) ||
         hasPlateSuggestions(post.contentDraftEN) || hasPlateSuggestions(post.contentDraftZH)
@@ -305,6 +310,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
             canDeleteComments={canDeleteComments}
             currentUserId={String(user.id)}
             currentUserName={user.name}
+            currentEntityMediaIds={currentEntityMediaIds}
             images={english ? englishImages : chineseImages}
             readOnly={!canWrite}
             uploadPrefix={uploadPrefix}
@@ -502,6 +508,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
 
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
         <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} allowUnpick={false}
+                     currentEntityMediaIds={currentEntityMediaIds}
                      onPick={image => {
                          if (!canWrite) {
                              showPermissionDenied()

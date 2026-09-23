@@ -13,11 +13,13 @@ type Props = {
     onClose: () => void
     allowUnpick: boolean,
     allowedMediaTypes?: MediaType[],
+    currentEntityMediaIds?: number[],
     onPick: (image: Image | null) => void
 }
 
 export default function MediaPicker({
-                                        open, onClose, allowUnpick, allowedMediaTypes = IMAGE_MEDIA_TYPES, onPick
+                                        open, onClose, allowUnpick, allowedMediaTypes = IMAGE_MEDIA_TYPES,
+                                        currentEntityMediaIds, onPick
                                     }: Props) {
     const [ content, setContent ] = useState<ImagePage>({
         items: [],
@@ -50,6 +52,7 @@ export default function MediaPicker({
                     init={content}
                     pickMode={true}
                     allowedMediaTypes={allowedMediaTypes}
+                    currentEntityMediaIds={currentEntityMediaIds}
                     allowUnpick={allowUnpick}
                     onPick={img => {
                         onPick(img)
