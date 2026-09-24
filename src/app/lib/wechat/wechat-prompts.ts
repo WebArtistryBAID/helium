@@ -133,17 +133,3 @@ export const SANITIZE_LITERAL = `
 必须直接输出文本 JSON 对象，禁止生成文件。
 在处理前，先根据以上规则完成图片筛除与链接前缀替换，再进行字段提取与排版。
 `
-
-export const NOTIFICATION_LITERAL = `**文章已下载完毕，请检查以下内容，检查后请删除本段文字:**
-1. 是否有内容缺失，排版错误? 请在 "预览" 中检查，中文和英文内容都需要检查。
-2. 部分文内图片由于微信限制无法自动下载，请手动添加。
-3. 请添加文章封面图。
-4. 中文与英文、中文与数字之间需要添加空格。
-5. 英文翻译版检查专有名词。
-6. 由于 AI 问题，英文翻译版可能存在遗留的中文，请检查。
-
-`
-
-export const ENGLISH_TRANSLATION_LITERAL = `
-
-*This AI translation is provided for reference only. Please verify with original Chinese version.*`

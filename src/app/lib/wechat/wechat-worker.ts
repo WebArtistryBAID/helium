@@ -12,9 +12,7 @@ import { RunningWeChatTask, withWeChatSaveLock } from '@/app/lib/wechat/wechat-t
 import { WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
 import {
     TRANSLATE_LITERAL,
-    SANITIZE_LITERAL,
-    NOTIFICATION_LITERAL,
-    ENGLISH_TRANSLATION_LITERAL
+    SANITIZE_LITERAL
 } from '@/app/lib/wechat/wechat-prompts'
 import { packageUp } from 'package-up'
 import { deserializeMarkdownToPlate } from '@/app/lib/plate/plate-markdown'
@@ -187,8 +185,8 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
                         }
                         mapping.set(image.file, row.id)
                     }
-                    let finalContentEN = NOTIFICATION_LITERAL + translated.content + ENGLISH_TRANSLATION_LITERAL
-                    let finalContentZH = NOTIFICATION_LITERAL + contentChinese
+                    let finalContentEN = translated.content
+                    let finalContentZH = contentChinese
                     for (const [file, id] of mapping) {
                         const escaped = file.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
                         const expression = new RegExp(`!\\[[^\\]]*\\]\\([^)]*${escaped}[^)]*\\)`, 'g')
