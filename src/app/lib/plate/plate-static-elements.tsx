@@ -51,15 +51,15 @@ export const ImageStatic = ({ children, ...props }: SlateElementProps<TImageElem
     imageWidth?: number
 }>) => {
     const index = props.path[0]
-    const previous = typeof index === 'number' ? props.editor.children[index - 1] : null
-    const next = typeof index === 'number' ? props.editor.children[index + 1] : null
-    const grouped = isImageNode(previous) || isImageNode(next)
     let firstImageIndex = typeof index === 'number' ? index : 0
     while (firstImageIndex > 0) {
         const candidate = props.editor.children[firstImageIndex - 1]
         if (!isImageNode(candidate)) break
         firstImageIndex--
     }
+    let imageCount = 0
+    while (isImageNode(props.editor.children[firstImageIndex + imageCount])) imageCount++
+    const grouped = typeof index === 'number' && imageCount > 1 && imageCount % 2 === 0
     const firstImageNode = props.editor.children[firstImageIndex]
     const groupAspectRatio = isImageNode(firstImageNode) && typeof firstImageNode.imageWidth === 'number' &&
     typeof firstImageNode.imageHeight === 'number' && firstImageNode.imageWidth > 0 &&

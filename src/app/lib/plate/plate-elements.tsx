@@ -154,15 +154,15 @@ export const ImageElement = ({ children, ...props }: PlateElementProps<TImageEle
     // Resolve this element again so layout is always based on its current neighbours.
     const currentPath = editor.api.findPath(props.element)
     const index = currentPath?.length === 1 ? currentPath[0] : undefined
-    const previous = typeof index === 'number' ? editor.children[index - 1] : null
-    const next = typeof index === 'number' ? editor.children[index + 1] : null
-    const grouped = isImageNode(previous) || isImageNode(next)
     let firstImageIndex = typeof index === 'number' ? index : 0
     while (firstImageIndex > 0) {
         const candidate = editor.children[firstImageIndex - 1]
         if (!isImageNode(candidate)) break
         firstImageIndex--
     }
+    let imageCount = 0
+    while (isImageNode(editor.children[firstImageIndex + imageCount])) imageCount++
+    const grouped = typeof index === 'number' && imageCount > 1 && imageCount % 2 === 0
     const firstImageNode = editor.children[firstImageIndex]
     const firstImageId = isImageNode(firstImageNode) && typeof firstImageNode.imageId === 'number'
         ? firstImageNode.imageId
