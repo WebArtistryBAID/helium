@@ -26,7 +26,7 @@ export async function ensureVideoThumbnail(sha1: string, extension: string, forc
         }
     }
 
-    const inputPath = path.join(uploadPath, `${sha1}.${extension}`)
+    const inputPath = path.join(/* turbopackIgnore: true */ uploadPath, `${sha1}.${extension}`)
     const temporaryId = crypto.randomUUID()
     const framePath = path.join(uploadPath, `${sha1}_frame_${temporaryId}.png`)
     const temporaryPath = path.join(uploadPath, `${sha1}_thumb_${temporaryId}.webp`)

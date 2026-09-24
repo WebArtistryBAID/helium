@@ -141,8 +141,8 @@ export async function createMedia(data: {
         [ 'ogv', 'video/ogg' ]
     ])
     if (allowedVideos.get(data.extension) !== data.mimeType) throw new Error('Invalid video format')
-    const mediaPath = path.join(process.env.UPLOAD_PATH!, `${data.sha1}.${data.extension}`)
-    const stats = await fs.stat(mediaPath)
+    const mediaPath = path.join(/* turbopackIgnore: true */ process.env.UPLOAD_PATH!, `${data.sha1}.${data.extension}`)
+    const stats = await fs.stat(/* turbopackIgnore: true */ mediaPath)
 
     return prisma.$transaction(async tx => {
         const media = await tx.image.create({
@@ -176,7 +176,7 @@ export async function deletePendingImageUpload(sha1: string, extension = 'webp')
     const image = await prisma.image.findUnique({ where: { sha1 }, select: { id: true } })
     if (image != null) throw new Error('Media is already in the media library')
     if (!/^(webp|mp4|webm|mov|ogv)$/.test(extension)) throw new Error('Invalid media extension')
-    await fs.rm(path.join(process.env.UPLOAD_PATH!, `${sha1}.${extension}`), { force: true })
+    await fs.rm(path.join(/* turbopackIgnore: true */ process.env.UPLOAD_PATH!, `${sha1}.${extension}`), { force: true })
     await fs.rm(path.join(process.env.UPLOAD_PATH!, `${sha1}_thumb.webp`), { force: true })
 }
 
@@ -196,7 +196,7 @@ export async function deleteImage(id: number): Promise<void> {
         })
     })
     const cleanupResults = await Promise.allSettled([
-        fs.rm(path.join(process.env.UPLOAD_PATH!, `${image.sha1}.${image.extension}`), { force: true }),
+        fs.rm(path.join(/* turbopackIgnore: true */ process.env.UPLOAD_PATH!, `${image.sha1}.${image.extension}`), { force: true }),
         fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '_thumb.webp'), { force: true })
     ])
     for (const result of cleanupResults) {
