@@ -167,13 +167,13 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
             const saveChinese = !inEnglish || languageComparisonMode
             return await updateContentEntity({
                 id: draft.id,
-                titleDraftEN: saveEnglish && draft.titleDraftEN !== previous.titleDraftEN
+                titleDraftEN: draft.titleDraftEN !== previous.titleDraftEN
                     ? draft.titleDraftEN : undefined,
-                titleDraftZH: saveChinese && draft.titleDraftZH !== previous.titleDraftZH
+                titleDraftZH: draft.titleDraftZH !== previous.titleDraftZH
                     ? draft.titleDraftZH : undefined,
-                categoryEN: saveEnglish && draft.categoryEN !== previous.categoryEN
+                categoryEN: draft.categoryEN !== previous.categoryEN
                     ? draft.categoryEN : undefined,
-                categoryZH: saveChinese && draft.categoryZH !== previous.categoryZH
+                categoryZH: draft.categoryZH !== previous.categoryZH
                     ? draft.categoryZH : undefined,
                 slug: draft.slug !== previous.slug ? draft.slug : undefined,
                 contentDraftEN: saveEnglish && draft.contentDraftEN !== previous.contentDraftEN

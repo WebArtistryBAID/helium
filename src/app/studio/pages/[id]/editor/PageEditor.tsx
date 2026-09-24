@@ -117,21 +117,20 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         refresh
     } = useSavableEntity({
         initial: init,
-        saveFn: async draft => {
-            const current = await getContentEntity(draft.id)
+        saveFn: async (draft, previous) => {
             return await updateContentEntity({
                 id: draft.id,
-                titleDraftEN: inEnglish ? draft.titleDraftEN : current?.titleDraftEN ?? draft.titleDraftEN,
-                titleDraftZH: inEnglish ? current?.titleDraftZH ?? draft.titleDraftZH : draft.titleDraftZH,
-                slug: draft.slug,
-                contentDraftEN: inEnglish ? draft.contentDraftEN : current?.contentDraftEN ?? draft.contentDraftEN,
-                contentDraftZH: inEnglish ? current?.contentDraftZH ?? draft.contentDraftZH : draft.contentDraftZH,
-                shortContentDraftEN: current?.shortContentDraftEN ?? null,
-                shortContentDraftZH: current?.shortContentDraftZH ?? null,
-                categoryEN: null,
-                categoryZH: null,
-                coverImageDraftId: null,
-                createdAt: draft.createdAt
+                titleDraftEN: draft.titleDraftEN !== previous.titleDraftEN ? draft.titleDraftEN : undefined,
+                titleDraftZH: draft.titleDraftZH !== previous.titleDraftZH ? draft.titleDraftZH : undefined,
+                slug: draft.slug !== previous.slug ? draft.slug : undefined,
+                contentDraftEN: draft.contentDraftEN !== previous.contentDraftEN ? draft.contentDraftEN : undefined,
+                contentDraftZH: draft.contentDraftZH !== previous.contentDraftZH ? draft.contentDraftZH : undefined,
+                shortContentDraftEN: undefined,
+                shortContentDraftZH: undefined,
+                categoryEN: undefined,
+                categoryZH: undefined,
+                coverImageDraftId: undefined,
+                createdAt: undefined
             })
         },
         refreshFn: async () => (await getContentEntity(init.id))!,
