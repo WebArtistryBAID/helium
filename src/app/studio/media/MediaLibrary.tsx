@@ -28,6 +28,11 @@ function formatSize(kb: number): string {
 }
 
 const ALL_MEDIA_TYPES: MediaType[] = [ 'image', 'video' ]
+const MEDIA_SCOPE_STORAGE_KEY = 'helium-media-picker-scope'
+
+function isMediaScope(value: string | null): value is MediaScope {
+    return value === 'all' || value === 'mine' || value === 'entity'
+}
 
 export default function MediaLibrary({
                                          init, pickMode, allowUnpick, allowedMediaTypes = ALL_MEDIA_TYPES,
@@ -69,6 +74,12 @@ export default function MediaLibrary({
 
     const allowedTypesKey = allowedMediaTypes.join(',')
     const entityMediaIdsKey = currentEntityMediaIds?.join(',') ?? ''
+    const hasEntityScope = currentEntityMediaIds != null
+
+    useEffect(() => {
+        const savedScope = window.localStorage.getItem(MEDIA_SCOPE_STORAGE_KEY)
+        setScope(isMediaScope(savedScope) && (savedScope !== 'entity' || hasEntityScope) ? savedScope : 'all')
+    }, [ hasEntityScope ])
 
     useEffect(() => {
         const timer = window.setTimeout(() => setDebouncedQuery(query), 250)
@@ -120,7 +131,11 @@ export default function MediaLibrary({
                             }
                         }
                     }}
-                    onChange={event => setScope(event.currentTarget.value as MediaScope)}>
+                    onChange={event => {
+                        const nextScope = event.currentTarget.value as MediaScope
+                        setScope(nextScope)
+                        window.localStorage.setItem(MEDIA_SCOPE_STORAGE_KEY, nextScope)
+                    }}>
                 <option value="all">全部媒体</option>
                 <option value="mine">我上传的</option>
                 {currentEntityMediaIds != null && <option value="entity">当前内容中的媒体</option>}
