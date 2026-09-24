@@ -538,7 +538,7 @@ export default function PlateRichTextEditor({
                      }}/>
         <Modal show={showLinkForm} size="md" popup onClose={() => setShowLinkForm(false)}>
             <ModalHeader>添加链接</ModalHeader>
-            <ModalBody>
+            <ModalBody className="pt-4">
                 <TextInput value={linkUrl} placeholder="https://dreta.dev"
                            onChange={event => setLinkUrl(event.currentTarget.value)}/>
             </ModalBody>
