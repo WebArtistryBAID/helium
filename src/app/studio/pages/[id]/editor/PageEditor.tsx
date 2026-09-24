@@ -20,7 +20,7 @@ import {
     PuckCommentsFieldsOverride,
     PuckCommentsProvider
 } from '@/app/studio/pages/[id]/editor/PuckComments'
-import { Button, HelperText, Label, Modal, ModalBody, ModalHeader, TextInput } from 'flowbite-react'
+import { Button, Checkbox, HelperText, Label, Modal, ModalBody, ModalHeader, TextInput } from 'flowbite-react'
 import { useRouter } from 'next/navigation'
 import If from '@/app/lib/If'
 import '@puckeditor/core/puck.css'
@@ -130,6 +130,8 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                 categoryEN: undefined,
                 categoryZH: undefined,
                 coverImageDraftId: undefined,
+                transparentNavbarDraft: draft.transparentNavbarDraft !== previous.transparentNavbarDraft
+                    ? draft.transparentNavbarDraft : undefined,
                 createdAt: undefined
             })
         },
@@ -140,6 +142,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             'slug',
             'contentDraftEN',
             'contentDraftZH',
+            'transparentNavbarDraft',
             'createdAt'
         ]
     })
@@ -387,6 +390,25 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                                        }}/>
                             <HelperText>保存后，链接更新才会生效。</HelperText>
                             <HelperText className="break-all">本页面将显示于 {pageUrl}。</HelperText>
+                        </div>
+
+                        <div className="sm:col-span-2">
+                            <div className="flex items-center gap-2">
+                                <Checkbox id="transparent-navbar" checked={draft.transparentNavbarDraft}
+                                          disabled={!canWrite}
+                                          aria-describedby="transparent-navbar-description"
+                                          onChange={event => {
+                                              const checked = event.currentTarget.checked
+                                              setDraft(current => ({
+                                                  ...current,
+                                                  transparentNavbarDraft: checked
+                                              }))
+                                          }}/>
+                                <Label htmlFor="transparent-navbar">透明导航栏</Label>
+                            </div>
+                            <p id="transparent-navbar-description" className="mt-1 pl-6 text-sm text-gray-500">
+                                开启后，打开这个页面时，导航栏顶部透明，向下滚动后变为白色。
+                            </p>
                         </div>
                     </div>
 

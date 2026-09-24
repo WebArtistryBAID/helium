@@ -135,7 +135,8 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         }
         return (
             <div className="min-h-screen">
-                <GlobalHeader websiteMetadata={websiteMetadata}/>
+                <GlobalHeader websiteMetadata={websiteMetadata}
+                              transparentNavbar={entity.transparentNavbarPublished ?? false}/>
                 <main id="main-content" tabIndex={-1}>
                     <AnyContentEntityPage entity={entity} params={params}/>
                 </main>
@@ -150,7 +151,8 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     }
     return (
         <div className="min-h-screen">
-            <GlobalHeader websiteMetadata={websiteMetadata}/>
+            <GlobalHeader websiteMetadata={websiteMetadata}
+                          transparentNavbar={entity.transparentNavbarPublished ?? false}/>
             <main id="main-content" tabIndex={-1}>
                 <Render config={PUCK_CONFIG}
                         data={finalLocale === 'en'

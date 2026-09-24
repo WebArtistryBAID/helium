@@ -25,7 +25,8 @@ export function isAligned(item: HydratedContentEntity) {
         item.contentPublishedZH === item.contentDraftZH &&
         item.shortContentPublishedEN === item.shortContentDraftEN &&
         item.shortContentPublishedZH === item.shortContentDraftZH &&
-        item.coverImagePublishedId === item.coverImageDraftId
+        item.coverImagePublishedId === item.coverImageDraftId &&
+        item.transparentNavbarPublished === item.transparentNavbarDraft
     )
 }
 
@@ -119,6 +120,8 @@ export interface HydratedContentEntity {
     coverImagePublishedId: number | null
     coverImageDraft: Image | null
     coverImageDraftId: number | null
+    transparentNavbarPublished: boolean | null
+    transparentNavbarDraft: boolean
     creatorId: number
     creator: SimplifiedUser
     createdAt: Date | string
@@ -147,6 +150,8 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     coverImagePublishedId: true,
     coverImageDraft: true,
     coverImageDraftId: true,
+    transparentNavbarPublished: true,
+    transparentNavbarDraft: true,
     creatorId: true,
     creator: {
         select: SIMPLIFIED_USER_SELECT

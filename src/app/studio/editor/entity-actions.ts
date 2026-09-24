@@ -409,7 +409,8 @@ export async function unpublishContentEntity(id: number): Promise<void> {
                 shortContentPublishedEN: null,
                 shortContentPublishedZH: null,
                 contentPublishedEN: null,
-                contentPublishedZH: null
+                contentPublishedZH: null,
+                transparentNavbarPublished: null
             }
         })
         await tx.userAuditLog.create({
@@ -449,7 +450,8 @@ export async function restoreContentEntityDraftFromPublished(id: number): Promis
                 shortContentDraftZH: publishedShortContentZH,
                 contentDraftEN: publishedContentEN,
                 contentDraftZH: publishedContentZH,
-                coverImageDraftId: current.coverImagePublishedId
+                coverImageDraftId: current.coverImagePublishedId,
+                transparentNavbarDraft: current.transparentNavbarPublished ?? false
             },
             select: HYDRATED_CONTENT_ENTITY_SELECT
         })
@@ -506,7 +508,8 @@ export async function alignContentEntity(id: number): Promise<AlignEntityRespons
                 contentPublishedZH: post.contentDraftZH,
                 shortContentPublishedEN: post.shortContentDraftEN,
                 shortContentPublishedZH: post.shortContentDraftZH,
-                coverImagePublishedId: post.coverImageDraftId
+                coverImagePublishedId: post.coverImageDraftId,
+                transparentNavbarPublished: post.transparentNavbarDraft
             }
         })
         await tx.userAuditLog.create({
@@ -603,6 +606,7 @@ export async function updateContentEntity(data: {
     contentDraftEN: string | undefined
     contentDraftZH: string | undefined
     coverImageDraftId: number | null | undefined
+    transparentNavbarDraft: boolean | undefined
 }): Promise<HydratedContentEntity> {
     const user = await requireUserWithRole(Role.writer)
     const current = await prisma.contentEntity.findUnique({ where: { id: data.id }, select: { slug: true, type: true } })
@@ -629,7 +633,8 @@ export async function updateContentEntity(data: {
                 shortContentDraftZH: data.shortContentDraftZH,
                 contentDraftEN,
                 contentDraftZH,
-                coverImageDraftId: data.coverImageDraftId
+                coverImageDraftId: data.coverImageDraftId,
+                transparentNavbarDraft: data.transparentNavbarDraft
             },
             select: HYDRATED_CONTENT_ENTITY_SELECT
         })

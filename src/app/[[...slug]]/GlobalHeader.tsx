@@ -6,7 +6,7 @@ import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import SchoolLogo from '@/app/[[...slug]]/SchoolLogo'
 import RouterLinks from '@/app/[[...slug]]/RouterLinks'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
-import { shouldUseTransparentNavbar, WebsiteMetadataDraft } from '@/app/lib/metadata/website-metadata-types'
+import { WebsiteMetadataDraft } from '@/app/lib/metadata/website-metadata-types'
 
 const locales = {
     en: {
@@ -27,13 +27,14 @@ const locales = {
     }
 }
 
-export default function GlobalHeader({ websiteMetadata }: {
+export default function GlobalHeader({ transparentNavbar, websiteMetadata }: {
+    transparentNavbar: boolean
     websiteMetadata: WebsiteMetadataDraft
 }) {
     const pathname = usePathname() || '/'
     const language = useLanguage()
     const router = useRouter()
-    const headerAnimate = shouldUseTransparentNavbar(websiteMetadata[language], pathname)
+    const headerAnimate = transparentNavbar
 
     // ----- Scroll + visibility state -----
     const [ scrollY, setScrollY ] = useState<number>(0)

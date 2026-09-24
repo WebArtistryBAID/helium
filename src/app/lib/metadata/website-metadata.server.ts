@@ -45,6 +45,8 @@ export async function ensureWebsiteMetadataEntity(
                 contentPublishedZH: contentZH,
                 contentDraftEN: contentEN,
                 contentDraftZH: contentZH,
+                transparentNavbarPublished: false,
+                transparentNavbarDraft: false,
                 creatorId: creator.id
             },
             select: HYDRATED_CONTENT_ENTITY_SELECT

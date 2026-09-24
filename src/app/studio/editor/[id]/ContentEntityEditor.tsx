@@ -186,6 +186,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                     ? draft.shortContentDraftZH : undefined,
                 coverImageDraftId: draft.coverImageDraft?.id !== previous.coverImageDraft?.id
                     ? draft.coverImageDraft?.id ?? null : undefined,
+                transparentNavbarDraft: undefined,
                 createdAt: String(draft.createdAt) !== String(previous.createdAt) ? draft.createdAt : undefined
             })
         },
