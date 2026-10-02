@@ -122,7 +122,7 @@ export default function PersonalSettings({ isFeishuLinked, tokens, result, endpo
                                             pills: {
                                                 active: {
                                                     on: 'rounded-full bg-blue-600 text-white',
-                                                    off: 'rounded-full bg-gray-100 hover:bg-gray-200 dark:bg-gray-800 dark:hover:bg-gray-700'
+                                                    off: 'rounded-full bg-gray-100 hover:bg-gray-200'
                                                 }
                                             }
                                         }
@@ -182,7 +182,7 @@ export default function PersonalSettings({ isFeishuLinked, tokens, result, endpo
                                         </ol>
                                         <div className="space-y-2">
                                             <pre
-                                                className="overflow-x-auto rounded-3xl bg-gray-100 p-5 text-sm text-gray-900 dark:bg-gray-800 dark:text-gray-100"><code>{workbuddyConfiguration}</code></pre>
+                                                className="overflow-x-auto rounded-3xl bg-gray-100 p-5 text-sm text-gray-900"><code>{workbuddyConfiguration}</code></pre>
                                             <Clipboard valueToCopy={workbuddyConfiguration} label="复制配置"
                                                        className="w-auto cursor-pointer rounded-full"/>
                                         </div>
@@ -205,7 +205,7 @@ export default function PersonalSettings({ isFeishuLinked, tokens, result, endpo
                 {tokens.length > 0 && <div className="overflow-x-auto rounded-3xl bg-white">
                     <Table striped theme={{
                         root: { shadow: 'hidden' },
-                        head: { cell: { base: 'bg-gray-100 px-6 py-4 dark:bg-gray-700' } },
+                        head: { cell: { base: 'bg-gray-100 px-6 py-4' } },
                         body: { cell: { base: 'px-6 py-4' } }
                     }}>
                         <caption className="sr-only">当前账号的 MCP 密码</caption>
@@ -220,7 +220,7 @@ export default function PersonalSettings({ isFeishuLinked, tokens, result, endpo
                             const expired = token.expiresAt != null && new Date(token.expiresAt) <= new Date()
                             return <TableRow key={token.id}>
                                 <TableCell
-                                    className="font-medium text-gray-900 dark:text-white">{token.name}</TableCell>
+                                    className="font-medium text-gray-900">{token.name}</TableCell>
                                 <TableCell>{token.revokedAt ? '已撤销' : expired ? '已过期' : '有效'}</TableCell>
                                 <TableCell>{token.expiresAt ? new Date(token.expiresAt).toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' }) : '长期有效'}</TableCell>
                                 <TableCell>{token.lastUsedAt ? new Date(token.lastUsedAt).toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' }) : '尚未使用'}</TableCell>
@@ -282,7 +282,7 @@ export default function PersonalSettings({ isFeishuLinked, tokens, result, endpo
                             <h3 className="text-xl font-bold">复制 MCP 密码</h3>
                             <p className="text-sm">为保安全，MCP 密码只会显示一次。请您复制并保存。</p>
                             <code
-                                className="block break-all rounded-3xl bg-gray-100 p-5 text-sm select-all dark:bg-gray-700">{secret}</code>
+                                className="block break-all rounded-3xl bg-gray-100 p-5 text-sm select-all">{secret}</code>
                             {error && <p role="alert" className="text-red-600">{error}</p>}
                             {feedback && <p role="status" className="text-green-700">{feedback}</p>}
                         </div>
