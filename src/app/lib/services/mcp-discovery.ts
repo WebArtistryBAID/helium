@@ -1,6 +1,6 @@
 import 'server-only'
 
-import { EntityType, type Prisma } from '@/generated/prisma/client'
+import { EntityType, type Prisma, Role } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
 import { requireActorUser } from '@/app/lib/services/actor'
 import { getContentEntity } from '@/app/lib/services/entities'
@@ -23,7 +23,7 @@ export function entityLinks(entity: { id: number; type: EntityType; slug: string
 }
 
 export async function searchEntities(actor: OperationActor, input: unknown) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const { type, query, page, state } = searchEntitiesSchema.parse(input)
     const text = query?.trim()
     const where: Prisma.ContentEntityWhereInput = {

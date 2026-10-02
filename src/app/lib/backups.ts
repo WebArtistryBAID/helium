@@ -68,17 +68,44 @@ export type BackupResult = {
     created: boolean
 }
 
-function getUploadPath(): string {
+// Backups contain every draft, so they must live outside UPLOAD_PATH, which is served publicly.
+function getBackupPath(): string {
+    return process.env.BACKUP_PATH || path.join(/* turbopackIgnore: true */ process.cwd(), BACKUP_DIR_NAME)
+}
+
+let legacyBackupsMoved: Promise<void> | null = null
+
+// Older versions stored backups in UPLOAD_PATH/backups; move them out of the public directory once.
+async function moveLegacyBackups(dir: string): Promise<void> {
     const uploadPath = process.env.UPLOAD_PATH
-    if (!uploadPath) {
-        throw new Error('UPLOAD_PATH is not configured.')
+    if (!uploadPath) return
+    const legacyDir = path.join(/* turbopackIgnore: true */ uploadPath, BACKUP_DIR_NAME)
+    if (path.resolve(legacyDir) === path.resolve(dir)) return
+    let files: string[]
+    try {
+        files = await fs.readdir(legacyDir)
+    } catch {
+        return
     }
-    return uploadPath
+    for (const filename of files.filter(isBackupFilename)) {
+        const target = path.join(dir, filename)
+        try {
+            await fs.access(target)
+        } catch {
+            await fs.copyFile(path.join(legacyDir, filename), target)
+        }
+        await fs.unlink(path.join(legacyDir, filename))
+    }
 }
 
 async function getBackupDir(): Promise<string> {
-    const dir = path.join(getUploadPath(), BACKUP_DIR_NAME)
+    const dir = getBackupPath()
     await fs.mkdir(dir, { recursive: true })
+    legacyBackupsMoved ??= moveLegacyBackups(dir).catch(error => {
+        legacyBackupsMoved = null
+        throw error
+    })
+    await legacyBackupsMoved
     return dir
 }
 

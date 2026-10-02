@@ -1,52 +1,41 @@
 import { cookies } from 'next/headers'
-import { decodeJwt, jwtVerify } from 'jose'
+import { type JWTPayload, jwtVerify } from 'jose'
 import { redirect } from 'next/navigation'
 
 export function redirectToLogin(): string {
     return `${process.env.ONELOGIN_HOST}/oauth2/authorize?client_id=${process.env.ONELOGIN_CLIENT_ID}&redirect_uri=${process.env.HOST}/login/authorize&scope=basic+phone&response_type=code`
 }
 
-export async function isLoggedIn(): Promise<boolean> {
-    const cook = await cookies()
-    if (!cook.has('access_token')) {
-        return false
-    }
-    const token = cook.get('access_token')!.value!
+// Must match the claims set in /login/authorize. Other tokens signed with JWT_SECRET (e.g. collaboration) are rejected.
+export async function verifySessionToken(token: string): Promise<JWTPayload | null> {
     try {
-        await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET!))
+        const { payload } = await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET!), {
+            issuer: 'https://hello.beijing.academy',
+            audience: 'https://hello.beijing.academy',
+            algorithms: [ 'HS256' ]
+        })
+        return payload.type === 'internal' && typeof payload.id === 'number' ? payload : null
     } catch {
-        return false
+        return null
     }
-    return decodeJwt(token).type === 'internal'
+}
+
+async function session(): Promise<JWTPayload | null> {
+    const token = (await cookies()).get('access_token')?.value
+    return token == null ? null : verifySessionToken(token)
+}
+
+export async function isLoggedIn(): Promise<boolean> {
+    return await session() != null
 }
 
 export async function me(): Promise<number | null> {
-    const cook = await cookies()
-    if (!cook.has('access_token')) {
-        return null
-    }
-    const token = cook.get('access_token')!.value!
-    try {
-        await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET!))
-    } catch {
-        return null
-    }
-    return decodeJwt(token).id as number
+    return (await session())?.id as number | undefined ?? null
 }
 
 export async function isLoggedInWithPermission(permission: string): Promise<boolean> {
-    const cook = await cookies()
-    if (!cook.has('access_token')) {
-        return false
-    }
-    const token = cook.get('access_token')!.value!
-    try {
-        await jwtVerify(token, new TextEncoder().encode(process.env.JWT_SECRET!))
-    } catch {
-        return false
-    }
-    const decoded = decodeJwt(token)
-    return decoded.type === 'internal' && (decoded.permissions as string[]).includes(permission)
+    const payload = await session()
+    return Array.isArray(payload?.permissions) && payload.permissions.includes(permission)
 }
 
 export async function requireLogin(): Promise<void> {

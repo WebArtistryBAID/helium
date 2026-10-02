@@ -29,14 +29,14 @@ function editorState(entity: WebsiteMetadataEditorState['entity']): WebsiteMetad
 }
 
 export async function getWebsiteMetadataEditorState(actor: OperationActor): Promise<WebsiteMetadataEditorState> {
-    const user = await requireActorUser(actor)
+    const user = await requireActorUser(actor, Role.writer)
     const entity = await ensureWebsiteMetadataEntity(user.id)
     if (!entity) throw new Error('Website metadata entity could not be created')
     return editorState(entity)
 }
 
 export async function getWebsitePageOptions(actor: OperationActor): Promise<WebsitePageOption[]> {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const pages = await prisma.contentEntity.findMany({
         where: {
             linkOnly: false,

@@ -1,7 +1,7 @@
 'use server'
 
 import { EntityType } from '@/generated/prisma/client'
-import { HydratedContentEntity, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
+import { HydratedContentEntity, Paginated, PublicContentEntity, SimplifiedContentEntity } from '@/app/lib/data-types'
 
 import { AlignEntityResponse } from '@/app/studio/editor/entity-types'
 
@@ -9,7 +9,7 @@ import { getStudioActor } from '@/app/lib/services/studio-actor'
 import * as services from '@/app/lib/services/entities'
 
 export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
-    return services.getRecentEntities(type)
+    return services.getRecentEntities(await getStudioActor(), type)
 }
 
 export async function getMyPendingApprovals(): Promise<SimplifiedContentEntity[]> {
@@ -20,15 +20,11 @@ export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[
     return services.getAllPublishedCourses()
 }
 
-export async function refreshPageData(): Promise<void> {
-    return services.refreshPageData()
-}
-
-export async function getContentEntityBySlug(slug: string): Promise<HydratedContentEntity | null> {
+export async function getContentEntityBySlug(slug: string): Promise<PublicContentEntity | null> {
     return services.getContentEntityBySlug(slug)
 }
 
-export async function getPublishedContentEntity(id: number): Promise<HydratedContentEntity | null> {
+export async function getPublishedContentEntity(id: number): Promise<PublicContentEntity | null> {
     return services.getPublishedContentEntity(id)
 }
 

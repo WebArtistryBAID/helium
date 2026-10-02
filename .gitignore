@@ -43,6 +43,7 @@ src/generated
 next-env.d.ts
 
 public/uploads
+/backups
 uploads/
 
 .idea

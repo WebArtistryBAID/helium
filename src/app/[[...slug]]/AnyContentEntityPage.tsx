@@ -1,4 +1,4 @@
-import { HydratedContentEntity } from '@/app/lib/data-types'
+import { PublicContentEntity } from '@/app/lib/data-types'
 import { EntityType } from '@/generated/prisma/browser'
 import { notFound, redirect } from 'next/navigation'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
@@ -6,7 +6,7 @@ import { extractContentImageIds } from '@/app/lib/plate/plate-types'
 import ContentEntityDisplay from '@/app/lib/ContentEntityDisplay'
 
 export default async function AnyContentEntityPage({ entity, params }: {
-    entity: HydratedContentEntity,
+    entity: PublicContentEntity,
     params: Promise<{ slug: string[] | undefined }>
 }) {
     if (entity.contentPublishedEN == null) {

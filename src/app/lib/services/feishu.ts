@@ -17,7 +17,7 @@ function getRedirectUri() {
 }
 
 export async function getFeishuAuthUrl(actor: OperationActor) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const clientId = process.env.FEISHU_CLIENT_ID
     if (!clientId) {
         throw new Error('FEISHU_CLIENT_ID not set')
@@ -32,7 +32,7 @@ export async function getFeishuAuthUrl(actor: OperationActor) {
 }
 
 export async function exchangeFeishuCode(actor: OperationActor, code: string) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const clientId = process.env.FEISHU_CLIENT_ID
     const clientSecret = process.env.FEISHU_CLIENT_SECRET
     if (!clientId || !clientSecret) {
@@ -79,7 +79,7 @@ export async function exchangeFeishuCode(actor: OperationActor, code: string) {
 }
 
 export async function linkFeishuAccount(actor: OperationActor, userId: number, feishuOpenId: string) {
-    const currentUser = await requireActorUser(actor)
+    const currentUser = await requireActorUser(actor, Role.writer)
     if (currentUser.id !== userId && !currentUser.roles.includes(Role.admin)) {
         throw new Error('Unauthorized')
     }

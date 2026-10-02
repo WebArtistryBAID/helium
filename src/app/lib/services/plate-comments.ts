@@ -36,7 +36,7 @@ async function requirePlateEntity(entityId: number) {
 }
 
 export async function getPlateCommentThreads(actor: OperationActor, entityId: number): Promise<PuckCommentThread[]> {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     await requirePlateEntity(entityId)
     return prisma.commentThread.findMany({
         where: { entityId, anchorType: CommentAnchorType.text },

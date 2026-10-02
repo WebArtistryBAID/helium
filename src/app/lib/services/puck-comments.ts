@@ -41,7 +41,7 @@ async function requirePage(entityId: number) {
 }
 
 export async function getPuckCommentThreads(actor: OperationActor, entityId: number): Promise<PuckCommentThread[]> {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     await requirePage(entityId)
     return prisma.commentThread.findMany({
         where: {

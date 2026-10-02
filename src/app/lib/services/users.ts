@@ -7,7 +7,7 @@ import { Paginated, SIMPLIFIED_USER_SELECT, SimplifiedUser } from '@/app/lib/dat
 import { prisma } from '@/app/lib/prisma'
 
 export async function getSimplifiedUser(actor: OperationActor, id: number): Promise<SimplifiedUser | null> {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     return prisma.user.findUnique({
         where: { id },
         select: SIMPLIFIED_USER_SELECT

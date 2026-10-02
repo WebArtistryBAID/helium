@@ -2,6 +2,7 @@ import 'server-only'
 
 import { prisma } from '@/app/lib/prisma'
 import { requireActorUser } from '@/app/lib/services/actor'
+import { Role } from '@/generated/prisma/client'
 import { generateTokenSecret, hashTokenSecret, isTokenSecret } from '@/app/lib/mcp/token-secret'
 import {
     createPersonalTokenSchema,
@@ -30,7 +31,7 @@ function summary(record: {
 
 async function settingsUser(actor: OperationActor) {
     if (actor.source !== 'studio') throw new Error('Personal tokens require Studio settings')
-    return requireActorUser(actor)
+    return requireActorUser(actor, Role.writer)
 }
 
 export async function listPersonalTokens(actor: OperationActor): Promise<PersonalTokenSummary[]> {

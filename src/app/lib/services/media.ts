@@ -41,7 +41,7 @@ export async function getImage(id: number): Promise<Image | null> {
 
 export async function getMedia(actor: OperationActor, page: number, mediaTypes: MediaType[] = [ 'image', 'video' ],
                                filters: MediaFilters = {}): Promise<ImagePage> {
-    const user = await requireActorUser(actor)
+    const user = await requireActorUser(actor, Role.writer)
     const query = filters.query?.trim().slice(0, 200) ?? ''
     const entityMediaIds = (filters.entityMediaIds ?? [])
         .filter(id => Number.isInteger(id) && id > 0)

@@ -32,7 +32,7 @@ export async function searchMcpImages(actor: OperationActor, raw: unknown) {
 }
 
 export async function readMcpImage(actor: OperationActor, imageId: number) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const image = await prisma.image.findUnique({ where: { id: imageId } })
     if (!image || image.mediaType !== 'image') throw new Error('Image does not exist')
     if (!/^[a-f0-9]{40}$/.test(image.sha1) || !/^(webp|png|jpg|jpeg|gif)$/.test(image.extension)) throw new Error('Invalid stored image format')
@@ -144,7 +144,7 @@ export async function deleteMcpImage(actor: OperationActor, raw: unknown) {
 }
 
 export async function mediaTransferInfo(actor: OperationActor, imageId: number) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const image = await prisma.image.findUnique({ where: { id: imageId } })
     return image ? {
         ok: true, data: {

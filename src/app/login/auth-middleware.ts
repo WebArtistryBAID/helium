@@ -1,8 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { cookies } from 'next/headers'
-import { jwtVerify } from 'jose'
 import { getLoginTarget, getMyUser } from '@/app/login/login-actions'
 import { Role } from '@/generated/prisma/client'
+import { verifySessionToken } from '@/app/login/login'
 
 const protectedRoutes = [
     '/login'
@@ -27,9 +27,7 @@ export default async function authMiddleware(req: NextRequest): Promise<NextResp
     if (cookie == null) {
         return NextResponse.redirect(new URL(await getLoginTarget(req.nextUrl.pathname + req.nextUrl.search), req.nextUrl))
     }
-    try {
-        await jwtVerify(cookie, new TextEncoder().encode(process.env.JWT_SECRET!))
-    } catch {
+    if (await verifySessionToken(cookie) == null) {
         return NextResponse.redirect(new URL(await getLoginTarget(req.nextUrl.pathname + req.nextUrl.search), req.nextUrl))
     }
 

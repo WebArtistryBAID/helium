@@ -100,6 +100,7 @@ export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
 
 export interface HydratedContentEntity {
     id: number
+    collaborationGeneration: number
     type: EntityType
     titlePublishedEN: string | null
     titlePublishedZH: string | null
@@ -130,6 +131,8 @@ export interface HydratedContentEntity {
 
 export const HYDRATED_CONTENT_ENTITY_SELECT = {
     id: true,
+    // Part of entityRevision; without it fetched revisions never match the ones mutations check.
+    collaborationGeneration: true,
     type: true,
     titlePublishedEN: true,
     titlePublishedZH: true,
@@ -156,6 +159,31 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     creator: {
         select: SIMPLIFIED_USER_SELECT
     },
+    createdAt: true,
+    updatedAt: true
+}
+
+// Returned by unauthenticated queries: drafts and creator details must never reach visitors.
+export type PublicContentEntity = Omit<HydratedContentEntity,
+    'titleDraftEN' | 'titleDraftZH' | 'shortContentDraftEN' | 'shortContentDraftZH' |
+    'contentDraftEN' | 'contentDraftZH' | 'coverImageDraft' | 'coverImageDraftId' |
+    'transparentNavbarDraft' | 'creatorId' | 'creator' | 'collaborationGeneration'>
+
+export const PUBLIC_CONTENT_ENTITY_SELECT = {
+    id: true,
+    type: true,
+    titlePublishedEN: true,
+    titlePublishedZH: true,
+    shortContentPublishedEN: true,
+    shortContentPublishedZH: true,
+    slug: true,
+    categoryEN: true,
+    categoryZH: true,
+    contentPublishedEN: true,
+    contentPublishedZH: true,
+    coverImagePublished: true,
+    coverImagePublishedId: true,
+    transparentNavbarPublished: true,
     createdAt: true,
     updatedAt: true
 }

@@ -9,6 +9,8 @@ import {
     HYDRATED_CONTENT_ENTITY_SELECT,
     HydratedContentEntity,
     Paginated,
+    PUBLIC_CONTENT_ENTITY_SELECT,
+    PublicContentEntity,
     SIMPLIFIED_CONTENT_ENTITY_SELECT,
     SimplifiedContentEntity
 } from '@/app/lib/data-types'
@@ -38,7 +40,8 @@ function createAutomaticSlug(title: string): string {
         .join('-')
 }
 
-export async function getRecentEntities(type: EntityType): Promise<SimplifiedContentEntity[]> {
+export async function getRecentEntities(actor: OperationActor, type: EntityType): Promise<SimplifiedContentEntity[]> {
+    await requireActorUser(actor, Role.writer)
     return prisma.contentEntity.findMany({
         where: { linkOnly: false, type, NOT: { slug: WEBSITE_METADATA_SLUG } },
         orderBy: { updatedAt: 'desc' },
@@ -48,7 +51,7 @@ export async function getRecentEntities(type: EntityType): Promise<SimplifiedCon
 }
 
 export async function getMyPendingApprovals(actor: OperationActor): Promise<SimplifiedContentEntity[]> {
-    const user = await requireActorUser(actor)
+    const user = await requireActorUser(actor, Role.writer)
     const entityTypes = Object.values(EntityType) as EntityType[]
     const thresholdsByType = new Map<EntityType, Record<string, number>>()
     for (const t of entityTypes) {
@@ -131,7 +134,9 @@ export async function getAllPublishedCourses(): Promise<SimplifiedContentEntity[
     return prisma.contentEntity.findMany({
         where: {
             linkOnly: false,
-            type: EntityType.course
+            type: EntityType.course,
+            NOT: { slug: WEBSITE_METADATA_SLUG },
+            contentPublishedEN: { not: null }
         },
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT
     })
@@ -150,34 +155,38 @@ export async function refreshPageData(): Promise<void> {
         }
     })
     for (const page of pages) {
-        await prisma.contentEntity.update({
-            where: { id: page.id },
-            data: {
-                contentDraftEN: JSON.stringify(await resolveAllData(parsePuckData(page.contentDraftEN, page.titleDraftEN), PUCK_CONFIG)),
-                contentDraftZH: JSON.stringify(await resolveAllData(parsePuckData(page.contentDraftZH, page.titleDraftZH), PUCK_CONFIG)),
-                contentPublishedEN: page.contentPublishedEN == null ? null : JSON.stringify(await resolveAllData(
-                    parsePuckData(page.contentPublishedEN, page.titlePublishedEN ?? ''), PUCK_CONFIG)),
-                contentPublishedZH: page.contentPublishedZH == null ? null : JSON.stringify(await resolveAllData(
-                    parsePuckData(page.contentPublishedZH, page.titlePublishedZH ?? ''), PUCK_CONFIG))
-            }
+        const data = {
+            contentDraftEN: JSON.stringify(await resolveAllData(parsePuckData(page.contentDraftEN, page.titleDraftEN), PUCK_CONFIG)),
+            contentDraftZH: JSON.stringify(await resolveAllData(parsePuckData(page.contentDraftZH, page.titleDraftZH), PUCK_CONFIG)),
+            contentPublishedEN: page.contentPublishedEN == null ? null : JSON.stringify(await resolveAllData(
+                parsePuckData(page.contentPublishedEN, page.titlePublishedEN ?? ''), PUCK_CONFIG)),
+            contentPublishedZH: page.contentPublishedZH == null ? null : JSON.stringify(await resolveAllData(
+                parsePuckData(page.contentPublishedZH, page.titlePublishedZH ?? ''), PUCK_CONFIG))
+        }
+        if (Object.entries(data).every(([ field, value ]) => page[field as keyof typeof data] === value)) continue
+        // A background refresh is not an edit: keep updatedAt (and thus the entity revision) unless
+        // resolved data actually changed, and skip pages saved by an editor since they were read.
+        await prisma.contentEntity.updateMany({
+            where: { id: page.id, updatedAt: page.updatedAt },
+            data: { ...data, updatedAt: page.updatedAt }
         })
     }
     lastRefresh = Date.now()
 }
 
-export async function getContentEntityBySlug(slug: string): Promise<HydratedContentEntity | null> {
+export async function getContentEntityBySlug(slug: string): Promise<PublicContentEntity | null> {
     if (slug === WEBSITE_METADATA_SLUG) return null
     return prisma.contentEntity.findFirst({
         where: {
             slug,
             contentPublishedEN: { not: null }
         },
-        select: HYDRATED_CONTENT_ENTITY_SELECT
+        select: PUBLIC_CONTENT_ENTITY_SELECT
     })
 }
 
 // Used by component selections; direct public routes use getContentEntityBySlug.
-export async function getPublishedContentEntity(id: number): Promise<HydratedContentEntity | null> {
+export async function getPublishedContentEntity(id: number): Promise<PublicContentEntity | null> {
     return prisma.contentEntity.findFirst({
         where: {
             linkOnly: false,
@@ -185,7 +194,7 @@ export async function getPublishedContentEntity(id: number): Promise<HydratedCon
             NOT: { slug: WEBSITE_METADATA_SLUG },
             contentPublishedEN: { not: null }
         },
-        select: HYDRATED_CONTENT_ENTITY_SELECT
+        select: PUBLIC_CONTENT_ENTITY_SELECT
     })
 }
 
@@ -303,7 +312,7 @@ export async function getPublishedContentEntities(page: number, type: EntityType
 }
 
 export async function getContentEntities(actor: OperationActor, page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     if (query != null) {
         const q = query.trim()
         const maybeId = Number(q)
@@ -385,8 +394,33 @@ export async function getContentEntities(actor: OperationActor, page: number, ty
     }
 }
 
+/**
+ * Converts legacy Markdown content to Plate JSON before the rich text editor opens it.
+ * The collaboration server cannot parse Markdown and would seed the document with the raw text as a single
+ * paragraph, which autosave then persisted. A published version identical to the draft is converted too, so the
+ * entity is not reported as having unpublished changes. This is a format migration, not an edit.
+ */
+export async function convertLegacyMarkdownContent(actor: OperationActor, id: number): Promise<void> {
+    await requireActorUser(actor, Role.writer)
+    const entity = await prisma.contentEntity.findUnique({ where: { id } })
+    if (entity == null || entity.type === EntityType.page || entity.slug === WEBSITE_METADATA_SLUG) return
+    const data: Partial<Record<'contentDraftEN' | 'contentDraftZH' | 'contentPublishedEN' | 'contentPublishedZH', string>> = {}
+    for (const language of [ 'EN', 'ZH' ] as const) {
+        const draft = entity[`contentDraft${language}`]
+        if (isSerializedPlateValue(draft)) continue
+        const converted = serializePlateValue(deserializeMarkdownToPlate(draft))
+        data[`contentDraft${language}`] = converted
+        if (entity[`contentPublished${language}`] === draft) data[`contentPublished${language}`] = converted
+    }
+    if (Object.keys(data).length === 0) return
+    await prisma.contentEntity.updateMany({
+        where: { id, updatedAt: entity.updatedAt },
+        data: { ...data, updatedAt: entity.updatedAt }
+    })
+}
+
 export async function getContentEntity(actor: OperationActor, id: number): Promise<HydratedContentEntity | null> {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     return prisma.contentEntity.findUnique({
         where: { id },
         select: HYDRATED_CONTENT_ENTITY_SELECT

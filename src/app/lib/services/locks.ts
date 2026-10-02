@@ -4,7 +4,7 @@ import type { OperationActor } from '@/app/lib/mcp/contracts'
 import { requireActorUser } from '@/app/lib/services/actor'
 
 import crypto from 'crypto'
-import { EntityType } from '@/generated/prisma/client'
+import { EntityType, Role } from '@/generated/prisma/client'
 import { prisma } from '@/app/lib/prisma'
 
 
@@ -24,7 +24,7 @@ function isUniqueConstraintError(error: unknown) {
 }
 
 export async function acquireLock(actor: OperationActor, params: EntityLockParams & { currentToken?: string }) {
-    const user = await requireActorUser(actor)
+    const user = await requireActorUser(actor, Role.writer)
     const now = new Date()
 
     if (params.currentToken) {
@@ -79,7 +79,7 @@ export async function acquireLock(actor: OperationActor, params: EntityLockParam
 }
 
 export async function renewLock(actor: OperationActor, params: SessionLockParams) {
-    const user = await requireActorUser(actor)
+    const user = await requireActorUser(actor, Role.writer)
     const renewed = await prisma.entityLock.updateMany({
         where: {
             entityType: params.entityType,
@@ -93,7 +93,7 @@ export async function renewLock(actor: OperationActor, params: SessionLockParams
 }
 
 export async function overrideLock(actor: OperationActor, params: EntityLockParams) {
-    const user = await requireActorUser(actor)
+    const user = await requireActorUser(actor, Role.writer)
     const token = crypto.randomBytes(32).toString('hex')
 
     await prisma.entityLock.upsert({
@@ -121,7 +121,7 @@ export async function overrideLock(actor: OperationActor, params: EntityLockPara
 }
 
 export async function releaseLock(actor: OperationActor, params: SessionLockParams) {
-    const user = await requireActorUser(actor)
+    const user = await requireActorUser(actor, Role.writer)
     await prisma.entityLock.deleteMany({
         where: {
             entityType: params.entityType,

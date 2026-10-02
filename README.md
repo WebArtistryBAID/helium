@@ -100,10 +100,8 @@ server {
     
     root /var/www/helium;
     
-    add_header X-Frame-Options "SAMEORIGIN" always;
-    add_header X-XSS-Protection "1; mode=block" always;
-    add_header Referrer-Policy "strict-origin-when-cross-origin" always;
-    client_max_body_size 20M;
+    # Security headers for app responses are set by Helium itself (next.config.ts).
+    client_max_body_size 250M;  # Must cover the 250 MB video upload limit
     
     location ^~ /uploads/ {
         alias /home/web/helium-baid/uploads/;  # By setting up Nginx to serve files from /uploads/, we must set `UPLOAD_SERVE_PATH` to `/uploads` (users access uploaded files on `https://.../uploads/...`) and `UPLOAD_PATH` to `uploads` (uploaded files are saved to `/var/www/helium/uploads/`).
@@ -146,6 +144,7 @@ server {
 | `HOST`                       | The absolute URL where Helium is hosted. No trailing slashes. For example, `http://localhost:3000` in development or `https://baid.beijingacademy.com.cn` in production.                                                                |
 | `UPLOAD_PATH`                | The directory where uploaded files are stored. In development, use `public/uploads` to have the Next.js development server serve uploaded files.                                                                                        |
 | `UPLOAD_SERVE_PATH`          | The relative URL where uploaded files are served. In development, this is `uploads`.                                                                                                                                                    |
+| `BACKUP_PATH`                | Directory for content backups. Defaults to `backups` in the working directory. Must not be inside `UPLOAD_PATH` or any other publicly served directory, because backups include unpublished drafts.                                     |
 | `ONELOGIN_HOST`              | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                                                                                                                         |
 | `ONELOGIN_CLIENT_ID`         | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                                                                                                                                    |
 | `ONELOGIN_CLIENT_SECRET`     | OneLogin client secret.                                                                                                                                                                                                                 |
@@ -161,6 +160,7 @@ server {
 | `HOCUSPOCUS_PORT`            | Local port for the Plate collaboration server. Defaults to `1234`.                                                                                                                                                                      |
 | `HOCUSPOCUS_INTERNAL_URL`    | Server-only HTTP base URL for MCP editor requests to Hocuspocus, such as `http://127.0.0.1:1234`. Set this to bypass the reverse proxy if you set up one in production. If omitted, requests fall back to `NEXT_PUBLIC_HOCUSPOCUS_URL`. |
 | `NEXT_PUBLIC_HOCUSPOCUS_URL` | Browser WebSocket URL for Plate collaboration, such as `ws://192.168.1.20/collaboration/`. Set this before running `npm run build`.                                                                                                     |
+| `SERVER_ACTIONS_ALLOWED_ORIGINS`| Comma-separated hosts (e.g. `example.com,10.0.0.5:8523`) allowed to call server actions when the browser origin differs from the `Host` header, such as behind a reverse proxy. Defaults to the BAID production hosts. Set this before running `npm run build`.|
 
 ## Contribution
 

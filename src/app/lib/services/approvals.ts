@@ -66,7 +66,7 @@ export async function removeAllApprovals(actor: OperationActor, params: {
 }
 
 export async function getApprovalCounts(actor: OperationActor, entityType: EntityType, entityId: number) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const rows = await prisma.approval.groupBy({
         by: [ 'role' ],
         where: { entityType, entityId },
@@ -82,7 +82,7 @@ export async function getApprovalCounts(actor: OperationActor, entityType: Entit
 }
 
 export async function getApprovalNames(actor: OperationActor, entityType: EntityType, entityId: number) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const rows = await prisma.approval.findMany({
         where: { entityType, entityId },
         select: { userId: true, role: true }
@@ -99,7 +99,7 @@ export async function getApprovalNames(actor: OperationActor, entityType: Entity
 
 // Pull thresholds from DB config if present, otherwise fall back to code
 export async function getThresholds(actor: OperationActor, entityType: EntityType) {
-    await requireActorUser(actor)
+    await requireActorUser(actor, Role.writer)
     const cfg = await prisma.approvalConfig.findUnique({ where: { entityType } })
     return {
         [Role.editor]: cfg?.minEditor ?? 1,
