@@ -2,7 +2,7 @@
 
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
-import { A11y, Pagination } from 'swiper/modules'
+import { A11y, Autoplay, Pagination } from 'swiper/modules'
 
 export interface Alum {
     name: string | undefined
@@ -10,18 +10,24 @@ export interface Alum {
     image: Image | undefined
 }
 
-export default function Alumni({ title, alumni, uploadPrefix }: {
+export default function Alumni({ title, alumni, uploadPrefix, autoplay = false, autoplayDuration = 5 }: {
     title: string | undefined;
     alumni: (Alum | undefined)[] | undefined,
-    uploadPrefix: string | undefined
+    uploadPrefix: string | undefined,
+    autoplay?: boolean,
+    autoplayDuration?: number
 }) {
-    alumni = alumni?.filter((alum): alum is Alum => alum !== undefined) ?? []
+    alumni = alumni?.filter((alum): alum is Alum => alum != null) ?? []
+    const autoplayEnabled = autoplay && alumni.length > 1
+    const delay = (Number.isFinite(autoplayDuration) ? Math.max(1, autoplayDuration) : 5) * 1000
     return <section aria-label={title} className="section container !my-16 md:!my-24">
         <h2 className="mb-8 break-words text-center text-2xl uppercase tracking-widest sm:text-3xl"
             role="heading">{title}</h2>
 
-        <Swiper aria-live="polite" spaceBetween={10} slidesPerView={1}
-                modules={[ A11y, Pagination ]}>
+        <Swiper key={`${autoplayEnabled}-${delay}`} aria-live={autoplayEnabled ? 'off' : 'polite'} spaceBetween={10}
+                slidesPerView={1}
+                modules={[ A11y, Autoplay, Pagination ]}
+                autoplay={autoplayEnabled ? { delay, disableOnInteraction: false, pauseOnMouseEnter: true } : false}>
             {alumni.map((alum, index) =>
                 <SwiperSlide key={index}>
                     <div aria-roledescription="carousel"

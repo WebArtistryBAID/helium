@@ -75,55 +75,62 @@ export const PUCK_CONFIG: Config = {
     },
     categories: {
         foundational: {
-            title: '基础',
-            components: [ 'ParagraphConfig', 'HeadingConfig', 'ButtonConfig', 'CardConfig' ]
-        },
-        layout: {
-            title: '布局',
+            title: '基础与布局',
             components: [
-                'ContainerConfig', 'SpacerConfig', 'ImageTextLayoutConfig', 'ImageGalleryConfig', 'FullscreenVideoConfig'
+                'HeadingConfig', 'ParagraphConfig', 'ButtonConfig', 'ContainerConfig',
+                'SpacerConfig', 'CardConfig', 'GridTextConfig'
             ]
         },
-        sharedContent: {
-            title: '共享内容',
-            components: [ 'HeroConfig', 'TopTextConfig', 'HighlightsConfig', 'QuoteConfig',
-                'AnonymousQuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
-                'PeopleConfig' ]
+        introductions: {
+            title: '首屏与引言',
+            components: [ 'HeroConfig', 'TopTextConfig', 'HorizontalTopTextConfig' ]
         },
-        home: {
-            title: '首页内容',
-            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig', 'InFocusCommencementConfig', 'BentoBoxConfig',
-                'LatestNewsConfig', 'NewsListConfig' ]
+        imageContent: {
+            title: '图文展示',
+            components: [ 'ImageTextLayoutConfig', 'HighlightsConfig', 'BentoBoxConfig' ]
         },
-        about: {
-            title: '关于内容',
+        media: {
+            title: '图片轮播与视频',
+            components: [ 'ImageGalleryConfig', 'FullscreenVideoConfig' ]
+        },
+        news: {
+            title: '新闻与动态',
+            components: [ 'LatestNewsConfig', 'NewsListConfig' ]
+        },
+        school: {
+            title: '学校与人物',
             components: [
-                'AccreditationsConfig', 'AlumniConfig'
+                'StatisticsConfig', 'AccreditationsConfig', 'PeopleConfig',
+                'QuoteConfig', 'AnonymousQuoteConfig', 'AlumniConfig'
             ]
         },
         academics: {
-            title: '学术内容',
+            title: '课程与学术',
             components: [
                 'CoursesConfig', 'CurriculumConfig', 'SpecialtiesConfig'
             ]
         },
         life: {
-            title: '校园生活内容',
+            title: '活动与社团',
             components: [
                 'ActivitiesConfig', 'ClubsConfig'
             ]
         },
         admissions: {
-            title: '招生内容',
+            title: '招生与联系',
             components: [
-                'SpecialtiesConfig', 'ApplicationStepsConfig', 'ContactsConfig', 'ProgramEligibilityConfig'
+                'ProgramEligibilityConfig', 'ApplicationStepsConfig', 'ContactsConfig'
             ]
         },
         projects: {
-            title: '学生项目内容',
+            title: '学生项目',
             components: [
                 'FeaturedProjectsConfig', 'ProjectCategoryConfig'
             ]
+        },
+        features: {
+            title: '专题展示',
+            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig', 'InFocusCommencementConfig' ]
         }
     }
 }

@@ -12,6 +12,20 @@ const AlumniConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
+        autoplay: {
+            label: '自动播放',
+            type: 'radio',
+            options: [
+                { label: '关闭', value: false },
+                { label: '开启', value: true }
+            ]
+        },
+        autoplayDuration: {
+            label: '自动播放间隔 (秒)',
+            type: 'number',
+            min: 1,
+            step: 1
+        },
         alumni: {
             label: '项目',
             type: 'array',
@@ -41,6 +55,8 @@ const AlumniConfig: ComponentConfig = {
     },
     defaultProps: {
         title: '校友寄语',
+        autoplay: false,
+        autoplayDuration: 5,
         alumni: [
             {
                 name: '田学姐',
@@ -76,8 +92,9 @@ const AlumniConfig: ComponentConfig = {
             }
         }
     },
-    render: ({ title, resolvedAlumni, resolvedUploadPrefix }) =>
-        <Alumni title={title} alumni={resolvedAlumni} uploadPrefix={resolvedUploadPrefix}/>
+    render: ({ title, resolvedAlumni, resolvedUploadPrefix, autoplay, autoplayDuration }) =>
+        <Alumni title={title} alumni={resolvedAlumni} uploadPrefix={resolvedUploadPrefix}
+                autoplay={autoplay} autoplayDuration={autoplayDuration}/>
 }
 
 export default AlumniConfig
