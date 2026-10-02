@@ -59,13 +59,13 @@ export default function GlobalFooter({ websiteMetadata }: {
                 href={content.footer.chineseWebsiteUrl}>{content.footer.chineseWebsiteText}</a></p>
             <p className="mb-5"><a href="https://beian.miit.gov.cn">{content.footer.icpNumber}</a></p>
 
-            <p className="max-w-lg">This website is powered by
-                <a className="fancy-link link-white" href="https://github.com/WebArtistryBAID/helium">Helium</a> and
-                created by <a className="fancy-link link-white" href="https://dreta.dev">Lin Donglai</a> and
-                <a className="fancy-link link-white" href="https://github.com/WebArtistryBAID">Team WebArtistry</a>.
-                Content is compiled by Beijing Academy students & faculty. Thank you to
-                all <a className="fancy-link link-white"
-                   href="https://github.com/WebArtistryBAID/helium/contributors">contributors</a>.</p>
+            <p className="max-w-lg">This website is powered by <a className="fancy-link link-white"
+                                                                  href="https://github.com/WebArtistryBAID/helium">Helium</a> and
+                created by <a className="fancy-link link-white" href="https://dreta.dev">Lin Donglai</a> and <a
+                    className="fancy-link link-white" href="https://github.com/WebArtistryBAID">Team WebArtistry</a>.
+                Content is compiled by Beijing Academy students & faculty. Thank you to all <a
+                    className="fancy-link link-white"
+                    href="https://github.com/WebArtistryBAID/helium/contributors">contributors</a>.</p>
         </div>
     </footer>
 }
