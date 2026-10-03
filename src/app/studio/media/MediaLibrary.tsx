@@ -118,7 +118,7 @@ export default function MediaLibrary({
     const renderMediaPanel = () => <>
         <div className="mb-5 flex gap-3">
             <TextInput className="min-w-0 flex-1" icon={HiMagnifyingGlass} value={query}
-                       placeholder="按名称或解释性文字搜索"
+                       placeholder="搜索名称、解释性文字、ID 或哈希"
                        aria-label="搜索媒体"
                        onChange={event => setQuery(event.currentTarget.value)}/>
             <Select className="w-52 shrink-0" value={scope} aria-label="筛选媒体"
