@@ -2,7 +2,7 @@ import FocusImage from '@/app/lib/FocusImage'
 import { ComponentConfig } from '@puckeditor/core'
 import { colorTypeField, mediaTypeField } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { Image } from '@/generated/prisma/client'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 

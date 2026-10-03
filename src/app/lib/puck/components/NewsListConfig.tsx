@@ -1,6 +1,6 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import { getUploadServePath } from '@/app/studio/media/media-actions'
+import { getPublishedContentEntities } from '@/app/lib/puck/resolve-resources'
+import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { EntityType } from '@/generated/prisma/browser'
 import NewsList from '@/app/lib/puck/components/NewsList'
 import { convertDatesToStrings } from '@/app/lib/data-types'

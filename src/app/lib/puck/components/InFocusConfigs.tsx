@@ -5,10 +5,10 @@ import {
     RESOLVED_CONTENT_ENTITY_TYPE,
     RESOLVED_IMAGE_TYPE
 } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import InFocusProjects from '@/app/lib/puck/components/InFocusProjects'
 import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
-import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/lib/puck/resolve-resources'
 import { EntityType } from '@/generated/prisma/browser'
 import InFocusNewStudents from '@/app/lib/puck/components/InFocusNewStudents'
 import InFocusCommencement, { CommencementChapter, CommencementCollageImage } from '@/app/lib/puck/components/InFocusCommencement'

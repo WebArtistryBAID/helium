@@ -22,6 +22,7 @@ import {
 import { createPortal } from 'react-dom'
 import { initializePuckYjsDocument, readPuckYjsDocument, updatePuckYjsDocument } from './puck-yjs'
 import { PuckClipboardButtons } from './PuckClipboard'
+import { clearPuckResources } from './resolve-resources'
 
 export type PuckCollaborator = {
     clientId: number
@@ -88,6 +89,7 @@ function synchronizePuck(getPuck: GetPuck, target: Data) {
     // A single action applies the received snapshot without relying on intermediate
     // selector indexes or publishing partially applied remote changes back to Yjs.
     api.dispatch({ type: 'setData', data: target, recordHistory: false })
+    if (changedIds.length > 0) clearPuckResources()
     // Preview components consume resolved props, which field edits refresh automatically.
     // Remote snapshots must explicitly run the same resolution after their raw props arrive.
     for (const id of changedIds) {

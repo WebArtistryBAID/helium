@@ -1,7 +1,7 @@
 import { ComponentConfig } from '@puckeditor/core'
 import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import ImageGallery from '@/app/lib/puck/components/ImageGallery'
 
 type EditableGallerySlide = {

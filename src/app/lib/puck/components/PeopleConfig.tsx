@@ -1,7 +1,7 @@
 import People from '@/app/lib/puck/components/People'
 import { convertDatesToStrings, getContentEntityURI } from '@/app/lib/data-types'
-import { getUploadServePath } from '@/app/studio/media/media-actions'
-import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/studio/editor/entity-actions'
+import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/lib/puck/resolve-resources'
 import { EntityType } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@puckeditor/core'
 

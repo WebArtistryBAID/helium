@@ -4,7 +4,7 @@ import If from '@/app/lib/If'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 import { ComponentConfig } from '@puckeditor/core'
 import { mediaTypeField } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
 interface Highlight {

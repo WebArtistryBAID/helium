@@ -14,6 +14,7 @@ import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { ReactNode, useCallback, useEffect, useRef, useState } from 'react'
 import { Puck, type Data } from '@puckeditor/core'
 import { PUCK_CONFIG } from '@/app/lib/puck/puck-config'
+import { createEditorConfig } from '@/app/lib/puck/editor-config'
 import StableInlineText from '@/app/lib/puck/StableInlineText'
 import PuckPreviewFrame from '@/app/lib/puck/PuckPreviewFrame'
 import {
@@ -191,6 +192,10 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             : { label: '草稿', color: 'gray' }
     const pageUrl = `${host.replace(/\/+$/, '')}/${draft.slug.replace(/^\/+/, '')}`
     const puckDocumentKey = `${inEnglish ? 'en' : 'zh'}-${puckRevision}`
+    const editorConfig = useRef<{ key: string; config: ReturnType<typeof createEditorConfig> } | null>(null)
+    if (editorConfig.current?.key !== puckDocumentKey) {
+        editorConfig.current = { key: puckDocumentKey, config: createEditorConfig(PUCK_CONFIG) }
+    }
     const puckDataRef = useRef<{ data: ReturnType<typeof JSON.parse>, key: string } | null>(null)
     if (puckDataRef.current?.key !== puckDocumentKey) {
         puckDataRef.current = {
@@ -572,10 +577,11 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             <PuckCommentHighlights componentIds={Object.keys(commentThreadCounts)}/>
             <Puck
                 key={puckDocumentKey} // Force re-render only for intentional document changes
-                config={PUCK_CONFIG}
+                config={editorConfig.current.config}
                 data={puckDataRef.current.data}
                 fieldTransforms={STABLE_INLINE_TEXT_TRANSFORMS}
                 onAction={(_action, appState, previousAppState) => {
+                    if (appState.data === previousAppState.data) return
                     removeDeletedComponentComments(appState.data, previousAppState.data)
                     collaboration.updateFromPuck(appState.data)
                 }}

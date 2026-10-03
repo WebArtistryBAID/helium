@@ -1,6 +1,6 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { getPublishedProjectsByCategoriesForInit } from '@/app/studio/editor/entity-actions'
-import { getUploadServePath } from '@/app/studio/media/media-actions'
+import { getPublishedProjectsByCategoriesForInit } from '@/app/lib/puck/resolve-resources'
+import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import ProjectCategory from '@/app/lib/puck/components/ProjectCategory'
 import { convertDatesToStrings, Paginated, SimplifiedContentEntity } from '@/app/lib/data-types'
 

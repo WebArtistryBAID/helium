@@ -1,5 +1,5 @@
 import { ComponentConfig } from '@puckeditor/core'
-import { getAllPublishedCourses } from '@/app/studio/editor/entity-actions'
+import { getAllPublishedCourses } from '@/app/lib/puck/resolve-resources'
 import { convertDatesToStrings, SimplifiedContentEntity } from '@/app/lib/data-types'
 import Courses from '@/app/lib/puck/components/Courses'
 

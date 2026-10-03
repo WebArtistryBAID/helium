@@ -1,6 +1,6 @@
 import { ComponentConfig } from '@puckeditor/core'
 import { mediaTypeField } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import Alumni from '@/app/lib/puck/components/Alumni'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
