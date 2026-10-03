@@ -16,16 +16,13 @@ const PeopleConfig: ComponentConfig = {
                     label: '人员',
                     type: 'external',
                     fetchList: async ({ query }) => {
-                        if (!query) {
-                            return (await getPublishedContentEntities(0, EntityType.faculty)).items.map(faculty => ({
-                                id: faculty.id,
-                                title: faculty.titlePublishedZH ?? '(无姓名)',
-                                createdAt: faculty.createdAt,
-                                slug: faculty.slug,
-                                data: faculty
-                            }))
+                        const firstPage = await getPublishedContentEntities(0, EntityType.faculty, query)
+                        const people = [ ...firstPage.items ]
+                        for (let page = 1; page < firstPage.pages; page++) {
+                            const nextPage = await getPublishedContentEntities(page, EntityType.faculty, query)
+                            people.push(...nextPage.items)
                         }
-                        return (await getPublishedContentEntities(0, EntityType.project, query)).items.map(faculty => ({
+                        return people.map(faculty => ({
                             id: faculty.id,
                             title: faculty.titlePublishedZH ?? '(无姓名)',
                             createdAt: faculty.createdAt,
