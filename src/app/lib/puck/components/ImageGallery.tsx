@@ -3,6 +3,7 @@
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Autoplay, Pagination } from 'swiper/modules'
+import { useEffect, useRef } from 'react'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 
 export const TITLE_SIZE_CLASSES: Record<string, string> = {
@@ -27,23 +28,35 @@ export interface GallerySlide {
     image: Image | null
 }
 
-export default function ImageGallery({ title, slides, uploadPrefix, autoplay = false, autoplayDuration = 5 }: {
+export default function ImageGallery({
+                                         title,
+                                         slides,
+                                         uploadPrefix,
+                                         autoplay = false,
+                                         autoplayDuration = 5,
+                                         scrollable = false
+                                     }: {
     title: string | undefined,
     slides: (GallerySlide | null | undefined)[] | undefined,
     uploadPrefix: string | undefined,
     autoplay?: boolean,
-    autoplayDuration?: number
+    autoplayDuration?: number,
+    scrollable?: boolean
 }) {
     const resolvedSlides = (slides ?? []).filter((slide): slide is GallerySlide =>
         slide != null && slide.image != null
     )
-    const autoplayEnabled = autoplay && resolvedSlides.length > 1
+    const autoplayEnabled = !scrollable && autoplay && resolvedSlides.length > 1
     const delay = (Number.isFinite(autoplayDuration) ? Math.max(1, autoplayDuration) : 5) * 1000
-    const swiperKey = `${autoplayEnabled}-${delay}-${resolvedSlides.map(slide => slide.image?.id ?? slide.image?.sha1 ?? '').join('|')}`
+    const swiperKey = `${scrollable}-${autoplayEnabled}-${scrollable ? 0 : delay}-${resolvedSlides.map(slide => slide.image?.id ?? slide.image?.sha1 ?? '').join('|')}`
     const isEmbeddedEditor = typeof window !== 'undefined' && window.parent !== window
 
     if (resolvedSlides.length === 0) {
         return null
+    }
+
+    if (scrollable && !isEmbeddedEditor) {
+        return <ScrollGallery title={title} slides={resolvedSlides} uploadPrefix={uploadPrefix}/>
     }
 
     return <section data-surface="gradient" aria-label={title} className="w-full overflow-hidden">
@@ -61,8 +74,97 @@ export default function ImageGallery({ title, slides, uploadPrefix, autoplay = f
     </section>
 }
 
-function GallerySlideView({ slide, uploadPrefix }: { slide: GallerySlide, uploadPrefix: string | undefined }) {
-    return <div className="relative h-[100svh] min-h-[100vh] w-full md:h-screen md:min-h-0">
+function ScrollGallery({ title, slides, uploadPrefix }: {
+    title: string | undefined,
+    slides: GallerySlide[],
+    uploadPrefix: string | undefined
+}) {
+    const sectionRef = useRef<HTMLElement | null>(null)
+    const viewportRef = useRef<HTMLDivElement | null>(null)
+    const trackRef = useRef<HTMLDivElement | null>(null)
+
+    useEffect(() => {
+        const section = sectionRef.current
+        const viewport = viewportRef.current
+        const track = trackRef.current
+        if (!section || !viewport || !track) return
+        let scrollContainer: HTMLElement | null = section.parentElement
+        while (scrollContainer && scrollContainer !== document.body && scrollContainer !== document.documentElement) {
+            if (/auto|scroll|overlay/.test(getComputedStyle(scrollContainer).overflowY)) break
+            scrollContainer = scrollContainer.parentElement
+        }
+        const scrollElement = scrollContainer && scrollContainer !== document.body && scrollContainer !== document.documentElement
+            ? scrollContainer : null
+        const scrollTarget = scrollElement ?? window
+        const pinTop = () => scrollElement ? scrollElement.getBoundingClientRect().top + scrollElement.clientTop : 0
+        let frame = 0
+        let travel = 0
+        let buffer = 0
+        const mobileQuery = window.matchMedia('(max-width: 767px)')
+        const update = () => {
+            frame = 0
+            const distance = Math.max(0, Math.min(travel, pinTop() - section.getBoundingClientRect().top - buffer))
+            track.style.transform = mobileQuery.matches
+                ? `translate3d(0, ${-distance}px, 0)`
+                : `translate3d(${-distance}px, 0, 0)`
+        }
+        const scheduleUpdate = () => {
+            if (!frame) frame = window.requestAnimationFrame(update)
+        }
+        const measure = () => {
+            travel = (mobileQuery.matches ? viewport.clientHeight : viewport.clientWidth) * (slides.length - 1)
+            buffer = slides.length > 1 ? viewport.clientHeight * 0.25 : 0
+            // The extra page height supplies the slide travel while the viewport stays pinned.
+            section.style.height = `${viewport.clientHeight + travel + buffer * 2}px`
+            scheduleUpdate()
+        }
+        const onWheel = (event: WheelEvent) => {
+            if (event.ctrlKey || Math.abs(event.deltaX) <= Math.abs(event.deltaY)) return
+            const bounds = section.getBoundingClientRect()
+            const top = pinTop()
+            if (bounds.top > top + 1 || bounds.bottom < top + viewport.clientHeight - 1) return
+            event.preventDefault()
+            const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.clientHeight : 1
+            // Horizontal trackpad input advances the same page position as vertical input, including exit overshoot.
+            scrollTarget.scrollBy({ top: event.deltaX * scale, behavior: 'instant' })
+        }
+        const resizeObserver = new ResizeObserver(measure)
+        resizeObserver.observe(viewport)
+        mobileQuery.addEventListener('change', measure)
+        scrollTarget.addEventListener('scroll', scheduleUpdate, { passive: true })
+        section.addEventListener('wheel', onWheel, { passive: false })
+        measure()
+        return () => {
+            resizeObserver.disconnect()
+            mobileQuery.removeEventListener('change', measure)
+            scrollTarget.removeEventListener('scroll', scheduleUpdate)
+            section.removeEventListener('wheel', onWheel)
+            window.cancelAnimationFrame(frame)
+        }
+    }, [ slides.length ])
+
+    return <section ref={sectionRef} data-surface="gradient" aria-label={title} className="relative w-full"
+                    style={{ height: `${slides.length * 100}dvh` }}>
+        <h2 className="sr-only">{title}</h2>
+        <div ref={viewportRef} className="sticky top-0 h-dvh w-full overflow-hidden">
+            <div ref={trackRef} className="flex h-full w-full flex-col md:flex-row will-change-transform">
+                {slides.map((slide, index) =>
+                    <div key={slide.image?.id ?? `slide-${index}`} className="h-full min-w-0 w-full shrink-0">
+                        <GallerySlideView slide={slide} uploadPrefix={uploadPrefix} fillViewport/>
+                    </div>
+                )}
+            </div>
+        </div>
+    </section>
+}
+
+function GallerySlideView({ slide, uploadPrefix, fillViewport = false }: {
+    slide: GallerySlide,
+    uploadPrefix: string | undefined,
+    fillViewport?: boolean
+}) {
+    return <div
+        className={fillViewport ? 'relative h-full w-full' : 'relative h-[100svh] min-h-[100vh] w-full md:h-screen md:min-h-0'}>
         <img src={`${uploadPrefix}/${slide.image?.sha1}.webp`} alt={slide.image?.altText ?? ''}
              className="h-full w-full object-cover"/>
         <FullscreenMediaText title={slide.title} titleSize={slide.titleSize} content={slide.content}

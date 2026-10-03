@@ -53,6 +53,14 @@ const ImageGalleryConfig: ComponentConfig = {
                 { label: '开启', value: true }
             ]
         },
+        scrollable: {
+            label: '可滑动',
+            type: 'radio',
+            options: [
+                { label: '关闭', value: false },
+                { label: '开启', value: true }
+            ]
+        },
         autoplayDuration: {
             label: '自动播放间隔（秒）',
             type: 'number',
@@ -132,6 +140,7 @@ const ImageGalleryConfig: ComponentConfig = {
     defaultProps: {
         title: '图片轮播',
         autoplay: false,
+        scrollable: false,
         autoplayDuration: 5,
         slides: [
             {
@@ -150,9 +159,9 @@ const ImageGalleryConfig: ComponentConfig = {
             }
         }
     },
-    render: ({ title, resolvedSlides, resolvedUploadPrefix, autoplay, autoplayDuration }) =>
+    render: ({ title, resolvedSlides, resolvedUploadPrefix, autoplay, autoplayDuration, scrollable }) =>
         <ImageGallery title={title} slides={resolvedSlides} uploadPrefix={resolvedUploadPrefix}
-                      autoplay={autoplay} autoplayDuration={autoplayDuration}/>
+                      autoplay={autoplay} autoplayDuration={autoplayDuration} scrollable={scrollable}/>
 }
 
 export default ImageGalleryConfig
