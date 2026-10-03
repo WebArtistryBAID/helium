@@ -83,8 +83,13 @@ export function validateEditorDocument(data, editor) {
                 fail('invalid_input', 'Plate elements require a type and child nodes.')
             }
             value.children.forEach(node)
-        } else if (!PUCK_COMPONENT_TYPES.includes(value.type) || !record(value.props) || typeof value.props.id !== 'string' || value.props.id === '$root') {
-            fail('invalid_input', 'Puck components require a type and stable props.id.')
+        } else {
+            if (!PUCK_COMPONENT_TYPES.includes(value.type)) {
+                fail('invalid_input', `Unsupported Puck component type: ${String(value.type)}.`)
+            }
+            if (!record(value.props) || typeof value.props.id !== 'string' || value.props.id === '$root') {
+                fail('invalid_input', 'Puck components require a stable props.id.')
+            }
         }
         if (editor === 'puck' && value.type === 'ContainerConfig' && value.props.children != null) {
             if (!Array.isArray(value.props.children)) fail('invalid_input', 'Container slot must contain components.')
