@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { withExpectedFields } from '@/app/lib/collaboration/expected-fields'
 import If from '@/app/lib/If'
 import {
@@ -743,7 +744,7 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                                             onClick={() => setShowMediaLibrary(true)}
                                             className="block w-full text-left">
                                         <If condition={post.coverImageDraft != null}>
-                                            <img
+                                            <FocusImage image={post.coverImageDraft}
                                                 className="h-40 w-full object-cover transition-opacity hover:opacity-90"
                                                 alt={post.coverImageDraft?.altText ?? ''}
                                                 src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
@@ -759,7 +760,8 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                                 <If condition={!canWrite}>
                                     <div className="block w-full text-left">
                                         <If condition={post.coverImageDraft != null}>
-                                            <img className="h-40 w-full object-cover"
+                                            <FocusImage image={post.coverImageDraft}
+                                                        className="h-40 w-full object-cover"
                                                  alt={post.coverImageDraft?.altText ?? ''}
                                                  src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
                                         </If>

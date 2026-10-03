@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { createContext, type ReactNode, useContext } from 'react'
 import {
     PlateElement,
@@ -276,7 +277,7 @@ export const ImageElement = ({ children, ...props }: PlateElementProps<TImageEle
                 </Button>
             </div>}
             {src
-                ? <img draggable={false} src={src} alt={alt}
+                ? <FocusImage image={grouped ? image : null} draggable={false} src={src} alt={alt}
                        style={imageStyle}
                        className={`!m-0 mx-auto ${
                            grouped

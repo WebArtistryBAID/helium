@@ -1,3 +1,4 @@
+import FocusImage from '@/app/lib/FocusImage'
 import { EntityType, Image } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
 import ContentEntityBody from '@/app/lib/ContentEntityBody'
@@ -46,7 +47,7 @@ export default function ContentEntityDisplay({
         </If>
         <If condition={!isPeoplePage && coverImage != null}>
             <div className="mx-auto w-full max-w-5xl px-4 pt-24 sm:px-8 sm:pt-28">
-                <img className="max-h-[24rem] h-auto w-full rounded-2xl object-cover"
+                <FocusImage image={coverImage} className="max-h-[24rem] h-auto w-full rounded-2xl object-cover"
                      alt={coverImage?.altText ?? ''}
                      src={`${uploadPrefix}/${coverImage?.sha1}.webp`}/>
             </div>

@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { SimplifiedContentEntity } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { EntityType } from '@/generated/prisma/browser'
@@ -31,7 +32,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
-                        <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
+                        <FocusImage image={post.coverImageDraft}
+                                    src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText ?? ''}
                              className="object-cover w-full rounded-3xl h-48"/>
                     </If>
@@ -55,7 +57,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
-                        <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
+                        <FocusImage image={post.coverImageDraft}
+                                    src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText ?? ''}
                              className="object-cover w-full rounded-3xl h-48"/>
                     </If>
@@ -79,7 +82,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
-                        <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
+                        <FocusImage image={post.coverImageDraft}
+                                    src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText ?? ''}
                              className="object-cover w-full rounded-3xl h-48"/>
                     </If>

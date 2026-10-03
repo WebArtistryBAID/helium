@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { useEffect, useRef, useState } from 'react'
 import type { Image } from '@/generated/prisma/browser'
 import { FullscreenMediaText } from '@/app/lib/puck/components/ImageGallery'
@@ -54,7 +55,7 @@ export default function FullscreenVideo({
         <h2 className="sr-only">{title}</h2>
         <div className="relative h-[100svh] min-h-[100vh] w-full bg-black md:h-screen md:min-h-0">
             {posterSrc &&
-                <img src={posterSrc} alt={poster?.altText ?? ''}
+                <FocusImage image={poster} src={posterSrc} alt={poster?.altText ?? ''}
                      className={`absolute inset-0 h-full w-full object-cover transition-opacity duration-700 ${showVideo ? 'opacity-0' : 'opacity-100'}`}/>} 
             {videoSrc &&
                 <video ref={videoRef} muted loop playsInline controls={false} preload="auto" aria-hidden="true"

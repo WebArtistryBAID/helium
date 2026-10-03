@@ -1,5 +1,7 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
+import { hasImageFocus } from '@/app/lib/image-focus'
 import { useEffect, useMemo, useState } from 'react'
 import { Image } from '@/generated/prisma/browser'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
@@ -49,7 +51,7 @@ export default function InFocusProjects({
 
     return <>
         <section data-surface="dark" style={{
-            backgroundImage: `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
+            backgroundImage: hasImageFocus(heroBg) ? undefined : `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
             backgroundPosition: `center ${scrollY * 0.5}px`,
             backgroundRepeat: 'no-repeat',
             backgroundSize: 'cover'
@@ -57,6 +59,10 @@ export default function InFocusProjects({
                  className="relative flex h-[100svh] min-h-[34rem] w-full flex-col justify-center bg-cover bg-center sm:min-h-[40rem] md:h-[105vh] md:min-h-[42rem]"
                  aria-labelledby="hero-heading"
                  role="banner">
+            {hasImageFocus(heroBg) && <FocusImage image={heroBg}
+                                                  src={`${uploadPrefix}/${heroBg?.sha1}.webp`} alt="" aria-hidden="true"
+                                                  className="absolute inset-0 h-full w-full object-cover"
+                                                  style={{ position: 'absolute' }}/>}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
                         className="absolute inset-0 pointer-events-none from-transparent to-gray-950 bg-gradient-to-b"/>
             <div
@@ -103,7 +109,8 @@ export default function InFocusProjects({
                         <>
                             <div
                                 className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
-                                <img src={`${uploadPrefix}/${projects[0].project?.coverImagePublished?.sha1}.webp`}
+                                <FocusImage image={projects[0].project?.coverImagePublished}
+                                            src={`${uploadPrefix}/${projects[0].project?.coverImagePublished?.sha1}.webp`}
                                      alt={projects[0].project?.coverImagePublished?.altText ?? ''}
                                      className="h-64 w-full rounded-none object-cover md:h-80"/>
                             </div>
@@ -152,7 +159,8 @@ export default function InFocusProjects({
                         </div>
                         <div
                             className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
-                            <img src={`${uploadPrefix}/${projects[1].project?.coverImagePublished?.sha1}.webp`}
+                            <FocusImage image={projects[1].project?.coverImagePublished}
+                                        src={`${uploadPrefix}/${projects[1].project?.coverImagePublished?.sha1}.webp`}
                                  alt={projects[1].project?.coverImagePublished?.altText ?? ''}
                                  className="h-64 w-full rounded-none object-cover md:h-80"/>
                         </div>
@@ -161,7 +169,8 @@ export default function InFocusProjects({
                     {projects.length > 2 && <>
                         <div
                             className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
-                            <img src={`${uploadPrefix}/${projects[2].project?.coverImagePublished?.sha1}.webp`}
+                            <FocusImage image={projects[2].project?.coverImagePublished}
+                                        src={`${uploadPrefix}/${projects[2].project?.coverImagePublished?.sha1}.webp`}
                                  alt={projects[2].project?.coverImagePublished?.altText ?? ''}
                                  className="h-64 w-full rounded-none object-cover md:h-80"/>
                         </div>
@@ -196,7 +205,7 @@ export default function InFocusProjects({
                                         {projects[3].discipline}
                                     </p>
                                     <div className="rounded-none overflow-hidden mb-5 w-full h-60">
-                                        <img
+                                        <FocusImage image={projects[3].project?.coverImagePublished}
                                             src={`${uploadPrefix}/${projects[3].project?.coverImagePublished?.sha1}.webp`}
                                             alt={projects[3].project?.coverImagePublished?.altText ?? ''}
                                             className="rounded-none group-hover-scale w-full h-full object-cover"
@@ -215,7 +224,7 @@ export default function InFocusProjects({
                                         {projects[4].discipline}
                                     </p>
                                     <div className="rounded-none overflow-hidden mb-5 w-full h-60">
-                                        <img
+                                        <FocusImage image={projects[4].project?.coverImagePublished}
                                             src={`${uploadPrefix}/${projects[4].project?.coverImagePublished?.sha1}.webp`}
                                             alt={projects[4].project?.coverImagePublished?.altText ?? ''}
                                             className="rounded-none group-hover-scale w-full h-full object-cover"
@@ -234,7 +243,7 @@ export default function InFocusProjects({
                                         {projects[5].discipline}
                                     </p>
                                     <div className="rounded-none overflow-hidden mb-5 w-full h-60">
-                                        <img
+                                        <FocusImage image={projects[5].project?.coverImagePublished}
                                             src={`${uploadPrefix}/${projects[5].project?.coverImagePublished?.sha1}.webp`}
                                             alt={projects[5].project?.coverImagePublished?.altText ?? ''}
                                             className="rounded-none group-hover-scale w-full h-full object-cover"

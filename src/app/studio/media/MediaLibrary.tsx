@@ -18,6 +18,8 @@ import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
 import { getMyUser } from '@/app/login/login-actions'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+import ImageFocusDialog from './ImageFocusDialog'
+import FocusImage from '@/app/lib/FocusImage'
 
 function formatSize(kb: number): string {
     if (kb < 1024) {
@@ -50,6 +52,7 @@ export default function MediaLibrary({
     const [ loading, setLoading ] = useState(false)
     const [ selectedImage, setSelectedImage ] = useState<Image | null>(null)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
+    const [ editingFocus, setEditingFocus ] = useState(false)
     const [ currentPage, setCurrentPage ] = useState(0)
     const [ currentMediaType, setCurrentMediaType ] = useState<MediaType>(allowedMediaTypes[0] ?? 'image')
     const [ query, setQuery ] = useState('')
@@ -184,7 +187,9 @@ export default function MediaLibrary({
                                                      height={200}
                                                      decoding="async" alt={`视频: ${image.name}`}
                                                      src={`${page.uploadServePath}/${image.sha1}_thumb.webp`}/>
-                                                : <img className="aspect-square w-full object-cover" width={300}
+                                                :
+                                                <FocusImage image={image} className="aspect-square w-full object-cover"
+                                                            width={300}
                                                        height={200}
                                                        decoding="async" alt={`图片: ${image.name}`}
                                                        src={`${page.uploadServePath}/${image.sha1}_thumb.webp`}/>}
@@ -243,6 +248,9 @@ export default function MediaLibrary({
                                         </div>
                                     </If>
                                     <If condition={canWrite}>
+                                        {selectedImage?.mediaType === 'image' &&
+                                            <Button pill color="blue" className="mb-3"
+                                                    onClick={() => setEditingFocus(true)}>调整剪裁</Button>}
                                         <Button pill disabled={loading} color="red"
                                                 onClick={async () => {
                                                     if (!canWrite) {
@@ -279,6 +287,17 @@ export default function MediaLibrary({
 
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+        {editingFocus && selectedImage?.mediaType === 'image' && <ImageFocusDialog
+            key={selectedImage.id} image={selectedImage} uploadPrefix={page.uploadServePath}
+            onClose={() => setEditingFocus(false)} onPermissionError={handlePermissionError}
+            onSaved={image => {
+                setSelectedImage(image)
+                setPage(current => ({
+                    ...current,
+                    items: current.items.map(item => item.id === image.id ? image : item)
+                }))
+                setEditingFocus(false)
+            }}/>}
 
         <div className="p-8">
             <Tabs aria-label="媒体库选项卡" variant="default" ref={tabsRef}

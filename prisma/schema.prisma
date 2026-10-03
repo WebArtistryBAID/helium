@@ -223,6 +223,9 @@ model Image {
   width      Int
   height     Int
   sizeKB     Int
+  focusX     Float    @default(0.5)
+  focusY     Float    @default(0.5)
+  focusSize  Float    @default(1)
   uploader   User?    @relation(fields: [uploaderId], references: [id], onDelete: SetNull)
   uploaderId Int?
   createdAt  DateTime @default(now())

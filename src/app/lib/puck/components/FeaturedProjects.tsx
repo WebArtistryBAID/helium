@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Pagination } from 'swiper/modules'
@@ -28,7 +29,7 @@ export default function FeaturedProjects({ title, projects, uploadPrefix }: {
                          className="flex flex-col items-center gap-6 md:mb-5 md:flex-row md:gap-8" role="region">
                         <div className="flex w-full items-center px-2 sm:px-6 md:w-1/3 md:pl-8 md:pr-0">
                             <div className="project-big-pic-box h-72 md:h-auto">
-                                <img src={`${uploadPrefix}/${project?.image?.sha1}.webp`}
+                                <FocusImage image={project?.image} src={`${uploadPrefix}/${project?.image?.sha1}.webp`}
                                      alt={project?.image?.altText ?? ''}
                                      className="w-full h-full object-cover aspect-3/4 transition-all duration-300 block project-big-pic"/>
                             </div>

@@ -39,6 +39,29 @@ export async function getImage(id: number): Promise<Image | null> {
     })
 }
 
+export async function updateImageFocus(actor: OperationActor, id: number, focus: {
+    focusX: number; focusY: number; focusSize: number
+}): Promise<Image> {
+    await requireActorUser(actor, Role.writer)
+    const image = await prisma.image.findUniqueOrThrow({ where: { id } })
+    if (image.mediaType !== 'image' || image.width <= 0 || image.height <= 0) {
+        throw new Error('Only images support a focus crop')
+    }
+    const { focusX, focusY, focusSize } = focus
+    if (![ focusX, focusY, focusSize ].every(Number.isFinite) || focusSize < 0.05 || focusSize > 1) {
+        throw new Error('Invalid focus crop')
+    }
+    const side = Math.min(image.width, image.height) * focusSize
+    const halfX = side / image.width / 2
+    const halfY = side / image.height / 2
+    const tolerance = 1e-7
+    if (focusX < halfX - tolerance || focusX > 1 - halfX + tolerance
+        || focusY < halfY - tolerance || focusY > 1 - halfY + tolerance) {
+        throw new Error('Focus crop must fit inside the image')
+    }
+    return prisma.image.update({ where: { id }, data: focus })
+}
+
 export async function getMedia(actor: OperationActor, page: number, mediaTypes: MediaType[] = [ 'image', 'video' ],
                                filters: MediaFilters = {}): Promise<ImagePage> {
     const user = await requireActorUser(actor, Role.writer)

@@ -17,6 +17,12 @@ export async function getImage(id: number): Promise<Image | null> {
     return services.getImage(id)
 }
 
+export async function updateImageFocus(id: number, focus: {
+    focusX: number; focusY: number; focusSize: number
+}): Promise<Image> {
+    return services.updateImageFocus(await getStudioActor(), id, focus)
+}
+
 export async function getMedia(page: number, mediaTypes: MediaType[] = [ 'image', 'video' ],
                                filters: MediaFilters = {}): Promise<ImagePage> {
     return services.getMedia(await getStudioActor(), page, mediaTypes, filters)

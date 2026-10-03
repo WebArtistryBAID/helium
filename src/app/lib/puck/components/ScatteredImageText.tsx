@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import type { Image } from '@/generated/prisma/browser'
 import ReadMore from './ReadMore'
 
@@ -17,7 +18,8 @@ function ImageItem({ item, uploadPrefix, portrait = false, small = false }: {
 }) {
     return <div>
         <div className={portrait ? 'aspect-[5/7] w-full' : 'aspect-[20/13] w-full'}>
-            {item?.image && <img src={`${uploadPrefix}/${item.image.sha1}.webp`} alt={item.image.altText ?? ''}
+            {item?.image && <FocusImage image={item.image} src={`${uploadPrefix}/${item.image.sha1}.webp`}
+                                        alt={item.image.altText ?? ''}
                                  className="h-full w-full object-cover"/>}
         </div>
         {item?.text &&
@@ -51,7 +53,8 @@ export default function ScatteredImageText({
     const portraitContents = <>
         <div className="w-[49%] shrink-0 lg:w-full">
             <div className="aspect-[5/7] w-full">
-                {secondPortrait?.image && <img src={`${uploadPrefix}/${secondPortrait.image.sha1}.webp`}
+                {secondPortrait?.image &&
+                    <FocusImage image={secondPortrait.image} src={`${uploadPrefix}/${secondPortrait.image.sha1}.webp`}
                                                alt={secondPortrait.image.altText ?? ''}
                                                className="h-full w-full object-cover"/>}
             </div>

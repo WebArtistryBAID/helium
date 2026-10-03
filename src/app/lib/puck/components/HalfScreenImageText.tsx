@@ -1,3 +1,4 @@
+import FocusImage from '@/app/lib/FocusImage'
 import type { ComponentConfig } from '@puckeditor/core'
 import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
@@ -38,7 +39,8 @@ const HalfScreenImageTextConfig: ComponentConfig = {
         return <section className="container py-6">
             <div className="grid grid-cols-1 gap-5 md:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
                 <div className="aspect-[3/2] w-full">
-                    {resolvedImage && <img src={`${uploadPrefix}/${resolvedImage.sha1}.webp`}
+                    {resolvedImage &&
+                        <FocusImage image={resolvedImage} src={`${uploadPrefix}/${resolvedImage.sha1}.webp`}
                                            alt={resolvedImage.altText ?? ''}
                                            className="h-full w-full object-cover"/>}
                 </div>

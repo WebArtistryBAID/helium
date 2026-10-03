@@ -1,5 +1,7 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
+import { hasImageFocus } from '@/app/lib/image-focus'
 import React, { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Image } from '@/generated/prisma/browser'
@@ -63,7 +65,7 @@ export default function InFocusNewStudents({
 
     return <>
         <section data-surface="light" style={{
-            backgroundImage: `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
+            backgroundImage: hasImageFocus(heroBg) ? undefined : `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
             backgroundPosition: `center ${scrollY * 0.5}px`,
             backgroundRepeat: 'no-repeat',
             backgroundSize: 'cover'
@@ -71,9 +73,14 @@ export default function InFocusNewStudents({
                  className="relative flex h-[100svh] min-h-[34rem] w-full flex-col justify-center bg-cover bg-center sm:min-h-[38rem] md:h-[105vh] md:min-h-[42rem]"
                  aria-labelledby="hero-heading"
                  role="banner">
+            {hasImageFocus(heroBg) && <FocusImage image={heroBg}
+                                                  src={`${uploadPrefix}/${heroBg?.sha1}.webp`} alt="" aria-hidden="true"
+                                                  className="absolute inset-0 h-full w-full object-cover"
+                                                  style={{ position: 'absolute' }}/>}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
                         className="absolute inset-0 pointer-events-none from-white/60 to-white bg-gradient-to-b"/>
-            <div className="text-black w-full h-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
+            <div
+                className="relative text-black w-full h-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
                 <div className="flex w-full flex-col items-center justify-center md:max-w-2xl">
                     <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                                 animate={{ opacity: 1, transform: 'translateY(0)' }}
@@ -172,7 +179,8 @@ export default function InFocusNewStudents({
                                 <p>{language === 'en' ? p.project?.shortContentPublishedEN : p.project?.shortContentPublishedZH}</p>
                             </div>
                             <div className="flex justify-end border-t border-gray-300 p-5 sm:p-6 lg:p-8">
-                                <img src={`${uploadPrefix}/${p.project?.coverImagePublished?.sha1}.webp`}
+                                <FocusImage image={p.project?.coverImagePublished}
+                                            src={`${uploadPrefix}/${p.project?.coverImagePublished?.sha1}.webp`}
                                      alt={p.project?.coverImagePublished?.altText ?? ''}
                                      className="w-24 h-24 object-cover"/>
                             </div>

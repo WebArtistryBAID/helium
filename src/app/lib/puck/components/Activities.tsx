@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { getContentEntityURI, HydratedContentEntity, prefixLink } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { Image } from '@/generated/prisma/browser'
@@ -41,14 +42,14 @@ function ActivityBlock({ name, description, createdAt, slug, image, background, 
             <div className="hidden sm:grid grid-cols-2">
                 {textAlign === 'left' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
-                <img alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
+                <FocusImage image={image} alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
                      className="w-full h-80 object-cover object-center"/>
                 {textAlign === 'right' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
             </div>
 
             <div className="block sm:hidden">
-                <img alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
+                <FocusImage image={image} alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
                      className="w-full h-48 object-cover object-center"/>
                 <ActivityTextBlock background={background} description={description} light={light} name={name}/>
             </div>

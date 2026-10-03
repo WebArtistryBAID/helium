@@ -3,6 +3,8 @@ import { ComponentConfig } from '@puckeditor/core'
 import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
 import { convertDatesToStrings } from '@/app/lib/data-types'
+import FocusImage from '@/app/lib/FocusImage'
+import { hasImageFocus } from '@/app/lib/image-focus'
 
 function Contacts({ title, description, emailText, emails, phoneText, phones, backgroundImage, uploadPrefix }: {
     title: string | undefined,
@@ -21,12 +23,16 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
 
     return (
         <div
-            style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : undefined}
-            className="bg-cover"
+            style={bgUrl && !hasImageFocus(backgroundImage) ? { backgroundImage: `url(${bgUrl})` } : undefined}
+            className="relative bg-cover"
             aria-labelledby="contact-heading"
             role="region"
         >
-            <section aria-labelledby="contact-heading" className="section container mt-12 py-12 md:!mt-20 md:!py-20">
+            {hasImageFocus(backgroundImage) && <FocusImage image={backgroundImage} src={bgUrl} alt=""
+                                                           aria-hidden="true"
+                                                           className="absolute inset-0 h-full w-full object-cover"/>}
+            <section aria-labelledby="contact-heading"
+                     className="relative section container mt-12 py-12 md:!mt-20 md:!py-20">
                 <h2 id="contact-heading" className="mb-4 break-words text-3xl font-bold sm:text-4xl">
                     {title}
                 </h2>

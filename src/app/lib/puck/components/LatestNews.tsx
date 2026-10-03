@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { getContentEntityURI, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
@@ -47,7 +48,8 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
                         href={prefixLink(language, getContentEntityURI(resolvedPosts[0].createdAt, resolvedPosts[0].slug))}
                         className="group block w-full lg:w-2/3">
                         <div className="mb-3 h-56 w-full overflow-hidden rounded-none sm:h-72 md:h-96">
-                        <img alt={resolvedPosts[0].coverImagePublished?.altText ?? ''}
+                            <FocusImage image={resolvedPosts[0].coverImagePublished}
+                                        alt={resolvedPosts[0].coverImagePublished?.altText ?? ''}
                              src={`${uploadPrefix}/${resolvedPosts[0].coverImagePublished?.sha1}.webp`}
                              className="object-cover w-full h-full rounded-none transform transition-transform duration-300 ease-in-out group-hover:scale-105"/>
                     </div>

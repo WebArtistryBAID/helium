@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { Image } from '@/generated/prisma/browser'
 import { Swiper, SwiperSlide } from 'swiper/react'
 import { A11y, Autoplay, Pagination } from 'swiper/modules'
@@ -169,7 +170,8 @@ function GallerySlideView({ slide, uploadPrefix, fillViewport = false }: {
 }) {
     return <div
         className={fillViewport ? 'relative h-full w-full' : 'relative h-[100svh] min-h-[100vh] w-full md:h-screen md:min-h-0'}>
-        <img src={`${uploadPrefix}/${slide.image?.sha1}.webp`} alt={slide.image?.altText ?? ''}
+        <FocusImage image={slide.image} src={`${uploadPrefix}/${slide.image?.sha1}.webp`}
+                    alt={slide.image?.altText ?? ''}
              className="h-full w-full object-cover"/>
         <FullscreenMediaText title={slide.title} titleSize={slide.titleSize} content={slide.content}
                              link={slide.link} linkText={slide.linkText}/>

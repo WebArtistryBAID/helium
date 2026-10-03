@@ -1,3 +1,4 @@
+import FocusImage from '@/app/lib/FocusImage'
 import { SlateElement, SlateLeaf, type SlateElementProps, type SlateLeafProps } from 'platejs/static'
 import type { TImageElement, TLinkElement, TTableCellElement, TTableElement } from 'platejs'
 import { getColSpan, getRowSpan } from '@platejs/table'
@@ -84,6 +85,7 @@ export const ImageStatic = ({ children, ...props }: SlateElementProps<TImageElem
     alt?: string
     imageHeight?: number
     imageWidth?: number
+    imageFocus?: import('@/app/lib/image-focus').FocusImageData
 }>) => {
     const index = props.path[0]
     let firstImageIndex = typeof index === 'number' ? index : 0
@@ -112,7 +114,8 @@ export const ImageStatic = ({ children, ...props }: SlateElementProps<TImageElem
                                  ? 'my-2 block w-full sm:w-1/2 sm:px-2'
                                  : 'mx-auto my-5 block w-fit max-w-full overflow-hidden'
                          }`}>
-        <img src={props.element.url} alt={props.element.alt ?? ''} loading="lazy"
+        <FocusImage image={grouped ? props.element.imageFocus : null} src={props.element.url}
+                    alt={props.element.alt ?? ''} loading="lazy"
              style={imageStyle}
              className={`!m-0 mx-auto ${
                  grouped

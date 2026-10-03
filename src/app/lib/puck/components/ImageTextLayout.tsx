@@ -1,3 +1,4 @@
+import FocusImage from '@/app/lib/FocusImage'
 import { ComponentConfig } from '@puckeditor/core'
 import { colorTypeField, mediaTypeField } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
@@ -32,7 +33,8 @@ function ImageTextLayout({
     return <div className={`flex w-full flex-col ${inverseOrder ? 'md:flex-row-reverse' : 'md:flex-row'}`}
                 data-surface={lightText ? 'dark' : 'light'}>
         <div className="w-full md:w-1/2">
-            <img src={`${uploadPrefix}/${resolvedImage?.sha1}.webp`} alt={resolvedImage?.altText ?? ''}
+            <FocusImage image={resolvedImage} src={`${uploadPrefix}/${resolvedImage?.sha1}.webp`}
+                        alt={resolvedImage?.altText ?? ''}
                  className="h-64 w-full object-cover object-center sm:h-80 md:h-full"/>
         </div>
         <div className="flex w-full flex-col justify-center p-5 sm:p-6 md:w-1/2 md:p-8 lg:p-10"

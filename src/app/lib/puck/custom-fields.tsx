@@ -27,7 +27,12 @@ export const RESOLVED_IMAGE_TYPE: ObjectField = {
         },
         mimeType: {
             type: 'text'
-        }
+        },
+        width: { type: 'number' },
+        height: { type: 'number' },
+        focusX: { type: 'number' },
+        focusY: { type: 'number' },
+        focusSize: { type: 'number' }
     }
 }
 

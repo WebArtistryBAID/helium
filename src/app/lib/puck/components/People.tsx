@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { Image } from '@/generated/prisma/browser'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import Link from 'next/link'
@@ -23,7 +24,9 @@ export default function People({ people, uploadPrefix }: { people: (Person | nul
     return <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
         {people.map((person, index) => person &&
             <Link href={prefixLink(language, person.link)} key={index} className="flex flex-col items-center">
-                <img src={`${uploadPrefix}/${person.image?.sha1}.webp`} alt={person.image?.altText ?? ''}
+                <FocusImage image={person.image}
+                            src={person.image ? `${uploadPrefix}/${person.image.sha1}.webp` : '/assets/icon.png'}
+                            alt={person.image?.altText ?? ''}
                      className="h-48 w-48 rounded-full object-cover object-center mb-3"/>
                 <p className="text-xl font-bold">{language === 'zh' ? person.nameZH : person.nameEN}</p>
                 <p className="text-lg opacity-90 mb-1 text-center">{person.title}</p>

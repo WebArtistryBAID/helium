@@ -1,3 +1,4 @@
+import FocusImage from '@/app/lib/FocusImage'
 import { Image } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
@@ -34,7 +35,8 @@ function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | nu
                                                         className="group block w-full border-b border-gray-200 bg-white p-5 last:border-b-0 sm:p-8 lg:w-1/3 lg:border-b-0 lg:border-r lg:p-10 lg:last:border-r-0"
                                                         role="listitem">
                 <div className="flex justify-center items-center w-full h-48 overflow-hidden rounded-none mb-5">
-                    <img alt={highlight.image?.altText ?? ''} src={`${uploadPrefix}/${highlight.image?.sha1}.webp`}
+                    <FocusImage image={highlight.image} alt={highlight.image?.altText ?? ''}
+                                src={`${uploadPrefix}/${highlight.image?.sha1}.webp`}
                          className="w-full h-full object-cover group-hover-scale"/>
                 </div>
                 <p className="fancy-link mb-1 break-words font-serif text-2xl font-bold sm:text-3xl">

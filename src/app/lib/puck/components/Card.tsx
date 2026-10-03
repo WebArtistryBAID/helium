@@ -1,3 +1,4 @@
+import FocusImage from '@/app/lib/FocusImage'
 import If from '@/app/lib/If'
 import { Image } from '@/generated/prisma/browser'
 import Link from 'next/link'
@@ -16,7 +17,7 @@ export default function Card({ href, image, title, shortContent, uploadPrefix }:
     const content = <>
         <div className="overflow-hidden h-48 w-full">
             <If condition={image != null}>
-                <img src={`${uploadPrefix}/${image?.sha1}_thumb.webp`}
+                <FocusImage image={image} src={`${uploadPrefix}/${image?.sha1}_thumb.webp`}
                      alt={image?.altText ?? ''}
                      className="object-cover h-full w-full group-hover-scale"/>
             </If>

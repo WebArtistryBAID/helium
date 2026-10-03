@@ -1,5 +1,7 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
+import { hasImageFocus } from '@/app/lib/image-focus'
 import { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Image } from '@/generated/prisma/browser'
@@ -105,12 +107,16 @@ export default function InFocusCommencement({
             aria-labelledby="commencement-hero-heading"
             className="relative flex h-[100svh] min-h-[34rem] items-end overflow-hidden bg-[#122a28] text-white sm:min-h-[40rem] md:h-[105vh] md:min-h-[46rem]"
             style={{
-                backgroundImage: heroImage,
+                backgroundImage: hasImageFocus(heroBg) ? undefined : heroImage,
                 backgroundPosition: `center ${scrollY * 0.35}px`,
                 backgroundRepeat: 'no-repeat',
                 backgroundSize: 'cover'
             }}
         >
+            {hasImageFocus(heroBg) && <FocusImage image={heroBg}
+                                                  src={`${uploadPrefix}/${heroBg?.sha1}.webp`} alt="" aria-hidden="true"
+                                                  className="absolute inset-0 h-full w-full object-cover"
+                                                  style={{ position: 'absolute' }}/>}
             <div className="absolute inset-0 bg-gradient-to-b from-[#122a28]/20 via-[#122a28]/35 to-[#0b1716]/95"/>
             <div className="absolute inset-x-0 top-0 h-px bg-white/35"/>
             <div className="container relative w-full px-5 pb-14 sm:px-8 md:pb-20 lg:px-12">
@@ -166,7 +172,7 @@ export default function InFocusCommencement({
                             gridRow: position.row
                         }}
                     >
-                        <img
+                        <FocusImage image={item.image}
                             src={`${uploadPrefix}/${item.image.sha1}.webp`}
                             alt={item.image.altText ?? ''}
                             className="h-full w-full object-cover"
@@ -198,7 +204,7 @@ export default function InFocusCommencement({
                     variants={COLLAGE_IMAGE_VARIANTS}
                     className={`overflow-hidden shadow-2xl ${index === 2 ? 'col-span-2 aspect-[2/1]' : 'aspect-[4/5]'}`}
                 >
-                    <img
+                    <FocusImage image={item.image}
                         src={`${uploadPrefix}/${item.image.sha1}.webp`}
                         alt={item.image.altText ?? ''}
                         className="h-full w-full object-cover"

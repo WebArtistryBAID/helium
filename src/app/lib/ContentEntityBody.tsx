@@ -3,6 +3,7 @@ import { PlateStatic } from 'platejs/static'
 import { createHeliumPlateStaticEditor } from '@/app/lib/plate/plate-static-config'
 import { isPlateValue, type HeliumPlateValue } from '@/app/lib/plate/plate-types'
 import { rejectAllPlateSuggestions } from '@/app/lib/plate/plate-suggestions'
+import type { FocusImageData } from '@/app/lib/image-focus'
 
 type ContentBlock =
     | { type: 'markdown', content: string }
@@ -10,7 +11,7 @@ type ContentBlock =
 
 export default function ContentEntityBody({ content, images, uploadPrefix }: {
     content: string
-    images: { id: number; altText: string | null; height: number; sha1: string; width: number }[]
+    images: (FocusImageData & { id: number; altText: string | null; sha1: string })[]
     uploadPrefix: string
 }) {
     try {
@@ -28,6 +29,7 @@ export default function ContentEntityBody({ content, images, uploadPrefix }: {
                         record.alt = image.altText ?? ''
                         record.imageWidth = image.width
                         record.imageHeight = image.height
+                        record.imageFocus = image
                     }
                 }
                 if (Array.isArray(record.children)) record.children.forEach(hydrateImages)
