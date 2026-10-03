@@ -5,7 +5,6 @@ import { Alert, Badge, Button, Textarea } from 'flowbite-react'
 import { ActionBar, createUsePuck } from '@puckeditor/core'
 import { HiArrowLeft, HiChatBubbleLeftRight, HiCheck, HiChevronDown, HiChevronUp } from 'react-icons/hi2'
 import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
-import { PuckClipboardButtons } from '@/app/lib/puck/PuckClipboard'
 
 const COMMENT_HIGHLIGHT_SELECTOR = '[data-puck-comment-highlight]'
 const usePuckSelector = createUsePuck()
@@ -293,7 +292,6 @@ export function PuckCommentActionBar({ children, label, parentAction, activeComp
             {label != null && <ActionBar.Label label={label}/>}
         </ActionBar.Group>
         <ActionBar.Group>
-            <PuckClipboardButtons/>
             {typeof componentId === 'string' && <Button
                 pill
                 size="xs"

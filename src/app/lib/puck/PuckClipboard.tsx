@@ -1,49 +1,90 @@
 'use client'
 
-import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
-import { createUsePuck, useGetPuck } from '@puckeditor/core'
-import { Button, Modal, ModalBody, ModalHeader, Textarea } from 'flowbite-react'
+import { createContext, useContext, useEffect, useRef, useState, type ReactNode } from 'react'
+import { createPortal } from 'react-dom'
+import { createUsePuck, IconButton, resolveAllData, useGetPuck } from '@puckeditor/core'
+import { HiOutlineClipboard, HiOutlineSquare2Stack } from 'react-icons/hi2'
 import { copyComponent, pasteComponent, COMPONENT_CLIPBOARD_FORMAT } from './component-clipboard'
+import { PUCK_CONFIG } from './puck-config'
 
-const ClipboardContext = createContext<{ copy: () => void; paste: () => void; canWrite: boolean } | null>(null)
+const ClipboardContext = createContext<{ copy: () => void; paste: () => void; canWrite: boolean; notice: string | null } | null>(null)
 const usePuckSelector = createUsePuck()
 
 export function PuckClipboardButtons() {
     const clipboard = useContext(ClipboardContext)
     const selected = usePuckSelector(state => state.selectedItem)
+    const anchorRef = useRef<HTMLSpanElement | null>(null)
+    const [position, setPosition] = useState<{ top: number; left: number } | null>(null)
+    useEffect(() => {
+        if (!clipboard?.notice || !anchorRef.current) return
+        const bounds = anchorRef.current.getBoundingClientRect()
+        setPosition({ top: bounds.bottom + 8, left: Math.max(8, bounds.left) })
+    }, [clipboard?.notice])
     if (!clipboard) return null
     return <>
-        <Button pill size="xs" color="alternative" className="cursor-pointer" disabled={!selected}
-                onClick={clipboard.copy}>复制</Button>
-        <Button pill size="xs" color="alternative" className="cursor-pointer" disabled={!clipboard.canWrite}
-                onClick={clipboard.paste}>粘贴</Button>
+        <IconButton title="复制组件 (Ctrl/Cmd+C)" disabled={!selected} onClick={clipboard.copy}>
+            <HiOutlineSquare2Stack className="size-5" aria-hidden="true"/>
+        </IconButton>
+        <span ref={anchorRef} className="inline-flex">
+        <IconButton title="粘贴组件 (Ctrl/Cmd+V)" disabled={!clipboard.canWrite} onClick={clipboard.paste}>
+            <HiOutlineClipboard className="size-5" aria-hidden="true"/>
+        </IconButton>
+        </span>
+        {clipboard.notice && position && createPortal(
+            <div role="tooltip" className="fixed z-[9999] max-w-72 rounded-xl bg-gray-900 px-3 py-2 text-sm text-white shadow-lg"
+                 style={position}>{clipboard.notice}</div>, document.body
+        )}
     </>
 }
 
 export function PuckClipboardProvider({ children, canWrite }: { children: ReactNode; canWrite: boolean }) {
     const getPuck = useGetPuck()
-    const [ error, setError ] = useState<string | null>(null)
-    const [ manualPaste, setManualPaste ] = useState(false)
-    const [ text, setText ] = useState('')
-    const applyPaste = (value: string) => {
+    const [notice, setNotice] = useState<string | null>(null)
+    const revealCleanup = useRef<(() => void) | null>(null)
+    useEffect(() => {
+        if (!notice) return
+        const timer = window.setTimeout(() => setNotice(null), 6000)
+        return () => window.clearTimeout(timer)
+    }, [notice])
+    useEffect(() => () => revealCleanup.current?.(), [])
+    const reveal = (id: string) => {
+        revealCleanup.current?.()
+        const editor = document.querySelector('.page-editor')
+        if (!editor) return
+        const documents = [document, ...Array.from(editor.querySelectorAll('iframe')).flatMap(frame => frame.contentDocument ? [frame.contentDocument] : [])]
+        let frame = 0
+        let attempts = 0
+        const find = () => {
+            for (const doc of documents) {
+                const element = doc.querySelector<HTMLElement>(`[data-puck-component="${CSS.escape(id)}"]`)
+                if (element) {
+                    element.scrollIntoView({ block: 'center', inline: 'nearest', behavior: 'smooth' })
+                    return
+                }
+            }
+            if (++attempts < 120) frame = window.requestAnimationFrame(find)
+        }
+        frame = window.requestAnimationFrame(find)
+        revealCleanup.current = () => window.cancelAnimationFrame(frame)
+    }
+    const applyPaste = async (value: string) => {
         if (!canWrite) return
         try {
+            const selectedId = getPuck().selectedItem?.props.id
+            // Validate and refresh copied content before recording a single insertion.
+            const validated = pasteComponent(value, { root: { props: {} }, content: [], zones: {} })
+            const resolved = await resolveAllData(validated.data, PUCK_CONFIG)
+            const refreshed = JSON.stringify({ format: COMPONENT_CLIPBOARD_FORMAT, component: resolved.content[0], zones: resolved.zones ?? {} })
             const api = getPuck()
-            const selector = api.selectedItem ? api.getSelectorForId(api.selectedItem.props.id) : undefined
-            const pasted = pasteComponent(value, api.appState.data, selector)
-            api.dispatch({ type: 'setData', data: pasted.data })
+            const selector = selectedId ? api.getSelectorForId(selectedId) : undefined
+            const pasted = pasteComponent(refreshed, api.appState.data, selector)
+            api.dispatch({ type: 'setData', data: pasted.data, recordHistory: true })
             const inserted = getPuck().getSelectorForId(pasted.id)
             if (inserted) api.dispatch({ type: 'setUi', ui: { itemSelector: inserted } })
-            pasted.ids.forEach(id => {
-                void Promise.resolve(getPuck().resolveDataById(id, 'force')).catch(cause => {
-                    console.error('Failed to resolve pasted Puck component:', { componentId: id }, cause)
-                    setError('组件已粘贴，预览内容加载失败。')
-                })
-            })
-            setManualPaste(false)
-            setText('')
+            reveal(pasted.id)
+            setNotice(null)
         } catch (cause) {
-            setError(cause instanceof Error ? cause.message : '无法粘贴组件。')
+            setNotice(cause instanceof Error ? cause.message : '无法粘贴组件。')
         }
     }
     const selectedText = () => {
@@ -71,16 +112,16 @@ export function PuckClipboardProvider({ children, canWrite }: { children: ReactN
                 }
             }
         } catch {
-            setError('请使用 Ctrl/Cmd+C 复制组件。')
+            setNotice('请使用 Command+C 或 Ctrl+C 复制组件。')
         }
     }
     const paste = async () => {
         if (!canWrite) return
         try {
             if (!navigator.clipboard?.readText) throw new Error('Clipboard unavailable')
-            applyPaste(await navigator.clipboard.readText())
+            await applyPaste(await navigator.clipboard.readText())
         } catch {
-            setManualPaste(true)
+            setNotice('浏览器限制了剪贴板访问，请使用 Command+V 或 Ctrl+V 粘贴。')
         }
     }
 
@@ -107,7 +148,7 @@ export function PuckClipboardProvider({ children, canWrite }: { children: ReactN
             const value = event.clipboardData?.getData('text/plain') ?? ''
             if (!value.includes(COMPONENT_CLIPBOARD_FORMAT)) return
             event.preventDefault()
-            applyPaste(value)
+            void applyPaste(value)
         }
         const attach = (doc: Document) => {
             if (documents.has(doc)) return
@@ -138,26 +179,7 @@ export function PuckClipboardProvider({ children, canWrite }: { children: ReactN
         }
     }, [ canWrite, getPuck ])
 
-    return <ClipboardContext.Provider value={{ copy, paste, canWrite }}>
+    return <ClipboardContext.Provider value={{ copy, paste, canWrite, notice }}>
         {children}
-        <Modal show={manualPaste || error != null} onClose={() => {
-            setManualPaste(false)
-            setError(null)
-        }}>
-            <ModalHeader>{error ? '组件剪贴板' : '粘贴组件'}</ModalHeader>
-            <ModalBody>
-                {error ? <p>{error}</p> :
-                    <Textarea rows={5} value={text} onChange={event => setText(event.target.value)}
-                              placeholder="使用 Ctrl/Cmd+V 粘贴已复制的组件"/>}
-                <div className="mt-6 flex gap-3">
-                    {manualPaste && !error &&
-                        <Button pill className="cursor-pointer" onClick={() => applyPaste(text)}>粘贴</Button>}
-                    <Button pill color="alternative" className="cursor-pointer" onClick={() => {
-                        setManualPaste(false)
-                        setError(null)
-                    }}>关闭</Button>
-                </div>
-            </ModalBody>
-        </Modal>
     </ClipboardContext.Provider>
 }

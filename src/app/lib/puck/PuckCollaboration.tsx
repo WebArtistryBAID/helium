@@ -21,6 +21,7 @@ import {
 } from 'react'
 import { createPortal } from 'react-dom'
 import { initializePuckYjsDocument, readPuckYjsDocument, updatePuckYjsDocument } from './puck-yjs'
+import { PuckClipboardButtons } from './PuckClipboard'
 
 export type PuckCollaborator = {
     clientId: number
@@ -345,7 +346,7 @@ export function PuckCollaboratorsPortal({ collaborators }: { collaborators: Puck
         setTarget(document.querySelector('.page-editor [class*="_PuckHeader-toggle_"]'))
     }, [])
     useLayoutEffect(() => {
-        if (!(target instanceof HTMLElement) || collaborators.length === 0) return
+        if (!(target instanceof HTMLElement)) return
         const previous = {
             alignItems: target.style.alignItems,
             alignSelf: target.style.alignSelf,
@@ -360,12 +361,15 @@ export function PuckCollaboratorsPortal({ collaborators }: { collaborators: Puck
             target.style.paddingTop = previous.paddingTop
         }
     }, [ collaborators.length, target ])
-    if (target == null || collaborators.length === 0) return null
+    if (target == null) return null
 
-    return createPortal(<div className="ml-2 flex h-8 self-center items-center -space-x-2 pl-1"
+    return createPortal(<div className="ml-2 flex self-center items-center gap-1">
+        <PuckClipboardButtons/>
+        {collaborators.length > 0 && <div className="ml-2 flex h-8 items-center -space-x-2 pl-1"
                              aria-label="当前协作用户">
         {collaborators.map(collaborator => <CollaboratorAvatar key={collaborator.clientId}
                                                                collaborator={collaborator}/>)}
+        </div>}
     </div>, target)
 }
 
