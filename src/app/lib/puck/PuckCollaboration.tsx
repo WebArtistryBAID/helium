@@ -51,8 +51,6 @@ type PuckApiLike = {
 type GetPuck = () => PuckApiLike
 type ConnectionStatus = 'connected' | 'joining' | 'offline'
 
-const ROOT_ZONE = 'root:default-zone'
-
 function cursorColor(userId: string): string {
     const hash = Array.from(userId).reduce(
         (value, character) => Math.imul(value ^ character.charCodeAt(0), 16_777_619) >>> 0,
@@ -61,135 +59,12 @@ function cursorColor(userId: string): string {
     return `hsl(${hash % 360} 72% 45%)`
 }
 
-function componentId(component: ComponentData): string {
-    return String(component.props.id)
-}
-
-function isComponentArray(value: unknown): value is ComponentData[] {
-    return Array.isArray(value) && value.every(item => item != null && typeof item === 'object' &&
-        'type' in item && typeof item.type === 'string' && 'props' in item && item.props != null &&
-        typeof item.props === 'object' && 'id' in item.props && typeof item.props.id === 'string')
-}
-
-function collectZones(data: Data): Map<string, ComponentData[]> {
-    const zones = new Map<string, ComponentData[]>([[ ROOT_ZONE, data.content ?? [] ]])
-    if (data.zones != null) {
-        for (const [ zone, content ] of Object.entries(data.zones)) zones.set(zone, content)
-    }
-
-    const visit = (components: ComponentData[]) => {
-        for (const component of components) {
-            for (const [ prop, value ] of Object.entries(component.props)) {
-                if (!isComponentArray(value)) continue
-                const zone = `${componentId(component)}:${prop}`
-                zones.set(zone, value)
-                visit(value)
-            }
-        }
-    }
-    visit(data.content ?? [])
-    for (const content of Object.values(data.zones ?? {})) visit(content)
-    return zones
-}
-
-function collectComponents(zones: Map<string, ComponentData[]>): Map<string, ComponentData> {
-    const components = new Map<string, ComponentData>()
-    for (const content of zones.values()) {
-        for (const component of content) components.set(componentId(component), component)
-    }
-    return components
-}
-
-function equalJson(left: unknown, right: unknown): boolean {
-    return JSON.stringify(left) === JSON.stringify(right)
-}
-
-function componentWithCurrentSlots(current: ComponentData | undefined, target: ComponentData): ComponentData {
-    if (current == null) return target
-    const props = { ...target.props }
-    for (const [ key, value ] of Object.entries(target.props)) {
-        if (isComponentArray(value) && isComponentArray(current.props[key])) props[key] = current.props[key]
-    }
-    return { ...target, props }
-}
-
 function synchronizePuck(getPuck: GetPuck, target: Data) {
-    let api = getPuck()
-    const selectedComponentId = api.selectedItem == null ? null : componentId(api.selectedItem)
-    if (!equalJson(api.appState.data.root, target.root)) {
-        api.dispatch({ type: 'replaceRoot', root: target.root, recordHistory: false })
-    }
-
-    const targetZones = collectZones(target)
-    const targetComponents = collectComponents(targetZones)
-    const currentZones = collectZones(api.appState.data)
-    const currentComponents = collectComponents(currentZones)
-
-    for (const id of currentComponents.keys()) {
-        if (targetComponents.has(id)) continue
-        api = getPuck()
-        const selector = api.getSelectorForId(id)
-        if (selector?.zone != null) {
-            api.dispatch({ type: 'remove', index: selector.index, zone: selector.zone, recordHistory: false })
-        }
-    }
-
-    const orderedZones = Array.from(targetZones.entries()).sort(([ left ], [ right ]) => {
-        if (left === ROOT_ZONE) return -1
-        if (right === ROOT_ZONE) return 1
-        return left.localeCompare(right)
-    })
-    for (const [ zone, components ] of orderedZones) {
-        for (let index = 0; index < components.length; index++) {
-            const component = components[index]
-            const id = componentId(component)
-            api = getPuck()
-            let selector = api.getSelectorForId(id)
-            if (selector == null) {
-                api.dispatch({
-                    type: 'insert',
-                    componentType: component.type,
-                    destinationIndex: index,
-                    destinationZone: zone,
-                    id,
-                    recordHistory: false
-                })
-                api = getPuck()
-                selector = api.getSelectorForId(id)
-            } else if (selector.zone != null && (selector.zone !== zone || selector.index !== index)) {
-                api.dispatch({
-                    type: 'move',
-                    sourceIndex: selector.index,
-                    sourceZone: selector.zone,
-                    destinationIndex: index,
-                    destinationZone: zone,
-                    recordHistory: false
-                })
-                api = getPuck()
-                selector = api.getSelectorForId(id)
-            }
-
-            const current = collectComponents(collectZones(api.appState.data)).get(id)
-            const replacement = componentWithCurrentSlots(current, component)
-            if (selector?.zone != null && !equalJson(current, replacement)) {
-                api.dispatch({
-                    type: 'replace',
-                    data: replacement,
-                    destinationIndex: selector.index,
-                    destinationZone: selector.zone,
-                    recordHistory: false
-                })
-            }
-        }
-    }
-
-    if (selectedComponentId != null) {
-        api = getPuck()
-        const itemSelector = api.getSelectorForId(selectedComponentId)
-        if (itemSelector != null && !equalJson(api.appState.ui.itemSelector, itemSelector)) {
-            api.dispatch({ type: 'setUi', ui: { itemSelector } })
-        }
-    }
+    const api = getPuck()
+    if (JSON.stringify(api.appState.data) === JSON.stringify(target)) return
+    // A single action applies the received snapshot without relying on intermediate
+    // selector indexes or publishing partially applied remote changes back to Yjs.
+    api.dispatch({ type: 'setData', data: target, recordHistory: false })
 }
 
 export function usePuckCollaboration({
