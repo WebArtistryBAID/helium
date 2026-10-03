@@ -16,6 +16,6 @@ export default function ButtonWidget({ text, link, color, size, align, blank }: 
     return <div className={`w-full flex ${align != null ? `justify-${align}` : ''}`}>
         <Button as={'a'} href={prefixLink(language, link)} target={blank ? '_blank' : undefined}
                 color={color} size={size}
-                pill>{text}</Button>
+                className="!rounded-none">{text}</Button>
     </div>
 }

@@ -33,9 +33,11 @@ import ImageTextLayoutConfig from '@/app/lib/puck/components/ImageTextLayout'
 import PeopleConfig from '@/app/lib/puck/components/PeopleConfig'
 import ImageGalleryConfig from '@/app/lib/puck/components/ImageGalleryConfig'
 import FullscreenVideoConfig from '@/app/lib/puck/components/FullscreenVideoConfig'
+import ScatteredImageTextConfig from '@/app/lib/puck/components/ScatteredImageTextConfig'
 
 export const PUCK_CONFIG: Config = {
     components: {
+        ScatteredImageTextConfig,
         ParagraphConfig,
         HeadingConfig,
         ButtonConfig,
@@ -87,8 +89,8 @@ export const PUCK_CONFIG: Config = {
             components: [ 'HeroConfig', 'TopTextConfig', 'HorizontalTopTextConfig' ]
         },
         imageContent: {
-            title: '图文展示',
-            components: [ 'ImageTextLayoutConfig', 'HighlightsConfig', 'BentoBoxConfig' ]
+            title: '图文排布',
+            components: [ 'ImageTextLayoutConfig', 'HighlightsConfig', 'BentoBoxConfig', 'ScatteredImageTextConfig' ]
         },
         media: {
             title: '图片轮播与视频',

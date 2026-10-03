@@ -50,7 +50,7 @@ export default function ApplicationSteps({ title, steps }: { title: string, step
                             <div className="!text-lg">{step.content}</div>
                             {step.link && step.linkText ? (
                                 <a href={prefixLink(lang, step.link)}
-                                   className="mt-2 inline-block max-w-full break-words rounded-full bg-[var(--standard-blue)] px-2 py-1 text-center font-sans text-white">
+                                   className="mt-2 inline-block max-w-full break-words rounded-none bg-[var(--standard-blue)] px-2 py-1 text-center font-sans text-white">
                                     {step.linkText}
                                 </a>
                             ) : null}

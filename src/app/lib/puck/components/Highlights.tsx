@@ -33,7 +33,7 @@ function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | nu
             {highlights?.map((highlight, index) => <div key={index}
                                                         className="group block w-full border-b border-gray-200 bg-white p-5 last:border-b-0 sm:p-8 lg:w-1/3 lg:border-b-0 lg:border-r lg:p-10 lg:last:border-r-0"
                                                         role="listitem">
-                <div className="flex justify-center items-center w-full h-48 overflow-hidden rounded-3xl mb-5">
+                <div className="flex justify-center items-center w-full h-48 overflow-hidden rounded-none mb-5">
                     <img alt={highlight.image?.altText ?? ''} src={`${uploadPrefix}/${highlight.image?.sha1}.webp`}
                          className="w-full h-full object-cover group-hover-scale"/>
                 </div>

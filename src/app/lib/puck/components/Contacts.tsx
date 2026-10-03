@@ -34,7 +34,7 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
                     <p className="!mb-4 text-lg sm:text-xl md:text-2xl">{description}</p>
                 ) : null}
 
-                <div className="w-full max-w-md rounded-3xl bg-white p-4 sm:p-5">
+                <div className="w-full max-w-md rounded-none bg-white p-4 sm:p-5">
                     {emailText ? <p className="font-bold">{emailText}</p> : null}
                     <ul aria-label="Contact emails" className="list-inside list-disc mb-2" role="list">
                         {(emails ?? []).map((email) => (

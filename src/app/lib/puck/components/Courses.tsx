@@ -67,7 +67,7 @@ export default function Courses({ title, courses }: {
                             role="tab"
                             type="button"
                             className={[
-                                'w-full h-full p-3 rounded-md transition-colors duration-300 cursor-pointer',
+                                'w-full h-full p-3 rounded-none transition-colors duration-300 cursor-pointer',
                                 isSelected ? 'bg-red-900 text-white' : ''
                             ].join(' ')}
                             onClick={() => change(name)}

@@ -32,7 +32,7 @@ export default function Accreditations({ title, text, accreditations, uploadPref
                     {accreditations?.map((acc, index) =>
                         <SwiperSlide key={index}>
                             <div
-                                className="mx-2 my-6 flex h-48 flex-col items-center justify-center rounded-lg bg-white sm:mx-4 sm:h-56 md:mx-8 md:my-12 md:h-72">
+                                className="mx-2 my-6 flex h-48 flex-col items-center justify-center rounded-none bg-white sm:mx-4 sm:h-56 md:mx-8 md:my-12 md:h-72">
                                 <img src={`${uploadPrefix}/${acc?.image?.sha1}.webp`} alt={acc?.image?.altText ?? ''}
                                      className="h-16 md:h-24 mb-3 md:mb-5"/>
                                 <p className="!font-sans text-black text-sm md:text-base">

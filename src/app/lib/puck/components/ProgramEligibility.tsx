@@ -505,7 +505,7 @@ export default function EligibilityWizard() {
                             return (
                                 <label
                                     key={opt.value}
-                                    className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer ${
+                                    className={`flex items-start gap-3 rounded-none border p-3 cursor-pointer ${
                                         checked ? 'border-indigo-400' : 'border-neutral-700/40'
                                     }`}
                                 >
@@ -537,7 +537,7 @@ export default function EligibilityWizard() {
                             return (
                                 <label
                                     key={opt.value}
-                                    className={`flex items-start gap-3 rounded-xl border p-3 cursor-pointer ${
+                                    className={`flex items-start gap-3 rounded-none border p-3 cursor-pointer ${
                                         checked ? 'border-indigo-400' : 'border-neutral-700/40'
                                     }`}
                                 >
@@ -571,7 +571,7 @@ export default function EligibilityWizard() {
                     aria-describedby={helper ? `${q.id}-helper` : undefined}
                     value={v}
                     onChange={(e) => updateAnswer(q.id, e.target.value)}
-                    className="w-full rounded-xl border border-neutral-700/40 bg-transparent p-3 text-sm"
+                    className="w-full rounded-none border border-neutral-700/40 bg-transparent p-3 text-sm"
                 />
             </div>
         )
@@ -581,7 +581,7 @@ export default function EligibilityWizard() {
 
     return (
         <div className="w-full max-w-3xl mx-auto p-4">
-            <div className="rounded-2xl border border-neutral-700/40 p-5 space-y-4">
+            <div className="rounded-none border border-neutral-700/40 p-5 space-y-4">
                 <div className="space-y-2">
                     <h2 className="text-xl font-semibold">
                         {lang === 'zh' ? '招生资格' : 'Eligibility Wizard'}
@@ -594,7 +594,7 @@ export default function EligibilityWizard() {
                 </div>
 
                 {showResults ? (
-                    <div className="rounded-2xl border border-neutral-700/40 p-4 space-y-3"
+                    <div className="rounded-none border border-neutral-700/40 p-4 space-y-3"
                          role="region" aria-live="polite" aria-labelledby="eligibility-results-heading">
                     <h2 id="eligibility-results-heading" className="text-lg font-semibold">
                         {lang === 'zh' ? '结果' : 'Results'}
@@ -651,7 +651,7 @@ export default function EligibilityWizard() {
                             <button
                                 type="button"
                                 onClick={resetWizard}
-                                className="rounded-xl border border-neutral-700/40 cursor-pointer px-4 py-2 hover:border-neutral-500/60"
+                                className="rounded-none border border-neutral-700/40 cursor-pointer px-4 py-2 hover:border-neutral-500/60"
                             >
                                 {lang === 'zh' ? '重新开始' : 'Start again'}
                             </button>
@@ -667,13 +667,13 @@ export default function EligibilityWizard() {
                         <button
                             type="button"
                             onClick={resetWizard}
-                            className="rounded-xl border border-neutral-700/40 cursor-pointer px-3 py-1.5 hover:border-neutral-500/60"
+                            className="rounded-none border border-neutral-700/40 cursor-pointer px-3 py-1.5 hover:border-neutral-500/60"
                         >
                             {lang === 'zh' ? '重置' : 'Reset'}
                         </button>
                     </div>
 
-                    <div className="rounded-2xl border border-neutral-700/40 p-4"
+                    <div className="rounded-none border border-neutral-700/40 p-4"
                          aria-live="polite" aria-atomic="true">
                         {current ? renderQuestion(current) : null}
                     </div>
@@ -683,7 +683,7 @@ export default function EligibilityWizard() {
                             type="button"
                             onClick={() => setStep((s) => Math.max(0, s - 1))}
                             disabled={step <= 0}
-                            className={`rounded-xl px-4 py-2 border ${
+                            className={`rounded-none px-4 py-2 border ${
                                 step <= 0 ? 'opacity-40 cursor-not-allowed border-neutral-700/40' : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'
                             }`}
                         >
@@ -700,7 +700,7 @@ export default function EligibilityWizard() {
                                 setStep((s) => s + 1)
                             }}
                             disabled={!canGoNext}
-                            className={`rounded-xl px-4 py-2 border ${
+                            className={`rounded-none px-4 py-2 border ${
                                 !canGoNext
                                     ? 'opacity-40 cursor-not-allowed border-neutral-700/40'
                                     : 'border-neutral-700/40 cursor-pointer hover:border-neutral-500/60'

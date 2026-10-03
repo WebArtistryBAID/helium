@@ -70,7 +70,7 @@ export default function Activities({ title, resolvedActivities, uploadPrefix }: 
             </h2>
         </div>
         <div aria-label="Activities"
-             className="sm:grid grid-cols-1 lg:grid-cols-2 gap-0 shadow-xl rounded-3xl overflow-clip" role="list">
+             className="sm:grid grid-cols-1 lg:grid-cols-2 gap-0 shadow-xl rounded-none overflow-clip" role="list">
             {activities?.length > 0 && <ActivityBlock
                 name={(language === 'en' ? activities[0]!.titlePublishedEN : activities[0]!.titlePublishedZH) ?? ''}
                 description={(language === 'en' ? activities[0]!.shortContentPublishedEN : activities[0]!.shortContentPublishedZH) ?? ''}

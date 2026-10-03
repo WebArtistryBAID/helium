@@ -54,10 +54,10 @@ export default function Curriculum({ title, curricula }: { title: string, curric
                     <div key={index} className="mb-4">
                         <details
                             open={activeMobileItem === index}
-                            className="!rounded-lg"
+                            className="!rounded-none"
                             onToggle={(e) => handleAccordionToggle(e, index)}
                         >
-                            <summary className="p-4 bg-gray-100 rounded-lg cursor-pointer font-medium">
+                            <summary className="p-4 bg-gray-100 rounded-none cursor-pointer font-medium">
                                 {item?.title}
                             </summary>
                             <div className="p-4">
@@ -65,7 +65,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
                                 <div className="mb-5">{item?.description}</div>
                                 <div className="grid grid-cols-1 gap-3">
                                     {(item?.courses ?? []).map((content, contentIndex) => (
-                                        <div key={contentIndex} className="bg-gray-100 p-3 rounded-lg">
+                                        <div key={contentIndex} className="bg-gray-100 p-3 rounded-none">
                                             {content?.name}
                                         </div>
                                     ))}
@@ -115,7 +115,7 @@ export default function Curriculum({ title, curricula }: { title: string, curric
                                 {(item?.courses ?? []).map((content, contentIndex) => (
                                     <div
                                         key={contentIndex}
-                                        className="bg-gray-100 p-3 rounded-lg transition-shadow duration-200 hover:shadow-md"
+                                        className="bg-gray-100 p-3 rounded-none transition-shadow duration-200 hover:shadow-md"
                                     >
                                         {content?.name}
                                     </div>

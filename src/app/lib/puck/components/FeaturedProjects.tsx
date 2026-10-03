@@ -36,7 +36,7 @@ export default function FeaturedProjects({ title, projects, uploadPrefix }: {
                         <div className="w-full md:w-2/3">
                             <div className="p-5 sm:p-8 lg:p-14 xl:p-20">
                                 <div
-                                    className="bg-[var(--standard-blue)] text-white px-4 py-2 rounded-full mb-4 inline-block">
+                                    className="bg-[var(--standard-blue)] text-white px-4 py-2 rounded-none mb-4 inline-block">
                                     {title}
                                 </div>
                                 <div className="transition-all duration-300 md:h-80 justify-center flex flex-col">

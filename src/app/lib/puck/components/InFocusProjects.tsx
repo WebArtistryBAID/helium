@@ -105,7 +105,7 @@ export default function InFocusProjects({
                                 className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
                                 <img src={`${uploadPrefix}/${projects[0].project?.coverImagePublished?.sha1}.webp`}
                                      alt={projects[0].project?.coverImagePublished?.altText ?? ''}
-                                     className="h-64 w-full rounded-3xl object-cover md:h-80"/>
+                                     className="h-64 w-full rounded-none object-cover md:h-80"/>
                             </div>
                             <div
                             className="flex flex-col justify-center p-5 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from sm:p-8"
@@ -154,7 +154,7 @@ export default function InFocusProjects({
                             className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
                             <img src={`${uploadPrefix}/${projects[1].project?.coverImagePublished?.sha1}.webp`}
                                  alt={projects[1].project?.coverImagePublished?.altText ?? ''}
-                                 className="h-64 w-full rounded-3xl object-cover md:h-80"/>
+                                 className="h-64 w-full rounded-none object-cover md:h-80"/>
                         </div>
                     </>}
 
@@ -163,7 +163,7 @@ export default function InFocusProjects({
                             className="animate-on-scroll block px-5 py-8 slide-up-fade-enter-active slide-up-fade-enter-from md:px-8 md:py-16">
                             <img src={`${uploadPrefix}/${projects[2].project?.coverImagePublished?.sha1}.webp`}
                                  alt={projects[2].project?.coverImagePublished?.altText ?? ''}
-                                 className="h-64 w-full rounded-3xl object-cover md:h-80"/>
+                                 className="h-64 w-full rounded-none object-cover md:h-80"/>
                         </div>
                         <div
                             className="flex flex-col justify-center p-5 animate-on-scroll slide-up-fade-enter-active slide-up-fade-enter-from sm:p-8"
@@ -195,11 +195,11 @@ export default function InFocusProjects({
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[3].discipline}
                                     </p>
-                                    <div className="rounded-3xl overflow-hidden mb-5 w-full h-60">
+                                    <div className="rounded-none overflow-hidden mb-5 w-full h-60">
                                         <img
                                             src={`${uploadPrefix}/${projects[3].project?.coverImagePublished?.sha1}.webp`}
                                             alt={projects[3].project?.coverImagePublished?.altText ?? ''}
-                                            className="rounded-3xl group-hover-scale w-full h-full object-cover"
+                                            className="rounded-none group-hover-scale w-full h-full object-cover"
                                         />
                                     </div>
                                     <p>
@@ -214,11 +214,11 @@ export default function InFocusProjects({
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[4].discipline}
                                     </p>
-                                    <div className="rounded-3xl overflow-hidden mb-5 w-full h-60">
+                                    <div className="rounded-none overflow-hidden mb-5 w-full h-60">
                                         <img
                                             src={`${uploadPrefix}/${projects[4].project?.coverImagePublished?.sha1}.webp`}
                                             alt={projects[4].project?.coverImagePublished?.altText ?? ''}
-                                            className="rounded-3xl group-hover-scale w-full h-full object-cover"
+                                            className="rounded-none group-hover-scale w-full h-full object-cover"
                                         />
                                     </div>
                                     <p>
@@ -233,11 +233,11 @@ export default function InFocusProjects({
                                     <p className="font-bold text-2xl !mb-3">
                                         {projects[5].discipline}
                                     </p>
-                                    <div className="rounded-3xl overflow-hidden mb-5 w-full h-60">
+                                    <div className="rounded-none overflow-hidden mb-5 w-full h-60">
                                         <img
                                             src={`${uploadPrefix}/${projects[5].project?.coverImagePublished?.sha1}.webp`}
                                             alt={projects[5].project?.coverImagePublished?.altText ?? ''}
-                                            className="rounded-3xl group-hover-scale w-full h-full object-cover"
+                                            className="rounded-none group-hover-scale w-full h-full object-cover"
                                         />
                                     </div>
                                     <p>

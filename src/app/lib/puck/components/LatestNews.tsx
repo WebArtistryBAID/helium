@@ -46,10 +46,10 @@ export default function LatestNews({ title, otherNewsText, readMoreText, resolve
                     <Link
                         href={prefixLink(language, getContentEntityURI(resolvedPosts[0].createdAt, resolvedPosts[0].slug))}
                         className="group block w-full lg:w-2/3">
-                        <div className="mb-3 h-56 w-full overflow-hidden rounded-3xl sm:h-72 md:h-96">
+                        <div className="mb-3 h-56 w-full overflow-hidden rounded-none sm:h-72 md:h-96">
                         <img alt={resolvedPosts[0].coverImagePublished?.altText ?? ''}
                              src={`${uploadPrefix}/${resolvedPosts[0].coverImagePublished?.sha1}.webp`}
-                             className="object-cover w-full h-full rounded-t-3xl transform transition-transform duration-300 ease-in-out group-hover:scale-105"/>
+                             className="object-cover w-full h-full rounded-none transform transition-transform duration-300 ease-in-out group-hover:scale-105"/>
                     </div>
                         <p className="fancy-link break-words font-serif text-2xl sm:text-3xl">
                         {language === 'en' ? resolvedPosts[0].titlePublishedEN : resolvedPosts[0].titlePublishedZH}

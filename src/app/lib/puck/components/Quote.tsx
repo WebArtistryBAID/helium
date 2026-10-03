@@ -33,7 +33,7 @@ function Quote({ text, source, image, uploadPrefix }: {
             <img
                 src={`${uploadPrefix}/${image?.sha1}.webp`}
                 alt={image?.altText ?? ''}
-                className="h-auto w-48 max-w-full rounded-3xl object-contain sm:w-56 md:w-64"/>
+                className="h-auto w-48 max-w-full rounded-none object-contain sm:w-56 md:w-64"/>
         </div>
 
         <div
