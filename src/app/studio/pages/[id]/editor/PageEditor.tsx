@@ -48,6 +48,7 @@ import {
 } from '@/app/lib/puck/PuckCollaboration'
 import { parsePuckData } from '@/app/lib/puck/puck-data'
 import { LanguageProvider } from '@/app/[[...slug]]/useLanguage'
+import { PuckClipboardProvider } from '@/app/lib/puck/PuckClipboard'
 
 const STABLE_INLINE_TEXT_TRANSFORMS = {
     text: ({ componentId, field, isReadOnly, propPath, value }: any) =>
@@ -599,6 +600,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                 }}
                 overrides={puckOverridesRef.current}
             >
+                <PuckClipboardProvider canWrite={canWrite}>
                 <PuckCommentsProvider value={{
                     activeComponentId: activeCommentComponentId,
                     canComment: canWrite,
@@ -617,6 +619,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                     <PuckCollaborationBridge register={collaboration.registerPuck}/>
                     <Puck.Layout/>
                 </PuckCommentsProvider>
+                </PuckClipboardProvider>
             </Puck>
         </div>
         </LanguageProvider>
