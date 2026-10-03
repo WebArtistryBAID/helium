@@ -34,10 +34,12 @@ import PeopleConfig from '@/app/lib/puck/components/PeopleConfig'
 import ImageGalleryConfig from '@/app/lib/puck/components/ImageGalleryConfig'
 import FullscreenVideoConfig from '@/app/lib/puck/components/FullscreenVideoConfig'
 import ScatteredImageTextConfig from '@/app/lib/puck/components/ScatteredImageTextConfig'
+import HalfScreenImageTextConfig from '@/app/lib/puck/components/HalfScreenImageText'
 
 export const PUCK_CONFIG: Config = {
     components: {
         ScatteredImageTextConfig,
+        HalfScreenImageTextConfig,
         ParagraphConfig,
         HeadingConfig,
         ButtonConfig,
@@ -90,7 +92,7 @@ export const PUCK_CONFIG: Config = {
         },
         imageContent: {
             title: '图文排布',
-            components: [ 'ImageTextLayoutConfig', 'HighlightsConfig', 'BentoBoxConfig', 'ScatteredImageTextConfig' ]
+            components: [ 'ImageTextLayoutConfig', 'HighlightsConfig', 'BentoBoxConfig', 'ScatteredImageTextConfig', 'HalfScreenImageTextConfig' ]
         },
         media: {
             title: '图片轮播与视频',
