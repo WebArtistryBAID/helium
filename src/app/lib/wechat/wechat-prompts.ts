@@ -19,6 +19,9 @@ BA 大讲堂: BA Lectures
 阅历课程: Experiential Program
 中华文化寻根之旅: Chinese Traditional Culture Exploration (= 阅历课程)
 北京文化探究: Beijing Culture Exploration
+无障碍发展 "未来星" 培养计划: Accessibility Development Future Stars Program
+全球院士公益创新英才营: Global Academician Public Welfare Innovation Talents Workshop (字数不够时，可以省去 "Public Welfare")
+全球视野阅读营: Global Vision Reading Camp
 职业体验: Career Experiences
 英才学者: Talent Scholar
 世界因我更美好: Better Me, Better World
