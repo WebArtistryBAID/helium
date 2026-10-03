@@ -47,6 +47,7 @@ import {
     usePuckCollaboration
 } from '@/app/lib/puck/PuckCollaboration'
 import { parsePuckData } from '@/app/lib/puck/puck-data'
+import { LanguageProvider } from '@/app/[[...slug]]/useLanguage'
 
 const STABLE_INLINE_TEXT_TRANSFORMS = {
     text: ({ componentId, field, isReadOnly, propPath, value }: any) =>
@@ -274,7 +275,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                     <Button pill size="md" color="alternative"
                             onClick={() => setShowMetadata(true)}>页面信息</Button>
                     <Button pill size="md" color="alternative"
-                            onClick={() => router.push(`/studio/pages/${draft.id}/preview`)}>预览</Button>
+                            onClick={() => router.push(`/studio/pages/${draft.id}/preview?lang=${inEnglish ? 'en' : 'zh'}`)}>预览</Button>
                     <Button pill size="md" color="alternative"
                             onClick={() => router.push(`/studio/pages/${draft.id}/approval`)}>审核与发布</Button>
                     <If condition={canWrite}>
@@ -565,6 +566,7 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             </ModalBody>
         </Modal>
 
+        <LanguageProvider language={inEnglish ? 'en' : 'zh'}>
         <div className="page-editor">
             <PuckCommentHighlights componentIds={Object.keys(commentThreadCounts)}/>
             <Puck
@@ -617,5 +619,6 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                 </PuckCommentsProvider>
             </Puck>
         </div>
+        </LanguageProvider>
     </>
 }
