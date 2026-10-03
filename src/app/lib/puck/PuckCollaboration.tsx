@@ -44,6 +44,7 @@ type PuckApiLike = {
         ui: { itemSelector: PuckItemSelector | null }
     }
     dispatch: (action: PuckAction) => void
+    resolveDataById: (id: string, trigger?: 'force') => void | Promise<void>
     getSelectorForId: (id: string) => PuckItemSelector | undefined
     selectedItem: ComponentData | null
 }
@@ -62,9 +63,37 @@ function cursorColor(userId: string): string {
 function synchronizePuck(getPuck: GetPuck, target: Data) {
     const api = getPuck()
     if (JSON.stringify(api.appState.data) === JSON.stringify(target)) return
+    const components = (data: Data) => {
+        const result = new Map<string, ComponentData>()
+        const visit = (value: unknown) => {
+            if (Array.isArray(value)) {
+                value.forEach(visit)
+            } else if (value != null && typeof value === 'object') {
+                const component = value as ComponentData
+                if (typeof component.type === 'string' && typeof component.props?.id === 'string') {
+                    result.set(component.props.id, component)
+                }
+                Object.values(value).forEach(visit)
+            }
+        }
+        visit(data.content)
+        visit(data.zones)
+        return result
+    }
+    const previousComponents = components(api.appState.data)
+    const changedIds = Array.from(components(target)).filter(([id, component]) =>
+        JSON.stringify(previousComponents.get(id)) !== JSON.stringify(component)
+    ).map(([id]) => id)
     // A single action applies the received snapshot without relying on intermediate
     // selector indexes or publishing partially applied remote changes back to Yjs.
     api.dispatch({ type: 'setData', data: target, recordHistory: false })
+    // Preview components consume resolved props, which field edits refresh automatically.
+    // Remote snapshots must explicitly run the same resolution after their raw props arrive.
+    for (const id of changedIds) {
+        void Promise.resolve(getPuck().resolveDataById(id, 'force')).catch(error => {
+            console.error('Failed to resolve remote Puck component:', { componentId: id }, error)
+        })
+    }
 }
 
 export function usePuckCollaboration({
