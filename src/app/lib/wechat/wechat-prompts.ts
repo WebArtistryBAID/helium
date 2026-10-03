@@ -1,6 +1,7 @@
 export const PROPER_NOUNS = `
 北京中学 Beijing Academy
 北京中学国际部 Beijing Academy International Division (总是缩写为 BAID，标题中必须缩写为 BAID)
+北京中学教育集团 Beijing Academy Education Group
 国际部: BAID
 北中外籍人员子女学校: International School of Beijing Academy (总是缩写为 ISBA，标题中必须缩写为 ISBA)
 毕业生故事: #GraduateStory
@@ -193,6 +194,7 @@ export const MCP_TRANSLATION_INSTRUCTIONS = `
 - 绝对不要有任何 Chinglish；你不应该直接翻译每句话，而是要用符合英文表达习惯的方式重写文章，但必须保留原意和关键细节。
 - 张老师，不要翻译为 "Teacher Zhang"，而应用 "Mr./Ms. Zhang"。
 - 禁止说 "Beijing Academy International Division (BAID)"；直接说 "BAID"。
+- 不要用 ‘，而要用 '。
 
 专有名词: ${PROPER_NOUNS}
 
@@ -243,6 +245,7 @@ export const TRANSLATE_LITERAL = `
 - 绝对不要有任何 Chinglish；你不应该直接翻译每句话，而是要用符合英文表达习惯的方式重写文章，但必须保留原意和关键细节。
 - 张老师，不要翻译为 "Teacher Zhang"，而应用 "Mr./Ms. Zhang"。
 - 禁止说 "Beijing Academy International Division (BAID)"；直接说 "BAID"。
+- 不要用 ‘，而要用 '。
 
 专有名词: ${PROPER_NOUNS}
 
