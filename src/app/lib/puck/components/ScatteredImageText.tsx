@@ -22,17 +22,17 @@ function ImageItem({ item, uploadPrefix, portrait = false, small = false }: {
         </div>
         {item?.text &&
             <p className={`mt-4 whitespace-pre-line break-words font-sans font-bold leading-[1.1] ${small
-                ? 'text-base sm:text-2xl lg:text-base'
-                : 'text-base sm:text-2xl lg:text-[clamp(1.125rem,2.1vw,2.5rem)]'}`}>{item.text}</p>}
+                ? 'text-sm sm:text-base'
+                : 'text-base sm:text-lg lg:text-xl'}`}>{item.text}</p>}
         <ImageLink item={item}/>
     </div>
 }
 
 function Quote({ quote }: { quote?: ScatteredQuote }) {
     return <blockquote>
-        <p className="whitespace-pre-line break-words font-serif text-lg leading-[1.25] sm:text-3xl lg:text-[clamp(1.125rem,1.65vw,1.875rem)]">{quote?.text}</p>
+        <p className="whitespace-pre-line break-words font-serif text-base leading-relaxed sm:text-lg">{quote?.text}</p>
         {quote?.attribution && <footer
-            className="mt-5 whitespace-pre-line break-words font-sans text-sm sm:text-xl lg:text-base">{quote.attribution}</footer>}
+            className="mt-5 whitespace-pre-line break-words font-sans text-sm">{quote.attribution}</footer>}
     </blockquote>
 }
 
@@ -58,9 +58,9 @@ export default function ScatteredImageText({
             <div className="lg:hidden"><ImageLink item={secondPortrait}/></div>
         </div>
         {secondPortrait?.text &&
-            <p className="w-[49%] whitespace-pre-line break-words font-sans text-base font-bold leading-tight sm:text-2xl lg:mt-4 lg:w-full lg:text-base">{secondPortrait.text}</p>}
+            <p className="w-[49%] whitespace-pre-line break-words font-sans text-sm font-bold leading-tight sm:text-base lg:mt-4 lg:w-full">{secondPortrait.text}</p>}
     </>
-    return <section className="w-full px-[2vw] py-6">
+    return <section className="container py-6">
         <div className="grid grid-cols-1 gap-y-16 sm:gap-y-24 lg:grid-cols-[45%_25%_21.5%] lg:gap-x-[4.25%] lg:gap-y-0">
             <ImageItem item={firstImage} uploadPrefix={uploadPrefix}/>
             <div className="lg:pt-[7vw]"><Quote quote={firstQuote}/></div>
