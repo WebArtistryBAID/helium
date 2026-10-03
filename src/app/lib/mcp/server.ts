@@ -19,6 +19,7 @@ import { authenticatePersonalToken } from '@/app/lib/services/personal-tokens'
 import { fetchEntity, getPublicationStatus, searchEntities } from '@/app/lib/services/mcp-discovery'
 import { operateEditorDocument, readEditorDocumentSchema } from '@/app/lib/services/mcp-editor'
 import { publishDraft } from '@/app/lib/services/publication'
+import { MCP_TRANSLATION_INSTRUCTIONS } from '@/app/lib/wechat/wechat-prompts'
 
 import { patchEntityFields, createMcpEntity, mutateEntityLifecycle } from '@/app/lib/services/mcp-mutations'
 import {
@@ -92,6 +93,10 @@ export function createHeliumMcpHandler(actor: OperationActor, bearerToken: strin
     }
 
     return createMcpHandler(server => {
+        server.registerTool('get_translation_instructions', {
+            description: 'Always call this tool first for any user task related to translation. Returns the current Helium translation requirements and terminology from the WeChat prompts. Follow these requirements when translating content.',
+            inputSchema: z.object({}).strict(), annotations: READ_ONLY
+        }, () => execute(async () => ({ instructions: MCP_TRANSLATION_INSTRUCTIONS })))
         server.registerTool('get_account', {
             description: 'Get the authenticated Helium account and its current roles.',
             inputSchema: z.object({}).strict(), annotations: READ_ONLY
@@ -237,7 +242,7 @@ export function createHeliumMcpHandler(actor: OperationActor, bearerToken: strin
             }).then(response => response.structuredContent.ok === false ? { ...response, isError: true } : response))
     }, {
         serverInfo: { name: 'helium', version: '0.1.0' },
-        instructions: 'Operate Helium with the authenticated user permissions. Entity reads describe saved snapshots. Users approve personally through the Studio approval link. Publication requires completed editor and admin approvals plus the fetched draft revision. Fetch current content before proposing edits. Read live editor documents before targeted edits. Use one idempotency key per intended mutation and reuse it for retries.',
+        instructions: 'Operate Helium with the authenticated user permissions. For every user task related to translation, always call get_translation_instructions first and follow its returned translation requirements before translating or editing translations. Entity reads describe saved snapshots. Users approve personally through the Studio approval link. Publication requires completed editor and admin approvals plus the fetched draft revision. Fetch current content before proposing edits. Read live editor documents before targeted edits. Use one idempotency key per intended mutation and reuse it for retries.',
         verboseLogs: false
     })
 }

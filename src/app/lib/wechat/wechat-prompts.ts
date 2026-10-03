@@ -1,49 +1,4 @@
-export const TRANSLATE_LITERAL = `
-在上传的附件中，有一篇**中文 Markdown** 校园新闻: 第一行是原标题（已以 \`#\` 开头给出），其后是正文 Markdown。你的任务是在保留中文大意和关键细节的前提下**流畅、自然地翻译为英文**，并且去除任何 Chinglish 表达，适当地重写文章使其符合英文表达习惯，并以**JSON** 返回结构化结果。
-
-## 翻译要求
-- **英文为唯一语言**: 输出中**不能出现任何中文**（含括号内注释、术语原文等）。  
-- **标题与正文**: 将给定的中文标题翻译为英文并放入 \`title\`；**不要**把主标题写入 \`content\`。如果标题包含中文表达，可以完全重写，或根据正文起更贴切的标题。正文禁止添加或删除。
-- **Markdown 结构**: 保留正文中的 Markdown 结构（段落、列表、加粗、斜体、引用、代码块、链接、图片等）。  
-- **图片与特殊符号**:   
-  - 不要修改或翻译图片的 Markdown 语法与链接（如 \`![]()\`）。  
-  - 不要翻译出现的字面 \`\\n\`（表示换行的转义），保持其原样。  
-- **文体与细节**:   
-  - 符合**校园新闻报道**的常见英文体例，语法正确，大小写与标点规范。  
-  - 文章中有中国式的表达，重写为符合原意的英文表达。你可以整段重写，但关键信息和语句顺序必须保留。
-  - **专有名词与术语**: 严格遵循下方“专有名词对照表”；若原文与对照表不同，以对照表为准。  
-  - **中文人名**: 采用汉语拼音，**姓在前、名在后**（如“张丹萌”→“Zhang Danmeng”），不使用音译英文名。吕姓翻译为 Lyu。
-  - 合理处理量词与日期表达，避免直译僵硬。
-  - 中文的一段可能在英文中需要翻译为多段，请根据英文阅读习惯适当拆分段落。
-  - 活动名称和其他适宜场景可用斜体表示。
-  - 学生写的文章，可以用更加轻松的语言风格，但要求符合原中文文稿的语气。
-  - 总是遵循 Oxford comma rule: 在列举三个或更多项目时，使用逗号分隔，最后一个项目前也使用逗号。
-  - 如果文章的风格比较诗意或文学化，可以适当使用修辞手法，或改善押韵，但不要改变原意。
-
-## 输出字段
-- \`content\`: 英文正文（不含主标题），保持 Markdown 结构与图片。  
-- \`title\`: 英文标题。    
-
-## 输出格式（仅输出 JSON 对象；不要使用代码块围栏）
-{
-  "content": "...Markdown in English...",
-  "title": "English Title"
-}
-必须直接输出文本 JSON 对象，禁止生成文件。
-
-## 重要禁止项
-- 不要输出任何解释性文字、提示或多余字符。  
-- 不要在 JSON 外再包裹 Markdown/代码围栏。  
-- 不要混用中英文本；**只输出英文内容**（除非为图片链接、\`\\n\` 字面量等要求保留的非英文字符）。
-- 不要用 "prestigious universities," "prestigious colleges," "elite universities," "elite colleges" 指中文中的 "名校"；请用 "top universities" 或 "top colleges"。
-- 使用正式的语言，禁止口语化表达 (例如 "kick off" 应改为 "launch")。
-- 不要用 "comprehensive" 来翻译中文中的 "综合"；请根据上下文使用 "integrated"、"combined"、"holistic" 等更贴切的词汇。
-- 不要用 "junior high school" 翻译初中；用 "middle school"。不要用 "senior high school" 翻译高中；用 "high school"。不要用 "elementary school" 翻译小学；用 "primary school"。
-- 绝对不要有任何 Chinglish；你不应该直接翻译每句话，而是要用符合英文表达习惯的方式重写文章，但必须保留原意和关键细节。
-- 张老师，不要翻译为 "Teacher Zhang"，而应用 "Mr./Ms. Zhang"。
-- 禁止说 "Beijing Academy International Division (BAID)"；直接说 "BAID"。
-
-专有名词:
+export const PROPER_NOUNS = `
 北京中学 Beijing Academy
 北京中学国际部 Beijing Academy International Division (总是缩写为 BAID，标题中必须缩写为 BAID)
 国际部: BAID
@@ -201,7 +156,96 @@ MFP (指项目): Major Foundation Program
 基础课程: Foundation Courses (在这个语境下，包含 语文: Chinese Language Arts & Culture；核心英语: Core English；核心数学: Core Mathematics；核心科学: Core Sciences；核心人文: Core Humanities)
 拓展课程: Enrichment Courses (在这个语境下，包含 学院系列: Academic Series；阅历系列: Experiential Series；雅趣系列: Fine Arts Series；健身系列: Fitness Series；服务系列: Service Series)
 潜能课程: Talent Courses (在这个语境下，包含 领导力系列: Leadership Series；创造力系列: Innovation Series；优势力系列: Arts Series)
-过境免签: transit without visa
+过境免签: transit without visa`
+
+export const MCP_TRANSLATION_INSTRUCTIONS = `
+你的任务是在保留中文大意和关键细节的前提下**流畅、自然地翻译为英文**，并且去除任何 Chinglish 表达，适当地重写文章使其符合英文表达习惯。
+
+## 翻译要求
+- **英文为唯一语言**: 输出中**不能出现任何中文**（含括号内注释、术语原文等）。  
+- **标题与正文**: 如果标题包含中文表达，可以完全重写，或根据正文起更贴切的标题。正文禁止添加或删除。
+- **Markdown 结构**: 保留正文中的 Markdown 结构（段落、列表、加粗、斜体、引用、代码块、链接、图片等）。  
+- **图片与特殊符号**:   
+  - 不要修改或翻译图片的 Markdown 语法与链接（如 \`![]()\`）。  
+  - 不要翻译出现的字面 \`\\n\`（表示换行的转义），保持其原样。  
+- **文体与细节**:   
+  - 符合**校园网站**的常见英文体例，语法正确，大小写与标点规范。  
+  - 文章中有中国式的表达，重写为符合原意的英文表达。你可以整段重写，但关键信息和语句顺序必须保留。
+  - **专有名词与术语**: 严格遵循下方“专有名词对照表”；若原文与对照表不同，以对照表为准。  
+  - **中文人名**: 采用汉语拼音，**姓在前、名在后**（如“张丹萌”→“Zhang Danmeng”），不使用音译英文名。吕姓翻译为 Lyu。
+  - 合理处理量词与日期表达，避免直译僵硬。
+  - 中文的一段可能在英文中需要翻译为多段，请根据英文阅读习惯适当拆分段落。
+  - 活动名称和其他适宜场景可用斜体表示。
+  - 学生写的文章，可以用更加轻松的语言风格，但要求符合原中文文稿的语气。
+  - 总是遵循 Oxford comma rule: 在列举三个或更多项目时，使用逗号分隔，最后一个项目前也使用逗号。
+  - 如果文章的风格比较诗意或文学化，可以适当使用修辞手法，或改善押韵，但不要改变原意。
+
+必须直接输出文本 JSON 对象，禁止生成文件。
+
+## 重要禁止项
+- 不要输出任何解释性文字、提示或多余字符。  
+- 不要在 JSON 外再包裹 Markdown/代码围栏。  
+- 不要混用中英文本；**只输出英文内容**（除非为图片链接、\`\\n\` 字面量等要求保留的非英文字符）。
+- 不要用 "prestigious universities," "prestigious colleges," "elite universities," "elite colleges" 指中文中的 "名校"；请用 "top universities" 或 "top colleges"。
+- 使用正式的语言，禁止口语化表达 (例如 "kick off" 应改为 "launch")。
+- 不要用 "comprehensive" 来翻译中文中的 "综合"；请根据上下文使用 "integrated"、"combined"、"holistic" 等更贴切的词汇。
+- 不要用 "junior high school" 翻译初中；用 "middle school"。不要用 "senior high school" 翻译高中；用 "high school"。不要用 "elementary school" 翻译小学；用 "primary school"。
+- 绝对不要有任何 Chinglish；你不应该直接翻译每句话，而是要用符合英文表达习惯的方式重写文章，但必须保留原意和关键细节。
+- 张老师，不要翻译为 "Teacher Zhang"，而应用 "Mr./Ms. Zhang"。
+- 禁止说 "Beijing Academy International Division (BAID)"；直接说 "BAID"。
+
+专有名词: ${PROPER_NOUNS}
+
+如果有专有名词没有在对照表中列出，请首先在网上搜索其官方英文名称，若没有官方英文名称，请保留中文原名，不要翻译。
+`
+
+export const TRANSLATE_LITERAL = `
+在上传的附件中，有一篇**中文 Markdown** 校园新闻: 第一行是原标题（已以 \`#\` 开头给出），其后是正文 Markdown。你的任务是在保留中文大意和关键细节的前提下**流畅、自然地翻译为英文**，并且去除任何 Chinglish 表达，适当地重写文章使其符合英文表达习惯，并以**JSON** 返回结构化结果。
+
+## 翻译要求
+- **英文为唯一语言**: 输出中**不能出现任何中文**（含括号内注释、术语原文等）。  
+- **标题与正文**: 将给定的中文标题翻译为英文并放入 \`title\`；**不要**把主标题写入 \`content\`。如果标题包含中文表达，可以完全重写，或根据正文起更贴切的标题。正文禁止添加或删除。
+- **Markdown 结构**: 保留正文中的 Markdown 结构（段落、列表、加粗、斜体、引用、代码块、链接、图片等）。  
+- **图片与特殊符号**:   
+  - 不要修改或翻译图片的 Markdown 语法与链接（如 \`![]()\`）。  
+  - 不要翻译出现的字面 \`\\n\`（表示换行的转义），保持其原样。  
+- **文体与细节**:   
+  - 符合**校园新闻报道**的常见英文体例，语法正确，大小写与标点规范。  
+  - 文章中有中国式的表达，重写为符合原意的英文表达。你可以整段重写，但关键信息和语句顺序必须保留。
+  - **专有名词与术语**: 严格遵循下方“专有名词对照表”；若原文与对照表不同，以对照表为准。  
+  - **中文人名**: 采用汉语拼音，**姓在前、名在后**（如“张丹萌”→“Zhang Danmeng”），不使用音译英文名。吕姓翻译为 Lyu。
+  - 合理处理量词与日期表达，避免直译僵硬。
+  - 中文的一段可能在英文中需要翻译为多段，请根据英文阅读习惯适当拆分段落。
+  - 活动名称和其他适宜场景可用斜体表示。
+  - 学生写的文章，可以用更加轻松的语言风格，但要求符合原中文文稿的语气。
+  - 总是遵循 Oxford comma rule: 在列举三个或更多项目时，使用逗号分隔，最后一个项目前也使用逗号。
+  - 如果文章的风格比较诗意或文学化，可以适当使用修辞手法，或改善押韵，但不要改变原意。
+
+## 输出字段
+- \`content\`: 英文正文（不含主标题），保持 Markdown 结构与图片。  
+- \`title\`: 英文标题。    
+
+## 输出格式（仅输出 JSON 对象；不要使用代码块围栏）
+{
+  "content": "...Markdown in English...",
+  "title": "English Title"
+}
+必须直接输出文本 JSON 对象，禁止生成文件。
+
+## 重要禁止项
+- 不要输出任何解释性文字、提示或多余字符。  
+- 不要在 JSON 外再包裹 Markdown/代码围栏。  
+- 不要混用中英文本；**只输出英文内容**（除非为图片链接、\`\\n\` 字面量等要求保留的非英文字符）。
+- 不要用 "prestigious universities," "prestigious colleges," "elite universities," "elite colleges" 指中文中的 "名校"；请用 "top universities" 或 "top colleges"。
+- 使用正式的语言，禁止口语化表达 (例如 "kick off" 应改为 "launch")。
+- 不要用 "comprehensive" 来翻译中文中的 "综合"；请根据上下文使用 "integrated"、"combined"、"holistic" 等更贴切的词汇。
+- 不要用 "junior high school" 翻译初中；用 "middle school"。不要用 "senior high school" 翻译高中；用 "high school"。不要用 "elementary school" 翻译小学；用 "primary school"。
+- 绝对不要有任何 Chinglish；你不应该直接翻译每句话，而是要用符合英文表达习惯的方式重写文章，但必须保留原意和关键细节。
+- 张老师，不要翻译为 "Teacher Zhang"，而应用 "Mr./Ms. Zhang"。
+- 禁止说 "Beijing Academy International Division (BAID)"；直接说 "BAID"。
+
+专有名词: ${PROPER_NOUNS}
+
 如果有专有名词没有在对照表中列出，请首先在网上搜索其官方英文名称，若没有官方英文名称，请保留中文原名，不要翻译。
 `
 
