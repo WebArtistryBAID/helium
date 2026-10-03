@@ -7,8 +7,8 @@ export type ScatteredImageItem = { image?: Image | null; text?: string; link?: s
 export type ScatteredQuote = { text?: string; attribution?: string }
 
 function ImageLink({ item }: { item?: ScatteredImageItem }) {
-    const link = item?.link?.trim()
-    const linkText = item?.linkText?.trim()
+    const link = typeof item?.link === 'string' ? item.link.trim() : ''
+    const linkText = typeof item?.linkText === 'string' ? item.linkText.trim() : ''
     return link && linkText ? <div className="mt-4"><ReadMore text={linkText} to={link} color="#82181a"/></div> : null
 }
 

@@ -8,7 +8,7 @@ const imageFields = {
     image: mediaTypeField('图片', [ 'image' ]),
     text: { label: '图片文字', type: 'textarea' as const, contentEditable: true },
     link: { label: '链接 (可选)', type: 'text' as const },
-    linkText: { label: '链接文字', type: 'text' as const, contentEditable: true }
+    linkText: { label: '链接文字', type: 'text' as const }
 }
 const quoteFields = {
     text: { label: '引言', type: 'textarea' as const, contentEditable: true },
