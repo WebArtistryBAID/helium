@@ -3,7 +3,8 @@
 Helium is the new content management system for the website of Beijing Academy International Division (BAID) and the
 International School of Beijing Academy (ISBA).
 
-Helium was originally developed by Lin Donglai and is now maintained by WebArtistry @BAID.
+Helium is based on [BAID-CSClub](https://github.com/BAID-CSClub)/[**baid-website-next**](https://github.com/BAID-CSClub/baid-website-next) by [@lihe07](https://github.com/lihe07) and [@lemonadedw](https://github.com/lemonadedw).
+It was originally developed by Lin Donglai and is now maintained by WebArtistry @BAID.
 
 * Everything that is displayed on the website for visitors is a `ContentEntity`. A `ContentEntity` includes the title,
   content, cover images, and other metadata for something that is displayed on the website.
