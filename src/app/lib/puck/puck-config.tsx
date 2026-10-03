@@ -6,7 +6,7 @@ import LatestNewsConfig from '@/app/lib/puck/components/LatestNewsConfig'
 import BentoBoxConfig from '@/app/lib/puck/components/BentoBox'
 import QuoteConfig from '@/app/lib/puck/components/Quote'
 import { InFocusCommencementConfig, InFocusNewStudentsConfig, InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
-import StatisticsConfig from '@/app/lib/puck/components/Statistics'
+import StatisticsConfig, { HorizontalStatisticsConfig } from '@/app/lib/puck/components/Statistics'
 import HorizontalTopTextConfig from '@/app/lib/puck/components/HorizontalTopText'
 import HeroConfig from '@/app/lib/puck/components/HeroConfig'
 import GridTextConfig from '@/app/lib/puck/components/GridText'
@@ -50,6 +50,7 @@ export const PUCK_CONFIG: Config = {
         InFocusNewStudentsConfig,
         InFocusCommencementConfig,
         StatisticsConfig,
+        HorizontalStatisticsConfig,
         HorizontalTopTextConfig,
         HeroConfig,
         GridTextConfig,
@@ -100,7 +101,7 @@ export const PUCK_CONFIG: Config = {
         school: {
             title: '学校与人物',
             components: [
-                'StatisticsConfig', 'AccreditationsConfig', 'PeopleConfig',
+                'StatisticsConfig', 'HorizontalStatisticsConfig', 'AccreditationsConfig', 'PeopleConfig',
                 'QuoteConfig', 'AnonymousQuoteConfig', 'AlumniConfig'
             ]
         },

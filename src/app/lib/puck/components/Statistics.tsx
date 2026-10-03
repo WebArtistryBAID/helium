@@ -5,32 +5,35 @@ interface StatsContent {
     value: string | undefined
 }
 
-function Statistics({ title, content }: {
+function Statistics({ title, content, horizontal = false }: {
     title: string | undefined,
-    content: (StatsContent | undefined)[] | undefined
+    content: (StatsContent | undefined)[] | undefined,
+    horizontal?: boolean
 }) {
     content = content?.filter((item) => item !== undefined && item.name !== undefined && item.value !== undefined)
-    return <section aria-labelledby="statistics-heading" className="container !my-16 !py-12 md:!my-24 md:!py-16">
+    return <section aria-labelledby={horizontal ? undefined : 'statistics-heading'} className="container !my-16 !py-12 md:!my-24 md:!py-16">
         <div className="flex flex-col gap-8 md:flex-row md:gap-10">
-            <div className="w-full md:w-1/3">
+            {horizontal ? null : <div className="w-full md:w-1/3">
                 <h2 id="statistics-heading" className="text-3xl md:text-4xl font-bold">
                     {title}
                 </h2>
-            </div>
+            </div>}
             <div
                 aria-label="Statistics"
-                className="grid w-full grid-cols-2 gap-6 md:w-2/3 md:grid-cols-2 md:gap-8"
+                className={horizontal
+                    ? 'grid w-full grid-cols-1 gap-6 min-[360px]:grid-cols-2 lg:grid-cols-4 md:gap-8'
+                    : 'grid w-full grid-cols-2 gap-6 md:w-2/3 md:grid-cols-2 md:gap-8'}
                 role="list">
                 {content?.map((stat, index) => <div
                     key={index}
-                    className="flex items-center"
+                    className="flex min-w-0 items-center"
                     aria-label={`${stat?.name}: ${stat?.value}`}
                     role="listitem">
                     <div>
                         <p aria-hidden className="break-words text-4xl text-red-900 sm:text-5xl lg:text-6xl">
                             {stat?.value}
                         </p>
-                        <p className="text-base md:text-lg font-sans">
+                        <p className="break-words text-base md:text-lg font-sans">
                             {stat?.name}
                         </p>
                     </div>
@@ -74,6 +77,17 @@ const StatisticsConfig: ComponentConfig = {
         ]
     },
     render: ({ title, content }) => <Statistics title={title} content={content}/>
+}
+
+export const HorizontalStatisticsConfig: ComponentConfig = {
+    label: '横向统计数据',
+    fields: {
+        content: StatisticsConfig.fields!.content
+    },
+    defaultProps: {
+        content: StatisticsConfig.defaultProps!.content
+    },
+    render: ({ content }) => <Statistics title={undefined} content={content} horizontal/>
 }
 
 export default StatisticsConfig
