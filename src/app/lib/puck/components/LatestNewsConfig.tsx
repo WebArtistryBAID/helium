@@ -8,6 +8,10 @@ import { convertDatesToStrings } from '@/app/lib/data-types'
 const LatestNewsConfig: ComponentConfig = {
     label: '最新文章',
     fields: {
+        category: {
+            label: '筛选分类',
+            type: 'text'
+        },
         title: {
             label: '标题',
             type: 'text'
@@ -37,7 +41,8 @@ const LatestNewsConfig: ComponentConfig = {
     },
     resolveData: async ({ props }, { trigger }) => {
         if (trigger === 'move') return { props }
-        const posts = convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post))
+        const category = props.category?.trim() || undefined
+        const posts = convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post, undefined, category))
         return {
             props: {
                 uploadPrefix: await getUploadServePath(),
