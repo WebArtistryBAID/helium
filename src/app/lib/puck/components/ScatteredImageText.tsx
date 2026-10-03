@@ -68,7 +68,7 @@ export default function ScatteredImageText({
             </div>
         </div>
         <div
-            className="mt-16 grid grid-cols-1 gap-y-16 sm:mt-24 sm:gap-y-24 lg:mt-[7.5vw] lg:grid-cols-[21.5%_25%_45%] lg:gap-x-[4.25%] lg:gap-y-0">
+            className="mt-10 grid grid-cols-1 gap-y-16 sm:mt-12 sm:gap-y-24 lg:mt-12 lg:grid-cols-[21.5%_25%_45%] lg:gap-x-[4.25%] lg:gap-y-0">
             <div className="lg:pt-[3.5vw]">
                 <div className="flex flex-row-reverse justify-between lg:block">{portraitContents}</div>
                 <div className="hidden lg:block"><ImageLink item={secondPortrait}/></div>
