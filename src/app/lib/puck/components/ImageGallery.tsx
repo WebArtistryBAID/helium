@@ -55,7 +55,7 @@ export default function ImageGallery({
         return null
     }
 
-    if (scrollable && !isEmbeddedEditor) {
+    if (scrollable) {
         return <ScrollGallery title={title} slides={resolvedSlides} uploadPrefix={uploadPrefix}/>
     }
 
@@ -88,19 +88,23 @@ function ScrollGallery({ title, slides, uploadPrefix }: {
         const viewport = viewportRef.current
         const track = trackRef.current
         if (!section || !viewport || !track) return
+        // Puck portals render in the preview document while the component runs in the host window.
+        const ownerDocument = section.ownerDocument
+        const ownerWindow = ownerDocument.defaultView
+        if (!ownerWindow) return
         let scrollContainer: HTMLElement | null = section.parentElement
-        while (scrollContainer && scrollContainer !== document.body && scrollContainer !== document.documentElement) {
-            if (/auto|scroll|overlay/.test(getComputedStyle(scrollContainer).overflowY)) break
+        while (scrollContainer && scrollContainer !== ownerDocument.body && scrollContainer !== ownerDocument.documentElement) {
+            if (/auto|scroll|overlay/.test(ownerWindow.getComputedStyle(scrollContainer).overflowY)) break
             scrollContainer = scrollContainer.parentElement
         }
-        const scrollElement = scrollContainer && scrollContainer !== document.body && scrollContainer !== document.documentElement
+        const scrollElement = scrollContainer && scrollContainer !== ownerDocument.body && scrollContainer !== ownerDocument.documentElement
             ? scrollContainer : null
-        const scrollTarget = scrollElement ?? window
+        const scrollTarget = scrollElement ?? ownerWindow
         const pinTop = () => scrollElement ? scrollElement.getBoundingClientRect().top + scrollElement.clientTop : 0
         let frame = 0
         let travel = 0
         let buffer = 0
-        const mobileQuery = window.matchMedia('(max-width: 767px)')
+        const mobileQuery = ownerWindow.matchMedia('(max-width: 767px)')
         const update = () => {
             frame = 0
             const distance = Math.max(0, Math.min(travel, pinTop() - section.getBoundingClientRect().top - buffer))
@@ -109,7 +113,7 @@ function ScrollGallery({ title, slides, uploadPrefix }: {
                 : `translate3d(${-distance}px, 0, 0)`
         }
         const scheduleUpdate = () => {
-            if (!frame) frame = window.requestAnimationFrame(update)
+            if (!frame) frame = ownerWindow.requestAnimationFrame(update)
         }
         const measure = () => {
             travel = (mobileQuery.matches ? viewport.clientHeight : viewport.clientWidth) * (slides.length - 1)
@@ -139,7 +143,7 @@ function ScrollGallery({ title, slides, uploadPrefix }: {
             mobileQuery.removeEventListener('change', measure)
             scrollTarget.removeEventListener('scroll', scheduleUpdate)
             section.removeEventListener('wheel', onWheel)
-            window.cancelAnimationFrame(frame)
+            ownerWindow.cancelAnimationFrame(frame)
         }
     }, [ slides.length ])
 
