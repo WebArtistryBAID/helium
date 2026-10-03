@@ -26,7 +26,9 @@ function Statistics({ title, content, horizontal = false }: {
                 role="list">
                 {content?.map((stat, index) => <div
                     key={index}
-                    className="flex min-w-0 items-center"
+                    className={horizontal
+                        ? 'flex min-w-0 items-center justify-center text-center'
+                        : 'flex min-w-0 items-center'}
                     aria-label={`${stat?.name}: ${stat?.value}`}
                     role="listitem">
                     <div>
