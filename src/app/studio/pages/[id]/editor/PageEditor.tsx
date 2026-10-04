@@ -254,13 +254,17 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         puckOverridesRef.current = {
             header: ({ children }: { children: ReactNode }) => {
                 const state = puckOverrideStateRef.current!
-                return <>
+                return <div className="relative">
+                    <a href="/studio" aria-label="Helium Studio"
+                       className="absolute left-0 top-0 z-10 flex h-[70px] w-[65px] cursor-pointer items-center justify-center focus-visible:outline-2 focus-visible:outline-blue-600">
+                        <img src="/assets/helium.svg" alt="" className="h-8 w-8"/>
+                    </a>
                     {children}
                     <PuckCollaboratorsPortal collaborators={state.collaboration.collaborators}/>
                     <span className="sr-only" role="status">
                         {collaborationStatusLabel(state.collaboration.status)}
                     </span>
-                </>
+                </div>
             },
             iframe: PuckPreviewFrame,
             preview: ({ children }: { children: ReactNode }) => {
