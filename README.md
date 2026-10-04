@@ -1,8 +1,28 @@
+<div align="center">
+
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/assets/helium-lockup-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="public/assets/helium-lockup-light.svg">
-  <img width="200px" alt="Welcome to Helium" src="public/assets/helium-lockup-light.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/helium-lockup-dark.svg">
+  <img src="docs/assets/helium-lockup-light.svg" alt="Helium" width="360">
 </picture>
+
+<br>
+
+BAID's website. Built with Next.js.
+
+<br>
+
+[![Next.js](https://img.shields.io/badge/Next.js-16-000000?logo=nextdotjs&logoColor=white)](https://nextjs.org)
+[![React](https://img.shields.io/badge/React-19-149ECA?logo=react&logoColor=white)](https://react.dev)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5-3178C6?logo=typescript&logoColor=white)](https://www.typescriptlang.org)
+[![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-4-06B6D4?logo=tailwindcss&logoColor=white)](https://tailwindcss.com)
+[![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
+[![PostgreSQL](https://img.shields.io/badge/PostgreSQL-required-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
+
+[Get Started](#get-started) · [Pages](#expected-pages) · [Environment Variables](#environment-variables) · [Contribution](#contribution) · [License](#license)
+
+</div>
+
+
 
 Helium is the new content management system for the website of Beijing Academy International Division (BAID) and the
 International School of Beijing Academy (ISBA).
@@ -179,3 +199,10 @@ All rights reserved unless otherwise stated. Refer to `LICENSE` for details.
 
 "Beijing Academy," "BAID," "Better Me, Better World," and the Beijing Academy logo are legally protected and may not be
 used without official authorization.
+
+
+<br>
+
+<div align="center">
+  <img src="docs/assets/helium-icon.svg" alt="" width="40">
+</div>
