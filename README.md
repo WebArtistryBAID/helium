@@ -1,8 +1,8 @@
 <div align="center">
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/helium-lockup-dark.svg">
-  <img src="docs/assets/helium-lockup-light.svg" alt="Helium" width="360">
+  <source media="(prefers-color-scheme: dark)" srcset="public/assets/helium-lockup-dark.svg">
+  <img src="public/assets/helium-lockup-light.svg" alt="Helium" width="360">
 </picture>
 
 <br>
