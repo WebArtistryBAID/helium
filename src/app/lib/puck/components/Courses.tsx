@@ -6,12 +6,21 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import Link from 'next/link'
 
-export default function Courses({ title, courses }: {
+export default function Courses({ title, courses, categoryOrder = [] }: {
     title: string | undefined,
-    courses: { [courseName: string]: (SimplifiedContentEntity | undefined)[] | undefined }
+    courses: { [courseName: string]: (SimplifiedContentEntity | undefined)[] | undefined },
+    categoryOrder?: string[]
 }) {
     const language = useLanguage()
-    const tabNames = useMemo(() => Object.keys(courses || {}), [ courses ])
+    const tabNames = useMemo(() => {
+        const names = Object.keys(courses || {})
+        const order = new Map(categoryOrder.map((name, index) => [ name, index ]))
+        return names.sort((a, b) => {
+            const aIndex = order.get(a) ?? Infinity
+            const bIndex = order.get(b) ?? Infinity
+            return aIndex - bIndex || a.localeCompare(b, 'en')
+        })
+    }, [ courses, categoryOrder ])
     const [ selected, setSelected ] = useState<string | null>(null)
 
     // Initialize selected to first tab when data arrives/changes
@@ -24,7 +33,8 @@ export default function Courses({ title, courses }: {
 
     const currentItems = useMemo(() => {
         if (!selected) return [] as (SimplifiedContentEntity | undefined)[]
-        return courses?.[selected] ?? []
+        return [ ...(courses?.[selected] ?? []) ].sort((a, b) =>
+            (a?.titlePublishedEN ?? '').localeCompare(b?.titlePublishedEN ?? '', 'en', { sensitivity: 'base' }))
     }, [ courses, selected ])
 
     // Keyboard navigation (Left/Right arrows)

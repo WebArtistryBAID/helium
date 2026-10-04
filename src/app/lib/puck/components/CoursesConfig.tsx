@@ -59,7 +59,11 @@ const CoursesConfig: ComponentConfig = {
             }
         }
     },
-    render: ({ title, resolvedCourses }) => <Courses title={title} courses={resolvedCourses}/>
+    render: ({ title, categoryENList, resolvedCourses }) =>
+        <Courses title={title} courses={resolvedCourses}
+                 categoryOrder={(categoryENList ?? []).map((item: {
+                     value?: string | null
+                 } | null | undefined) => item?.value?.trim() ?? '').filter(Boolean)}/>
 }
 
 export default CoursesConfig
