@@ -7,7 +7,7 @@
 
 <br>
 
-**The website of Beijing Academy (BAID).**
+BAID's website. Built with Next.js.
 
 <br>
 
@@ -18,63 +18,41 @@
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-required-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 
-[Get Started](#-get-started) · [Pages](#-expected-pages) · [Environment Variables](#-environment-variables) · [Contribution](#-contribution) · [License](#-license)
+[Get Started](#get-started) · [Pages](#expected-pages) · [Environment Variables](#environment-variables) · [Contribution](#contribution) · [License](#license)
 
 </div>
 
-<br>
+## Get Started
 
-## 🚀 Get Started
+To run in production:
 
-### Development
-
-> [!NOTE]
-> You need Node.js and npm, plus a PostgreSQL database.
-
-```bash
-# 1. Install dependencies
-npm install
-
-# 2. Create your environment file, then fill in the values
-cp .env.example .env
-
-# 3. Start the dev server
-npm run dev
-```
-
-Also run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier) alongside it.
-
-### Production
-
-```bash
-npm run build
-npm run start   # serves on port 52323
-```
-
-* Use [`pm2`](https://pm2.keymetrics.io) for proper process management in production.
-* Remember to set the [environment variables](#-environment-variables).
+* Using `pm2` allows for proper deployment in production.
+* Remember to set the environment variables.
 * Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier).
 
-## 🗺️ Expected Pages
+To run in development:
 
-| Route         | Description |
-|---------------|-------------|
-| `/`           | Home        |
-| `/about`      | About       |
-| `/academics`  | Academics   |
-| `/life`       | Life        |
-| `/projects`   | Projects    |
-| `/admissions` | Admissions  |
-| `/news`       | News        |
+* Ensure that you have node.js and npm available.
+* Run `npm install`.
+* Copy `.env.example` to `.env` and fill the environment variables.
+* Run `npm run dev`.
+* Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier).
 
-Content entities are shown at `/content/yyyy/MM/dd/slug`.
+## Expected Pages
 
-> [!TIP]
-> Certain pages have hardcoded constants associated with them; for example, header transparency.
+* `/`
+* `/about`
+* `/academics`
+* `/life`
+* `/projects`
+* `/admissions`
+* `/news`
 
-## 🔐 Environment Variables
+Certain pages have hardcoded constants associated with them; for example, header transparency.
 
-Copy `.env.example` to `.env` and fill in the following:
+`/content/yyyy/MM/dd/slug` is used for showing details of content entities.
+
+## Environment Variables
 
 | Name                     | Description                                                                                                     |
 |--------------------------|-----------------------------------------------------------------------------------------------------------------|
@@ -91,20 +69,13 @@ Copy `.env.example` to `.env` and fill in the following:
 | `FEISHU_CLIENT_ID`       | Feishu app ID used for account binding and approval notifications.                                              |
 | `FEISHU_CLIENT_SECRET`   | Feishu app secret used for account binding and approval notifications.                                          |
 
-## 🤝 Contribution
+## Contribution
 
 Contribution is accepted from Beijing Academy students. All contributions are owned by Beijing Academy.
 
-## 📄 License
+## License
 
-All rights reserved unless otherwise stated. Refer to [`LICENSE`](LICENSE) for details.
+All rights reserved unless otherwise stated. Refer to `LICENSE` for details.
 
-> [!IMPORTANT]
-> "Beijing Academy," "BAID," "Better Me, Better World," and the Beijing Academy logo are legally protected and may not be
-> used without official authorization.
-
-<br>
-
-<div align="center">
-  <img src="docs/assets/helium-icon.svg" alt="" width="40">
-</div>
+"Beijing Academy," "BAID," "Better Me, Better World," and the Beijing Academy logo are legally protected and may not be
+used without official authorization.
