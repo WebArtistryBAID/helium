@@ -1,3 +1,5 @@
+import CopyImageId from '@/app/lib/CopyImageId'
+import { collectImageIds } from '@/app/lib/collect-image-ids'
 import { cookies, headers } from 'next/headers'
 import { notFound, redirect } from 'next/navigation'
 import { Render, resolveAllData } from '@puckeditor/core'
@@ -150,15 +152,18 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     if (entity == null) {
         notFound()
     }
+    const pageData = await resolveAllData(parsePuckData(
+        finalLocale === 'en' ? entity.contentPublishedEN ?? '' : entity.contentPublishedZH ?? '',
+        finalLocale === 'en' ? entity.titlePublishedEN ?? '' : entity.titlePublishedZH ?? ''
+    ), PUCK_CONFIG)
     return (
         <div className="min-h-screen">
             <GlobalHeader websiteMetadata={websiteMetadata}
                           transparentNavbar={entity.transparentNavbarPublished ?? false}/>
             <main id="main-content" tabIndex={-1}>
-                <Render config={PUCK_CONFIG}
-                        data={finalLocale === 'en'
-                            ? await resolveAllData(parsePuckData(entity.contentPublishedEN ?? '', entity.titlePublishedEN ?? ''), PUCK_CONFIG)
-                            : await resolveAllData(parsePuckData(entity.contentPublishedZH ?? '', entity.titlePublishedZH ?? ''), PUCK_CONFIG)}/>
+                <CopyImageId imageIds={collectImageIds(pageData)} locale={finalLocale}>
+                    <Render config={PUCK_CONFIG} data={pageData}/>
+                </CopyImageId>
             </main>
             <GlobalFooter websiteMetadata={websiteMetadata}/>
         </div>

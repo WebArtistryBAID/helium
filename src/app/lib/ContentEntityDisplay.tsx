@@ -1,3 +1,5 @@
+import CopyImageId from '@/app/lib/CopyImageId'
+import { collectImageIds } from '@/app/lib/collect-image-ids'
 import FocusImage from '@/app/lib/FocusImage'
 import { EntityType, Image } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
@@ -27,7 +29,7 @@ export default function ContentEntityDisplay({
     const isPeoplePage = type === EntityType.faculty
     const displayDate = typeof createdAt === 'string' ? new Date(createdAt) : createdAt
 
-    return <>
+    return <CopyImageId imageIds={collectImageIds([ images, coverImage ])} locale={locale}>
         <If condition={isPeoplePage}>
             <header className="mx-auto w-full max-w-5xl px-6 pt-32 sm:px-10 sm:pt-40">
                 <div
@@ -71,5 +73,5 @@ export default function ContentEntityDisplay({
                 <ContentEntityBody content={content} images={images} uploadPrefix={uploadPrefix}/>
             </article>
         </div>
-    </>
+    </CopyImageId>
 }
