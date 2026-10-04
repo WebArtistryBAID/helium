@@ -371,13 +371,3 @@ article img {
 .project-big-pic-box {
     box-shadow: -2rem 2rem var(--standard-blue);
 }
-
-.highlights-title:lang(zh) {
-    @apply text-xl;
-}
-
-@media (min-width: 40rem) {
-    .highlights-title:lang(zh) {
-        @apply text-2xl;
-    }
-}
