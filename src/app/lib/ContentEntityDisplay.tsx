@@ -66,7 +66,7 @@ export default function ContentEntityDisplay({
                     </header>
                 </If>
                 <If condition={!isPeoplePage && type !== EntityType.post}>
-                    <h1 className="text-5xl text-center">{title}</h1>
+                    <h1 className="text-5xl text-center mb-10">{title}</h1>
                 </If>
                 <ContentEntityBody content={content} images={images} uploadPrefix={uploadPrefix}/>
             </article>
