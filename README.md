@@ -18,7 +18,7 @@ BAID's website. Built with Next.js.
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-required-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 
-[Get Started](#get-started) · [Pages](#expected-pages) · [Environment Variables](#environment-variables) · [Contribution](#contribution) · [License](#license)
+[Overview](#overview) · [Development](#development) · [Environment Variables](#environment-variables) · [Contribution](#contribution) · [License](#license)
 
 </div>
 
