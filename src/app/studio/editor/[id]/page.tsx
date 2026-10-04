@@ -1,38 +1,31 @@
 import ContentEntityEditor from '@/app/studio/editor/[id]/ContentEntityEditor'
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/app/login/login-actions'
-import { tryAcquireLock } from '@/app/lib/lock/lock-typicals'
 import { getContentEntity } from '@/app/studio/editor/entity-actions'
+import { getPlateCommentThreads } from '@/app/studio/editor/comment-actions'
+import { convertLegacyMarkdownContent } from '@/app/lib/services/entities'
+import { getStudioActor } from '@/app/lib/services/studio-actor'
 
-export default async function StudioContentEntityEditor({ params, searchParams }: {
-    params: Promise<{ id: string }>,
-    searchParams: Promise<{ token?: string | null }>
+export default async function StudioContentEntityEditor({ params }: {
+    params: Promise<{ id: string }>
 }) {
     const user = await requireUser()
 
-    const entity = await getContentEntity(parseInt((await params).id))
+    const id = parseInt((await params).id)
+    await convertLegacyMarkdownContent(await getStudioActor(), id)
+    const entity = await getContentEntity(id)
     if (entity == null) {
         redirect('/studio')
     }
-    const requestedToken = (await searchParams).token ?? undefined
     if (entity.type === 'page') {
-        redirect(`/studio/pages/${entity.id}/editor?token=${requestedToken ?? ''}`)
+        redirect(`/studio/pages/${entity.id}/editor`)
     }
 
-    const token = await tryAcquireLock({
-        entityType: entity.type,
-        entityId: entity.id,
-        currentToken: requestedToken
-    })
-    if (typeof token !== 'string') {
-        return token
-    }
-    if (requestedToken !== token) {
-        redirect(`/studio/editor/${entity.id}?token=${token}`)
-    }
+    const commentThreads = await getPlateCommentThreads(entity.id)
 
     return <div className="p-16">
-        <ContentEntityEditor init={entity} user={user}
-                             lockToken={token} uploadPrefix={process.env.UPLOAD_SERVE_PATH!}/>
+        <ContentEntityEditor init={entity} user={user} initialCommentThreads={commentThreads}
+                             uploadPrefix={process.env.UPLOAD_SERVE_PATH!}
+                             host={process.env.HOST!}/>
     </div>
 }

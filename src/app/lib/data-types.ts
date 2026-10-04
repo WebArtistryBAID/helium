@@ -25,7 +25,8 @@ export function isAligned(item: HydratedContentEntity) {
         item.contentPublishedZH === item.contentDraftZH &&
         item.shortContentPublishedEN === item.shortContentDraftEN &&
         item.shortContentPublishedZH === item.shortContentDraftZH &&
-        item.coverImagePublishedId === item.coverImageDraftId
+        item.coverImagePublishedId === item.coverImageDraftId &&
+        item.transparentNavbarPublished === item.transparentNavbarDraft
     )
 }
 
@@ -99,6 +100,7 @@ export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
 
 export interface HydratedContentEntity {
     id: number
+    collaborationGeneration: number
     type: EntityType
     titlePublishedEN: string | null
     titlePublishedZH: string | null
@@ -119,6 +121,8 @@ export interface HydratedContentEntity {
     coverImagePublishedId: number | null
     coverImageDraft: Image | null
     coverImageDraftId: number | null
+    transparentNavbarPublished: boolean | null
+    transparentNavbarDraft: boolean
     creatorId: number
     creator: SimplifiedUser
     createdAt: Date | string
@@ -127,6 +131,8 @@ export interface HydratedContentEntity {
 
 export const HYDRATED_CONTENT_ENTITY_SELECT = {
     id: true,
+    // Part of entityRevision; without it fetched revisions never match the ones mutations check.
+    collaborationGeneration: true,
     type: true,
     titlePublishedEN: true,
     titlePublishedZH: true,
@@ -147,10 +153,37 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     coverImagePublishedId: true,
     coverImageDraft: true,
     coverImageDraftId: true,
+    transparentNavbarPublished: true,
+    transparentNavbarDraft: true,
     creatorId: true,
     creator: {
         select: SIMPLIFIED_USER_SELECT
     },
+    createdAt: true,
+    updatedAt: true
+}
+
+// Returned by unauthenticated queries: drafts and creator details must never reach visitors.
+export type PublicContentEntity = Omit<HydratedContentEntity,
+    'titleDraftEN' | 'titleDraftZH' | 'shortContentDraftEN' | 'shortContentDraftZH' |
+    'contentDraftEN' | 'contentDraftZH' | 'coverImageDraft' | 'coverImageDraftId' |
+    'transparentNavbarDraft' | 'creatorId' | 'creator' | 'collaborationGeneration'>
+
+export const PUBLIC_CONTENT_ENTITY_SELECT = {
+    id: true,
+    type: true,
+    titlePublishedEN: true,
+    titlePublishedZH: true,
+    shortContentPublishedEN: true,
+    shortContentPublishedZH: true,
+    slug: true,
+    categoryEN: true,
+    categoryZH: true,
+    contentPublishedEN: true,
+    contentPublishedZH: true,
+    coverImagePublished: true,
+    coverImagePublishedId: true,
+    transparentNavbarPublished: true,
     createdAt: true,
     updatedAt: true
 }
@@ -180,8 +213,12 @@ export function prefixLink(prefix: string | null | undefined, link: string | nul
     if (prefix == null || link == null) {
         return ''
     }
-    if (/^(https?:)?\/\//.test(link)) {
-        return link
+    const href = link.trim()
+    if (/^(?:javascript|data|vbscript):/i.test(href)) {
+        return ''
     }
-    return `/${prefix.replace(/\/+$/, '')}/${link.replace(/^\/+/, '')}`
+    if (/^(?:[a-z][a-z\d+.-]*:|\/\/|#|\?)/i.test(href)) {
+        return href
+    }
+    return `/${prefix.replace(/\/+$/, '')}/${href.replace(/^\/+/, '')}`
 }

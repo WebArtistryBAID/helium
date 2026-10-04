@@ -1,12 +1,12 @@
-import type { Config } from '@measured/puck'
+import type { Config } from '@puckeditor/core'
 import TopTextConfig from '@/app/lib/puck/components/TopText'
 import HighlightsConfig from '@/app/lib/puck/components/Highlights'
 import ContainerConfig from '@/app/lib/puck/components/ContainerConfig'
 import LatestNewsConfig from '@/app/lib/puck/components/LatestNewsConfig'
 import BentoBoxConfig from '@/app/lib/puck/components/BentoBox'
 import QuoteConfig from '@/app/lib/puck/components/Quote'
-import { InFocusNewStudentsConfig, InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
-import StatisticsConfig from '@/app/lib/puck/components/Statistics'
+import { InFocusCommencementConfig, InFocusNewStudentsConfig, InFocusProjectsConfig } from '@/app/lib/puck/components/InFocusConfigs'
+import StatisticsConfig, { HorizontalStatisticsConfig } from '@/app/lib/puck/components/Statistics'
 import HorizontalTopTextConfig from '@/app/lib/puck/components/HorizontalTopText'
 import HeroConfig from '@/app/lib/puck/components/HeroConfig'
 import GridTextConfig from '@/app/lib/puck/components/GridText'
@@ -32,9 +32,14 @@ import ProgramEligibilityConfig from '@/app/lib/puck/components/ProgramEligibili
 import ImageTextLayoutConfig from '@/app/lib/puck/components/ImageTextLayout'
 import PeopleConfig from '@/app/lib/puck/components/PeopleConfig'
 import ImageGalleryConfig from '@/app/lib/puck/components/ImageGalleryConfig'
+import FullscreenVideoConfig from '@/app/lib/puck/components/FullscreenVideoConfig'
+import ScatteredImageTextConfig from '@/app/lib/puck/components/ScatteredImageTextConfig'
+import HalfScreenImageTextConfig from '@/app/lib/puck/components/HalfScreenImageText'
 
 export const PUCK_CONFIG: Config = {
     components: {
+        ScatteredImageTextConfig,
+        HalfScreenImageTextConfig,
         ParagraphConfig,
         HeadingConfig,
         ButtonConfig,
@@ -47,7 +52,9 @@ export const PUCK_CONFIG: Config = {
         QuoteConfig,
         InFocusProjectsConfig,
         InFocusNewStudentsConfig,
+        InFocusCommencementConfig,
         StatisticsConfig,
+        HorizontalStatisticsConfig,
         HorizontalTopTextConfig,
         HeroConfig,
         GridTextConfig,
@@ -68,57 +75,67 @@ export const PUCK_CONFIG: Config = {
         ProgramEligibilityConfig,
         ImageTextLayoutConfig,
         PeopleConfig,
-        ImageGalleryConfig
+        ImageGalleryConfig,
+        FullscreenVideoConfig
     },
     categories: {
         foundational: {
-            title: '基础',
-            components: [ 'ParagraphConfig', 'HeadingConfig', 'ButtonConfig', 'CardConfig' ]
-        },
-        layout: {
-            title: '布局',
-            components: [ 'ContainerConfig', 'SpacerConfig', 'ImageTextLayoutConfig', 'ImageGalleryConfig' ]
-        },
-        sharedContent: {
-            title: '共享内容',
-            components: [ 'HeroConfig', 'TopTextConfig', 'HighlightsConfig', 'QuoteConfig',
-                'AnonymousQuoteConfig', 'StatisticsConfig', 'HorizontalTopTextConfig', 'GridTextConfig',
-                'PeopleConfig' ]
-        },
-        home: {
-            title: '首页内容',
-            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig', 'BentoBoxConfig',
-                'LatestNewsConfig', 'NewsListConfig' ]
-        },
-        about: {
-            title: '关于内容',
+            title: '基础与布局',
             components: [
-                'AccreditationsConfig', 'AlumniConfig'
+                'HeadingConfig', 'ParagraphConfig', 'ButtonConfig', 'ContainerConfig',
+                'SpacerConfig', 'CardConfig', 'GridTextConfig'
+            ]
+        },
+        introductions: {
+            title: '首屏与引言',
+            components: [ 'HeroConfig', 'TopTextConfig', 'HorizontalTopTextConfig' ]
+        },
+        imageContent: {
+            title: '图文排布',
+            components: [ 'ImageTextLayoutConfig', 'HighlightsConfig', 'BentoBoxConfig', 'ScatteredImageTextConfig', 'HalfScreenImageTextConfig' ]
+        },
+        media: {
+            title: '图片轮播与视频',
+            components: [ 'ImageGalleryConfig', 'FullscreenVideoConfig' ]
+        },
+        news: {
+            title: '新闻与动态',
+            components: [ 'LatestNewsConfig', 'NewsListConfig' ]
+        },
+        school: {
+            title: '学校与人物',
+            components: [
+                'StatisticsConfig', 'HorizontalStatisticsConfig', 'AccreditationsConfig', 'PeopleConfig',
+                'QuoteConfig', 'AnonymousQuoteConfig', 'AlumniConfig'
             ]
         },
         academics: {
-            title: '学术内容',
+            title: '课程与学术',
             components: [
                 'CoursesConfig', 'CurriculumConfig', 'SpecialtiesConfig'
             ]
         },
         life: {
-            title: '校园生活内容',
+            title: '活动与社团',
             components: [
                 'ActivitiesConfig', 'ClubsConfig'
             ]
         },
         admissions: {
-            title: '招生内容',
+            title: '招生与联系',
             components: [
-                'SpecialtiesConfig', 'ApplicationStepsConfig', 'ContactsConfig', 'ProgramEligibilityConfig'
+                'ProgramEligibilityConfig', 'ApplicationStepsConfig', 'ContactsConfig'
             ]
         },
         projects: {
-            title: '学生项目内容',
+            title: '学生项目',
             components: [
                 'FeaturedProjectsConfig', 'ProjectCategoryConfig'
             ]
+        },
+        features: {
+            title: '专题展示',
+            components: [ 'InFocusNewStudentsConfig', 'InFocusProjectsConfig', 'InFocusCommencementConfig' ]
         }
     }
 }

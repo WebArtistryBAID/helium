@@ -1,8 +1,10 @@
 import { Image } from '@/generated/prisma/browser'
-import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { ComponentConfig } from '@puckeditor/core'
+import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { convertDatesToStrings } from '@/app/lib/data-types'
+import FocusImage from '@/app/lib/FocusImage'
+import { hasImageFocus } from '@/app/lib/image-focus'
 
 function Contacts({ title, description, emailText, emails, phoneText, phones, backgroundImage, uploadPrefix }: {
     title: string | undefined,
@@ -21,24 +23,28 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
 
     return (
         <div
-            style={bgUrl ? { backgroundImage: `url(${bgUrl})` } : undefined}
-            className="bg-cover"
+            style={bgUrl && !hasImageFocus(backgroundImage) ? { backgroundImage: `url(${bgUrl})` } : undefined}
+            className="relative bg-cover"
             aria-labelledby="contact-heading"
             role="region"
         >
-            <section aria-labelledby="contact-heading" className="section mt-12 md:!mt-24 py-12 md:!py-24 container">
-                <h2 id="contact-heading" className="text-4xl font-bold mb-5">
+            {hasImageFocus(backgroundImage) && <FocusImage image={backgroundImage} src={bgUrl} alt=""
+                                                           aria-hidden="true"
+                                                           className="absolute inset-0 h-full w-full object-cover"/>}
+            <section aria-labelledby="contact-heading"
+                     className="relative section container mt-12 py-12 md:!mt-20 md:!py-20">
+                <h2 id="contact-heading" className="mb-4 break-words text-3xl font-bold sm:text-4xl">
                     {title}
                 </h2>
                 {description ? (
-                    <p className="text-2xl !mb-3">{description}</p>
+                    <p className="!mb-4 text-lg sm:text-xl md:text-2xl">{description}</p>
                 ) : null}
 
-                <div className="rounded-3xl p-4 md:p-5 bg-white max-w-md w-full">
+                <div className="w-full max-w-md rounded-none bg-white p-4 sm:p-5">
                     {emailText ? <p className="font-bold">{emailText}</p> : null}
                     <ul aria-label="Contact emails" className="list-inside list-disc mb-2" role="list">
                         {(emails ?? []).map((email) => (
-                            <li key={email!.text} role="listitem">
+                            <li key={email!.text} role="listitem" className="break-words">
                                 {email!.text}
                             </li>
                         ))}
@@ -47,7 +53,7 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
                     {phoneText ? <p className="font-bold">{phoneText}</p> : null}
                     <ul aria-label="Contact phone numbers" className="list-inside list-disc" role="list">
                         {(phones ?? []).map((phone) => (
-                            <li key={phone!.text} role="listitem">
+                            <li key={phone!.text} role="listitem" className="break-words">
                                 {phone!.text}
                             </li>
                         ))}
@@ -103,14 +109,15 @@ const ContactsConfig: ComponentConfig = {
                 }
             }
         },
-        backgroundImage: imageTypeField('背景图片'),
+        backgroundImage: mediaTypeField('背景图片', [ 'image' ]),
         resolvedBackgroundImage: RESOLVED_IMAGE_TYPE,
         resolvedUploadPrefix: {
             type: 'text',
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 ...props,

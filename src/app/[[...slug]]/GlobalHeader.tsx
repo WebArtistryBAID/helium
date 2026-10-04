@@ -1,11 +1,12 @@
 'use client'
 
 import { usePathname, useRouter } from 'next/navigation'
-import { useEffect, useMemo, useRef, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import SchoolLogo from '@/app/[[...slug]]/SchoolLogo'
 import RouterLinks from '@/app/[[...slug]]/RouterLinks'
 import GlobalFooter from '@/app/[[...slug]]/GlobalFooter'
+import { WebsiteMetadataDraft } from '@/app/lib/metadata/website-metadata-types'
 
 const locales = {
     en: {
@@ -26,28 +27,29 @@ const locales = {
     }
 }
 
-export default function GlobalHeader({ pages, headerAnimate = false }: {
-    pages: {
-        id: number,
-        titleEN: string,
-        titleZH: string,
-        slug: string,
-        subPages: { id: number, titleEN: string, titleZH: string, slug: string }[]
-    }[],
-    headerAnimate?: boolean
+export default function GlobalHeader({ transparentNavbar, websiteMetadata }: {
+    transparentNavbar: boolean
+    websiteMetadata: WebsiteMetadataDraft
 }) {
     const pathname = usePathname() || '/'
     const language = useLanguage()
     const router = useRouter()
+    const headerAnimate = transparentNavbar
 
     // ----- Scroll + visibility state -----
     const [ scrollY, setScrollY ] = useState<number>(0)
     const [ headerVisible, setHeaderVisible ] = useState(true)
     const [ mounted, setMounted ] = useState(false)
+    const [ viewportHeight, setViewportHeight ] = useState(0)
+    const [ surface, setSurface ] = useState('light')
 
     useEffect(() => {
         setMounted(true)
         setScrollY(window.scrollY)
+        const updateHeight = () => setViewportHeight(window.innerHeight)
+        updateHeight()
+        window.addEventListener('resize', updateHeight)
+        return () => window.removeEventListener('resize', updateHeight)
     }, [])
 
     useEffect(() => {
@@ -70,15 +72,9 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
     }, [ mounted ])
 
     // ----- Styling derived state -----
-    const backgroundClass = useMemo(() => {
-        if (!headerAnimate) return 'bg-white'
-        if (!mounted) return 'bg-white'
-        return scrollY < window.innerHeight ? 'bg-transparent' : 'bg-white'
-    }, [ headerAnimate, mounted, scrollY ])
-
-    const isTransparent = useMemo(() => {
-        return headerAnimate && mounted && scrollY < window.innerHeight
-    }, [ headerAnimate, mounted, scrollY ])
+    const isTransparent = mounted && scrollY < viewportHeight && (headerAnimate || surface === 'gradient')
+    const backgroundClass = isTransparent ? 'bg-transparent' : 'bg-white'
+    const useBlackText = !isTransparent || (surface !== 'dark' && surface !== 'gradient')
 
     // ----- Mobile menu state / a11y -----
     const [ mobileOpen, setMobileOpen ] = useState(false)
@@ -86,7 +82,6 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
     const menuButtonRef = useRef<HTMLButtonElement | null>(null)
     const mobileMenuRef = useRef<HTMLDivElement | null>(null)
 
-    const [ useBlackText, setUseBlackText ] = useState(true)
 
     useEffect(() => {
         if (mobileOpen) {
@@ -138,12 +133,6 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
 
     useEffect(() => {
         const update = () => {
-            // 1) If header background is white (i.e., not transparent), always use black text
-            if (!isTransparent) {
-                setUseBlackText(true)
-                return
-            }
-            // 2) Otherwise detect underlying surface
             const x = Math.floor(window.innerWidth / 2)
             const y = 1 // just below the top edge
             const stack = document.elementsFromPoint(x, y)
@@ -159,8 +148,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                 surface = cur.getAttribute('data-surface')
                 cur = cur.parentElement
             }
-            // Default to black text if we can't determine
-            setUseBlackText(surface !== 'dark')
+            setSurface(surface ?? 'light')
         }
 
         update()
@@ -170,7 +158,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
             window.removeEventListener('scroll', update)
             window.removeEventListener('resize', update)
         }
-    }, [ isTransparent ])
+    }, [ pathname, mounted ])
 
     return (
         <>
@@ -180,6 +168,11 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
 
             <header
                 role="banner"
+                style={{
+                    backgroundImage: isTransparent && surface === 'gradient'
+                        ? 'linear-gradient(to bottom, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0))'
+                        : undefined
+                }}
                 onFocus={() => setHeaderVisible(true)}
                 className={[
                     'fixed top-0 left-0 w-full px-4 sm:px-8 gap-3 flex z-50 transform transition-all duration-300',
@@ -187,7 +180,9 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                     backgroundClass
                 ].join(' ')}>
                 <div className="mr-auto py-4 transition-colors duration-300">
-                    <SchoolLogo color={useBlackText ? 'black' : 'white'}/>
+                    <SchoolLogo color={useBlackText ? 'black' : 'white'}
+                                titleEN={websiteMetadata.en.title}
+                                titleZH={websiteMetadata.zh.title}/>
                 </div>
 
                 <nav
@@ -197,13 +192,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                         useBlackText ? 'text-black' : 'text-white'
                     ].join(' ')}
                 >
-                    <RouterLinks pages={pages}/>
-                    <div className="flex items-center justify-center text-lg ml-3">
-                        <a className="bg-red-900 rounded-full p-2 text-white" href="https://link.beijing.academy"
-                           target="_blank" rel="noreferrer">
-                            LinkBAID
-                        </a>
-                    </div>
+                    <RouterLinks items={websiteMetadata[language].navbar}/>
                 </nav>
 
                 <div className="h-18 w-24 flex items-center justify-center gap-2">
@@ -273,7 +262,7 @@ export default function GlobalHeader({ pages, headerAnimate = false }: {
                             </svg>
                         </button>
 
-                        <GlobalFooter pages={pages}/>
+                        <GlobalFooter websiteMetadata={websiteMetadata}/>
                     </div>
                 )}
             </header>

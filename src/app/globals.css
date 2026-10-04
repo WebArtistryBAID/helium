@@ -1,10 +1,10 @@
 @import 'tailwindcss';
+@import 'flowbite-react/plugin/tailwindcss';
 @import 'swiper/css';
 @import 'swiper/css/pagination';
 @import 'swiper/css/a11y';
 @import 'swiper/css/autoplay';
 
-@plugin 'flowbite-react/plugin/tailwindcss';
 @source '../../.flowbite-react/class-list.json';
 
 @font-face {
@@ -39,6 +39,39 @@
     unicode-range: U+0000-00FF, U+0100-017F;
 }
 
+@font-face {
+    font-family: "Inter";
+    src: url("/assets/fonts/Inter_24pt-Regular.ttf") format("truetype");
+    font-weight: 400;
+    font-style: normal;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("/assets/fonts/Inter_24pt-Italic.ttf") format("truetype");
+    font-weight: 400;
+    font-style: italic;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("/assets/fonts/Inter_24pt-Bold.ttf") format("truetype");
+    font-weight: 700;
+    font-style: normal;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+@font-face {
+    font-family: "Inter";
+    src: url("/assets/fonts/Inter_24pt-BoldItalic.ttf") format("truetype");
+    font-weight: 700;
+    font-style: italic;
+    unicode-range: U+0000-00FF, U+0100-017F;
+}
+
+
 @theme {
     --font-sans: Lato, "Source Hans Sans", "PingFang SC", "SimHei", "黑体", "Microsoft YaHei", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
@@ -70,6 +103,71 @@
     --shrink-limit: 750px;
 }
 
+/* Studio page editor: a restrained blue treatment for Puck's stock UI. */
+.page-editor {
+    --puck-color-azure-04: #2563eb;
+    --puck-color-azure-05: #3b82f6;
+    --puck-color-azure-08: #bfdbfe;
+    --puck-color-azure-09: #dbeafe;
+    --puck-color-azure-10: #eff6ff;
+    --puck-color-azure-11: #f5f9ff;
+    --puck-color-azure-12: #f8fbff;
+    --puck-color-grey-09: #e5e7eb;
+    --puck-color-grey-10: #f0f2f5;
+    --puck-color-grey-11: #f6f7f9;
+    --puck-color-grey-12: #fafafa;
+}
+
+.page-editor [class*="_PuckHeader_"]:not([class*="_PuckHeader-"]) {
+    background: #ffffff;
+    border-color: #e5e7eb;
+}
+
+.page-editor [class*="_PuckCanvas_"]:not([class*="_PuckCanvas-"]) {
+    background: #f6f7f9;
+    min-height: 0;
+    min-width: 0;
+}
+
+.page-editor [class*="_PuckCanvas-root_"] {
+    border-color: #dfe3e8;
+    border-radius: 0.75rem;
+    box-shadow: none;
+    /* Keep long previews reachable when the canvas height or zoom changes. */
+    overflow: auto;
+}
+
+/* Anchor the preview height to Puck's measured canvas, including in Safari. */
+.page-editor #puck-canvas-root > div {
+    position: absolute;
+    inset: 0;
+    height: auto;
+}
+
+.page-editor [data-puck-preview] {
+    position: absolute;
+    inset: 0;
+    height: auto;
+}
+
+.page-editor iframe#preview-frame {
+    display: block;
+    height: 100%;
+}
+
+.page-editor [class*="_Sidebar--"] {
+    background: #ffffff;
+    border-color: #e5e7eb;
+}
+
+.website-metadata-editor button:not(:disabled) {
+    cursor: pointer;
+}
+
+.website-metadata-editor button:disabled {
+    cursor: not-allowed;
+}
+
 a.inline {
     @apply text-blue-500 hover:underline;
 }
@@ -95,8 +193,9 @@ i {
 }
 
 .container {
+    width: 100%;
     max-width: 77rem;
-    @apply mx-auto;
+    @apply mx-auto px-5 sm:px-6 lg:px-8;
 }
 
 .at:after {
@@ -178,6 +277,18 @@ article img {
 
 .content-entity-article p {
     @apply mb-6;
+}
+
+.content-entity-article table p {
+    @apply mb-0 leading-6;
+}
+
+.helium-plate-table tr > :not(:last-child) {
+    border-right: 1px solid var(--color-gray-200);
+}
+
+.helium-plate-table tr:not(:last-child) > * {
+    border-bottom: 1px solid var(--color-gray-200);
 }
 
 .content-entity-article h1 {

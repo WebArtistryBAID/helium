@@ -1,9 +1,9 @@
 import People from '@/app/lib/puck/components/People'
 import { convertDatesToStrings, getContentEntityURI } from '@/app/lib/data-types'
-import { getUploadServePath } from '@/app/studio/media/media-actions'
-import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
+import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/lib/puck/resolve-resources'
 import { EntityType } from '@/generated/prisma/browser'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 const PeopleConfig: ComponentConfig = {
     label: '人员',
@@ -16,16 +16,13 @@ const PeopleConfig: ComponentConfig = {
                     label: '人员',
                     type: 'external',
                     fetchList: async ({ query }) => {
-                        if (!query) {
-                            return (await getPublishedContentEntities(0, EntityType.faculty)).items.map(faculty => ({
-                                id: faculty.id,
-                                title: faculty.titlePublishedZH ?? '(无姓名)',
-                                createdAt: faculty.createdAt,
-                                slug: faculty.slug,
-                                data: faculty
-                            }))
+                        const firstPage = await getPublishedContentEntities(0, EntityType.faculty, query)
+                        const people = [ ...firstPage.items ]
+                        for (let page = 1; page < firstPage.pages; page++) {
+                            const nextPage = await getPublishedContentEntities(page, EntityType.faculty, query)
+                            people.push(...nextPage.items)
                         }
-                        return (await getPublishedContentEntities(0, EntityType.project, query)).items.map(faculty => ({
+                        return people.map(faculty => ({
                             id: faculty.id,
                             title: faculty.titlePublishedZH ?? '(无姓名)',
                             createdAt: faculty.createdAt,
@@ -54,23 +51,26 @@ const PeopleConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                resolvedPeople: await Promise.all((props.people ?? []).map(async (item: any) => {
+                resolvedPeople: (await Promise.all((props.people ?? []).map(async (item: any) => {
                     if (!item?.person?.id) return null
+                    const entity = await getPublishedContentEntity(item.person.id)
+                    if (!entity) return null
                     return {
                         id: item.person.id,
-                        nameEN: item.person.data.titlePublishedEN ?? '',
-                        nameZH: item.person.data.titlePublishedZH ?? '',
+                        nameEN: entity.titlePublishedEN ?? '',
+                        nameZH: entity.titlePublishedZH ?? '',
                         title: item.title,
-                        descriptionEN: item.person.data.shortContentPublishedEN ?? '',
-                        descriptionZH: item.person.data.shortContentPublishedZH ?? '',
-                        link: getContentEntityURI(item.person.createdAt, item.person.slug),
-                        image: convertDatesToStrings(item.person.data.coverImagePublished)
+                        descriptionEN: entity.shortContentPublishedEN ?? '',
+                        descriptionZH: entity.shortContentPublishedZH ?? '',
+                        link: getContentEntityURI(entity.createdAt, entity.slug),
+                        image: convertDatesToStrings(entity.coverImagePublished)
                     }
-                })),
+                }))).filter(item => item != null),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }

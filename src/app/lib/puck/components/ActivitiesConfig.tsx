@@ -1,7 +1,7 @@
 import { EntityType } from '@/generated/prisma/browser'
-import { ComponentConfig } from '@measured/puck'
-import { getContentEntity, getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import { getUploadServePath } from '@/app/studio/media/media-actions'
+import { ComponentConfig } from '@puckeditor/core'
+import { getPublishedContentEntities, getPublishedContentEntity } from '@/app/lib/puck/resolve-resources'
+import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import Activities from '@/app/lib/puck/components/Activities'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
@@ -56,14 +56,17 @@ const ActivitiesConfig: ComponentConfig = {
     defaultProps: {
         title: '校园活动'
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 // eslint-disable-next-line @typescript-eslint/no-explicit-any
                 resolvedActivities: await Promise.all((props.activities ?? []).map(async (item: any) => {
                     if (!item?.activity?.id) return null
+                    const entity = await getPublishedContentEntity(item.activity.id)
+                    if (!entity) return null
                     return {
-                        activity: convertDatesToStrings(await getContentEntity(item.activity.id))
+                        activity: convertDatesToStrings(entity)
                     }
                 })),
                 resolvedUploadPrefix: await getUploadServePath()

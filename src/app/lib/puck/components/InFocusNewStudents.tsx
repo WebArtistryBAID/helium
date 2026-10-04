@@ -1,5 +1,7 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
+import { hasImageFocus } from '@/app/lib/image-focus'
 import React, { useEffect, useState } from 'react'
 import { motion } from 'motion/react'
 import { Image } from '@/generated/prisma/browser'
@@ -63,32 +65,37 @@ export default function InFocusNewStudents({
 
     return <>
         <section data-surface="light" style={{
-            backgroundImage: `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
+            backgroundImage: hasImageFocus(heroBg) ? undefined : `url(${uploadPrefix}/${heroBg?.sha1}.webp)`,
             backgroundPosition: `center ${scrollY * 0.5}px`,
             backgroundRepeat: 'no-repeat',
-            backgroundSize: 'cover',
-            height: '105vh'
+            backgroundSize: 'cover'
         }}
-                 className="w-full flex flex-col bg-cover bg-center justify-center relative"
+                 className="relative flex h-[100svh] min-h-[34rem] w-full flex-col justify-center bg-cover bg-center sm:min-h-[38rem] md:h-[105vh] md:min-h-[42rem]"
                  aria-labelledby="hero-heading"
                  role="banner">
+            {hasImageFocus(heroBg) && <FocusImage image={heroBg}
+                                                  src={`${uploadPrefix}/${heroBg?.sha1}.webp`} alt="" aria-hidden="true"
+                                                  className="absolute inset-0 h-full w-full object-cover"
+                                                  style={{ position: 'absolute' }}/>}
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}
                         className="absolute inset-0 pointer-events-none from-white/60 to-white bg-gradient-to-b"/>
-            <div className="text-black w-full h-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
-                <div className="w-full md:max-w-2xl flex flex-col justify-center items-center">
+            <div
+                className="relative text-black w-full h-full flex flex-col justify-center items-center px-4 sm:px-6 lg:px-8">
+                <div className="flex w-full flex-col items-center justify-center md:max-w-2xl">
                     <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                                 animate={{ opacity: 1, transform: 'translateY(0)' }}
                                 transition={{ duration: 0.8 }}>
-                        <p className="text-lg uppercase text-center tracking-wider text-gray-700 !mb-3">IN FOCUS</p>
+                        <p className="!mb-3 text-center text-sm uppercase tracking-wider text-gray-700 sm:text-base">IN
+                            FOCUS</p>
                         <h1 id="hero-heading"
-                            className="mb-8 text-center font-bold font-serif text-5xl md:text-7xl">
+                            className="mb-6 break-words text-center font-serif text-3xl font-bold sm:text-5xl md:mb-8 md:text-6xl lg:text-7xl">
                             {title}
                         </h1>
                     </motion.div>
                     <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                                 animate={{ opacity: 1, transform: 'translateY(0)' }}
                                 transition={{ duration: 0.8, delay: 0.2 }}>
-                        <p className="text-lg md:text-xl text-center opacity-80 !mb-8">
+                        <p className="!mb-8 text-center text-base opacity-80 sm:text-lg md:text-xl">
                             {description}
                         </p>
                     </motion.div>
@@ -107,7 +114,7 @@ export default function InFocusNewStudents({
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8 mb-24">
+            <div className="mb-16 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mb-24 lg:grid-cols-4 lg:gap-8">
                 {introCards?.map((card, index) => {
                     if (!card) return null
                     return (
@@ -124,14 +131,14 @@ export default function InFocusNewStudents({
                 })}
             </div>
 
-            <div className="flex flex-col md:flex-row gap-16 items-center mb-24">
+            <div className="mb-16 flex flex-col items-center gap-8 md:mb-24 md:flex-row lg:gap-16">
                 <motion.div initial={{ opacity: 0, transform: 'translateY(20px)' }}
                             whileInView={{ opacity: 1, transform: 'translateY(0)' }}
                             transition={{ duration: 0.8 }}
                             viewport={{ once: true }}
                             className="w-full md:w-1/2">
-                    <h2 className="text-5xl font-bold mb-5">{resourcesTitle}</h2>
-                    <p className="text-xl mb-8">
+                    <h2 className="mb-4 break-words text-3xl font-bold sm:text-4xl lg:text-5xl">{resourcesTitle}</h2>
+                    <p className="mb-6 text-lg sm:text-xl md:mb-8">
                         {resourcesDescription}
                     </p>
 
@@ -143,36 +150,37 @@ export default function InFocusNewStudents({
                             whileInView={{ opacity: 1, transform: 'translateY(0)' }}
                             transition={{ duration: 0.8, delay: 0.3 }}
                             viewport={{ once: true }}
-                            className="w-full md:w-1/2 grid grid-cols-2 grid-rows-2 gap-6 text-center md:text-left">
+                            className="grid w-full grid-cols-1 gap-5 text-center sm:grid-cols-2 md:w-1/2 md:grid-rows-2 md:gap-6 md:text-left">
                     {resources?.map((r, index) => <div key={index}>
-                        <p className="text-6xl text-red-900">{r?.content}</p>
-                        <p className="text-lg">{r?.name}</p>
+                        <p className="break-words text-3xl text-red-900 sm:text-4xl lg:text-5xl">{r?.content}</p>
+                        <p className="text-base sm:text-lg">{r?.name}</p>
                     </div>)}
                 </motion.div>
             </div>
         </section>
 
         <section className="container">
-            <h2 className="text-5xl font-bold mb-5 text-center">{projectsTitle}</h2>
-            <p className="text-xl mb-8 text-center">{projectsDescription}</p>
+            <h2 className="mb-4 break-words text-center text-3xl font-bold sm:text-4xl lg:text-5xl">{projectsTitle}</h2>
+            <p className="mb-8 text-center text-lg sm:text-xl">{projectsDescription}</p>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mb-24 w-full">
+            <div className="mb-16 grid w-full grid-cols-1 sm:grid-cols-2 md:mb-24 lg:grid-cols-4">
                 {projects?.map((p, index) => {
                     if (!p) return null
                     const pid = p.project?.id != null ? String(p.project.id) : `idx-${index}`
                     return (
                         <React.Fragment key={pid}>
-                            <div className="border-t border-gray-300 p-8">
+                            <div className="border-t border-gray-300 p-5 sm:p-6 lg:p-8">
                                 <p className="text-xl font-bold">{language === 'en' ? p.project?.titlePublishedEN : p.project?.titlePublishedZH}</p>
                             </div>
-                            <div className="border-t border-gray-300 p-8">
+                            <div className="border-t border-gray-300 p-5 sm:p-6 lg:p-8">
                                 <p>{p.discipline}</p>
                             </div>
-                            <div className="border-t border-gray-300 p-8">
+                            <div className="border-t border-gray-300 p-5 sm:p-6 lg:p-8">
                                 <p>{language === 'en' ? p.project?.shortContentPublishedEN : p.project?.shortContentPublishedZH}</p>
                             </div>
-                            <div className="border-t border-gray-300 p-8 flex justify-end">
-                                <img src={`${uploadPrefix}/${p.project?.coverImagePublished?.sha1}.webp`}
+                            <div className="flex justify-end border-t border-gray-300 p-5 sm:p-6 lg:p-8">
+                                <FocusImage image={p.project?.coverImagePublished}
+                                            src={`${uploadPrefix}/${p.project?.coverImagePublished?.sha1}.webp`}
                                      alt={p.project?.coverImagePublished?.altText ?? ''}
                                      className="w-24 h-24 object-cover"/>
                             </div>

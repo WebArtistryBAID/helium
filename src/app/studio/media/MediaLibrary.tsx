@@ -2,25 +2,24 @@
 
 import {
     Button,
-    Label,
-    Modal,
-    ModalBody,
-    ModalFooter,
-    ModalHeader,
     Pagination,
+    Select,
     TabItem,
     Tabs,
     TabsRef,
     TextInput
 } from 'flowbite-react'
-import { HiArrowUpTray, HiPhoto } from 'react-icons/hi2'
+import { HiArrowUpTray, HiMagnifyingGlass, HiPhoto, HiVideoCamera } from 'react-icons/hi2'
 import { useEffect, useRef, useState } from 'react'
 import { Image, Role, User } from '@/generated/prisma/browser'
-import { createImage, deleteImage, getImages } from '@/app/studio/media/media-actions'
-import type { ImagePage } from '@/app/studio/media/media-actions'
+import { deleteImage, getMedia } from '@/app/studio/media/media-actions'
+import type { ImagePage, MediaScope, MediaType } from '@/app/studio/media/media-actions'
 import If from '@/app/lib/If'
 import UploadAreaClient from '@/app/studio/media/upload/UploadAreaClient'
 import { getMyUser } from '@/app/login/login-actions'
+import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+import ImageFocusDialog from './ImageFocusDialog'
+import FocusImage from '@/app/lib/FocusImage'
 
 function formatSize(kb: number): string {
     if (kb < 1024) {
@@ -30,10 +29,22 @@ function formatSize(kb: number): string {
     }
 }
 
-export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
+const ALL_MEDIA_TYPES: MediaType[] = [ 'image', 'video' ]
+const MEDIA_SCOPE_STORAGE_KEY = 'helium-media-picker-scope'
+
+function isMediaScope(value: string | null): value is MediaScope {
+    return value === 'all' || value === 'mine' || value === 'entity'
+}
+
+export default function MediaLibrary({
+                                         init, pickMode, allowUnpick, allowedMediaTypes = ALL_MEDIA_TYPES,
+                                         currentEntityMediaIds, onPick
+                                     }: {
     init: ImagePage,
     pickMode?: boolean,
     allowUnpick?: boolean,
+    allowedMediaTypes?: MediaType[],
+    currentEntityMediaIds?: number[],
     onPick?: (image: Image | null) => void
 }) {
     const [ user, setUser ] = useState<User>()
@@ -41,13 +52,22 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
     const [ loading, setLoading ] = useState(false)
     const [ selectedImage, setSelectedImage ] = useState<Image | null>(null)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
-    const [ showUploadForm, setShowUploadForm ] = useState(false)
-    const [ imageName, setImageName ] = useState('')
-    const [ imageAlt, setImageAlt ] = useState('')
-    const [ imageHash, setImageHash ] = useState('')
+    const [ editingFocus, setEditingFocus ] = useState(false)
     const [ currentPage, setCurrentPage ] = useState(0)
+    const [ currentMediaType, setCurrentMediaType ] = useState<MediaType>(allowedMediaTypes[0] ?? 'image')
+    const [ query, setQuery ] = useState('')
+    const [ debouncedQuery, setDebouncedQuery ] = useState('')
+    const [ scope, setScope ] = useState<MediaScope>('all')
+    const [ refreshVersion, setRefreshVersion ] = useState(0)
+    const {
+        permissionDenied,
+        showPermissionDenied,
+        closePermissionDenied,
+        handlePermissionError
+    } = usePermissionDialog()
 
     const tabsRef = useRef<TabsRef>(null)
+    const canWrite = user?.roles.includes(Role.writer) ?? false
 
     useEffect(() => {
         (async () => {
@@ -55,72 +75,84 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
         })()
     }, [])
 
+    const allowedTypesKey = allowedMediaTypes.join(',')
+    const entityMediaIdsKey = currentEntityMediaIds?.join(',') ?? ''
+    const hasEntityScope = currentEntityMediaIds != null
+
     useEffect(() => {
-        (async () => {
-            if (page.page !== currentPage) {
-                setPage(await getImages(currentPage))
-            }
-        })()
-    }, [ currentPage, page.page ])
+        const savedScope = window.localStorage.getItem(MEDIA_SCOPE_STORAGE_KEY)
+        setScope(isMediaScope(savedScope) && (savedScope !== 'entity' || hasEntityScope) ? savedScope : 'all')
+    }, [ hasEntityScope ])
 
-    return <>
-        <Modal show={showUploadForm} size="md" popup onClose={() => setShowUploadForm(false)}>
-            <ModalHeader/>
-            <ModalBody>
-                <div className="space-y-6">
-                    <h3 className="text-xl font-bold">设置图片信息</h3>
-                    <div>
-                        <div className="mb-2 block">
-                            <Label htmlFor="name">名称</Label>
-                        </div>
-                        <TextInput id="name" value={imageName}
-                                   onChange={e => setImageName(e.currentTarget.value)}
-                                   required/>
-                    </div>
-                    <div>
-                        <div className="mb-2 block">
-                            <Label htmlFor="alt">解释文字</Label>
-                        </div>
-                        <TextInput id="alt" value={imageAlt} placeholder="简单说明图片内容，由屏幕阅读器读出..."
-                                   onChange={e => setImageAlt(e.currentTarget.value)}
-                                   required/>
-                    </div>
+    useEffect(() => {
+        const timer = window.setTimeout(() => setDebouncedQuery(query), 250)
+        return () => window.clearTimeout(timer)
+    }, [ query ])
 
-                    <img width={500} height={200} src={page.uploadServePath + '/' + imageHash + '.webp'}
-                         alt="已上传文件"
-                         className="rounded-xl w-full lg:max-w-sm object-cover mb-3"/>
-                </div>
-            </ModalBody>
-            <ModalFooter>
-                <Button pill color="blue" disabled={loading} onClick={async () => {
-                    if (!imageName || !imageAlt) return
-                    setLoading(true)
-                    setSelectedImage(await createImage({
-                        name: imageName,
-                        altText: imageAlt,
-                        sha1: imageHash
-                    }))
-                    setLoading(false)
-                    setCurrentPage(0)
-                    setPage(await getImages(0))
-                    setShowUploadForm(false)
-                    tabsRef.current?.setActiveTab(0)
-                }}>确认</Button>
-                <Button pill color="alternative" disabled={loading} onClick={() => setShowUploadForm(false)}>
-                    取消
-                </Button>
-            </ModalFooter>
-        </Modal>
+    useEffect(() => {
+        if (!allowedMediaTypes.includes(currentMediaType)) {
+            setCurrentMediaType(allowedMediaTypes[0] ?? 'image')
+        }
+    }, [ allowedTypesKey, allowedMediaTypes, currentMediaType ])
 
-        <div className="p-8">
-            <Tabs aria-label="媒体库选项卡" variant="default" ref={tabsRef}>
-                <TabItem active title="图片" icon={HiPhoto}>
+    useEffect(() => {
+        let cancelled = false
+        ;(async () => {
+            const nextPage = await getMedia(currentPage, [ currentMediaType ], {
+                query: debouncedQuery,
+                scope,
+                entityMediaIds: currentEntityMediaIds
+            })
+            if (!cancelled) setPage(nextPage)
+        })().catch(error => {
+            if (!cancelled) console.error('Failed to load media', error)
+        })
+        return () => {
+            cancelled = true
+        }
+    }, [ currentMediaType, currentPage, debouncedQuery, entityMediaIdsKey, refreshVersion, scope ])
+
+    useEffect(() => {
+        setCurrentPage(0)
+        setSelectedImage(null)
+        setDeleteConfirm(false)
+    }, [ debouncedQuery, scope ])
+
+    const renderMediaPanel = () => <>
+        <div className="mb-5 flex gap-3">
+            <TextInput className="min-w-0 flex-1" icon={HiMagnifyingGlass} value={query}
+                       placeholder="搜索名称、解释性文字、ID 或哈希"
+                       aria-label="搜索媒体"
+                       onChange={event => setQuery(event.currentTarget.value)}/>
+            <Select className="w-52 shrink-0" value={scope} aria-label="筛选媒体"
+                    theme={{
+                        field: {
+                            select: {
+                                sizes: {
+                                    md: 'py-2.5 pl-2.5 pr-12 text-sm'
+                                }
+                            }
+                        }
+                    }}
+                    onChange={event => {
+                        const nextScope = event.currentTarget.value as MediaScope
+                        setScope(nextScope)
+                        window.localStorage.setItem(MEDIA_SCOPE_STORAGE_KEY, nextScope)
+                    }}>
+                <option value="all">全部媒体</option>
+                <option value="mine">我上传的</option>
+                {currentEntityMediaIds != null && <option value="entity">当前内容中的媒体</option>}
+            </Select>
+        </div>
                     <If condition={page.pages < 1}>
                         <div className="flex flex-col justify-center items-center">
                             <img src="/assets/reading-light.png" alt="" className="h-48 mb-3"/>
-                            <p className="mb-3">暂时没有图片</p>
-                            <If condition={user?.roles.includes(Role.writer)}>
-                                <Button pill color="blue" onClick={() => tabsRef.current?.setActiveTab(1)}>上传</Button>
+                            <p className="mb-3">
+                                {debouncedQuery.length > 0 || scope !== 'all' ? '没有符合条件的媒体' : '暂时没有媒体'}
+                            </p>
+                            <If condition={canWrite}>
+                                <Button pill color="blue"
+                                        onClick={() => tabsRef.current?.setActiveTab(allowedMediaTypes.length)}>上传</Button>
                             </If>
                             <If condition={allowUnpick}>
                                 <Button pill disabled={loading} color="alternative" className="mt-3" onClick={() => {
@@ -137,7 +169,7 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                 <div className="grid grid-cols-6 gap-4 mb-3">
                                     {page.items.map(image =>
                                         <button type="button" key={image.sha1}
-                                                aria-label={`${selectedImage?.id === image.id ? '取消选择' : '选择'}图片：${image.altText || image.name}`}
+                                                aria-label={`${selectedImage?.id === image.id ? '取消选择' : '选择'}${image.mediaType === 'video' ? '视频' : '图片'}: ${image.altText || image.name}`}
                                                 aria-pressed={selectedImage?.id === image.id}
                                                 className={`w-full h-full rounded
                                      ${selectedImage?.id === image.id ? 'ring-4 ring-blue-500' : ''}`}
@@ -149,12 +181,18 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                                         setSelectedImage(image)
                                                     }
                                                 }}>
-                                            <img className="w-full aspect-square object-cover"
-                                                 width={300}
-                                                 height={200}
-                                                 decoding="async"
-                                                 alt={`图片: ${image.name}`}
-                                                 src={`${page.uploadServePath}/${image.sha1}_thumb.webp`}/>
+                                            {image.mediaType === 'video'
+                                                ?
+                                                <img className="aspect-square w-full bg-black object-cover" width={300}
+                                                     height={200}
+                                                     decoding="async" alt={`视频: ${image.name}`}
+                                                     src={`${page.uploadServePath}/${image.sha1}_thumb.webp`}/>
+                                                :
+                                                <FocusImage image={image} className="aspect-square w-full object-cover"
+                                                            width={300}
+                                                       height={200}
+                                                       decoding="async" alt={`图片: ${image.name}`}
+                                                       src={`${page.uploadServePath}/${image.sha1}_thumb.webp`}/>}
                                         </button>
                                     )}
                                 </div>
@@ -173,17 +211,25 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                             <div className="w-1/3">
                                 <If condition={selectedImage != null}>
                                     <div>
-                                        <p className="font-bold mb-3 text-xl secondary">图片详情</p>
+                                        <p className="font-bold mb-3 text-xl secondary">
+                                            {selectedImage?.mediaType === 'video' ? '视频详情' : '图片详情'}
+                                        </p>
                                         <div className="flex gap-3 mb-3 items-center">
-                                            <a target="_blank" rel="noreferrer"
-                                               aria-label={`在新窗口查看原图：${selectedImage?.altText || selectedImage?.name}`}
-                                               href={`${page.uploadServePath}/${selectedImage?.sha1}.webp`}>
-                                                <img className="h-24" alt={`图片: ${selectedImage?.name}`}
-                                                     src={`${page.uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
-                                            </a>
+                                            {selectedImage?.mediaType === 'video'
+                                                ? <video controls preload="metadata"
+                                                         className="h-24 max-w-40 rounded-xl bg-black"
+                                                         aria-label={selectedImage.altText || selectedImage.name}
+                                                         src={`${page.uploadServePath}/${selectedImage.sha1}.${selectedImage.extension}`}/>
+                                                : <a target="_blank" rel="noreferrer"
+                                                     aria-label={`在新窗口查看原图: ${selectedImage?.altText || selectedImage?.name}`}
+                                                     href={`${page.uploadServePath}/${selectedImage?.sha1}.${selectedImage?.extension}`}>
+                                                    <img className="h-24" alt={`图片: ${selectedImage?.name}`}
+                                                         src={`${page.uploadServePath}/${selectedImage?.sha1}_thumb.webp`}/>
+                                                </a>}
                                             <div>
                                                 <p className="font-bold">{selectedImage?.name}</p>
-                                                <p className="secondary">{selectedImage?.width} × {selectedImage?.height}</p>
+                                                {selectedImage?.mediaType === 'image' &&
+                                                    <p className="secondary">{selectedImage?.width} × {selectedImage?.height}</p>}
                                                 <p className="secondary">{formatSize(selectedImage?.sizeKB ?? 0)}</p>
                                             </div>
                                         </div>
@@ -201,37 +247,86 @@ export default function MediaLibrary({ init, pickMode, allowUnpick, onPick }: {
                                             }}>选取</Button>
                                         </div>
                                     </If>
-                                    <Button pill disabled={loading || !user?.roles.includes(Role.writer)} color="red"
-                                            onClick={async () => {
-                                                if (deleteConfirm && selectedImage != null) {
-                                                    setLoading(true)
-                                                    await deleteImage(selectedImage.id)
-                                                    setLoading(false)
-                                                    setSelectedImage(null)
-                                                    setPage(await getImages(currentPage))
-                                                } else {
-                                                    setDeleteConfirm(true)
-                                                }
-                                            }}>{deleteConfirm ? '确认删除?' : '删除图片'}</Button>
+                                    <If condition={canWrite}>
+                                        {selectedImage?.mediaType === 'image' &&
+                                            <Button pill color="blue" className="mb-3"
+                                                    onClick={() => setEditingFocus(true)}>调整剪裁</Button>}
+                                        <Button pill disabled={loading} color="red"
+                                                onClick={async () => {
+                                                    if (!canWrite) {
+                                                        showPermissionDenied()
+                                                        return
+                                                    }
+                                                    if (deleteConfirm && selectedImage != null) {
+                                                        setLoading(true)
+                                                        try {
+                                                            await deleteImage(selectedImage.id)
+                                                            setSelectedImage(null)
+                                                            setPage(await getMedia(currentPage, [ currentMediaType ], {
+                                                                query: debouncedQuery,
+                                                                scope,
+                                                                entityMediaIds: currentEntityMediaIds
+                                                            }))
+                                                        } catch (error) {
+                                                            if (!handlePermissionError(error)) {
+                                                                console.error('Failed to delete image:', error)
+                                                            }
+                                                        } finally {
+                                                            setLoading(false)
+                                                        }
+                                                    } else {
+                                                        setDeleteConfirm(true)
+                                                    }
+                                                }}>{deleteConfirm ? '确认删除?' : '删除媒体'}</Button>
+                                    </If>
                                 </If>
                             </div>
                         </div>
                     </If>
-                </TabItem>
-                <TabItem title="上传" icon={HiArrowUpTray}>
-                    <div className="flex flex-col justify-center items-center">
-                        <div className="mb-3">
-                            <UploadAreaClient uploadPrefix={page.uploadServePath} onDone={hash => {
-                                setImageHash(hash)
-                                setImageName('')
-                                setImageAlt('')
-                                setShowUploadForm(true)
-                            }}/>
-                        </div>
+    </>
 
-                        <p>上传超过 1 MB 的图片会严重降低访问速度。</p>
-                    </div>
+    return <>
+        <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
+        {editingFocus && selectedImage?.mediaType === 'image' && <ImageFocusDialog
+            key={selectedImage.id} image={selectedImage} uploadPrefix={page.uploadServePath}
+            onClose={() => setEditingFocus(false)} onPermissionError={handlePermissionError}
+            onSaved={image => {
+                setSelectedImage(image)
+                setPage(current => ({
+                    ...current,
+                    items: current.items.map(item => item.id === image.id ? image : item)
+                }))
+                setEditingFocus(false)
+            }}/>}
+
+        <div className="p-8">
+            <Tabs aria-label="媒体库选项卡" variant="default" ref={tabsRef}
+                  onActiveTabChange={index => {
+                      const mediaType = allowedMediaTypes[index]
+                      if (mediaType == null) return
+                      setSelectedImage(null)
+                      setDeleteConfirm(false)
+                      setCurrentPage(0)
+                      setCurrentMediaType(mediaType)
+                  }}>
+                {allowedMediaTypes.includes('image') &&
+                    <TabItem active={currentMediaType === 'image'} title="图片" icon={HiPhoto}>
+                        {renderMediaPanel()}
+                    </TabItem>}
+                {allowedMediaTypes.includes('video') &&
+                    <TabItem active={currentMediaType === 'video'} title="视频" icon={HiVideoCamera}>
+                        {renderMediaPanel()}
+                    </TabItem>}
+                {canWrite ? (
+                    <TabItem title="上传" icon={HiArrowUpTray}>
+                        <UploadAreaClient uploadPrefix={page.uploadServePath} allowedMediaTypes={allowedMediaTypes}
+                                          onAdded={image => {
+                                              if (image.mediaType !== currentMediaType) return
+                            setCurrentPage(0)
+                                              setRefreshVersion(version => version + 1)
+                        }}/>
                 </TabItem>
+                ) : null}
             </Tabs>
         </div>
     </>

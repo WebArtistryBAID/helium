@@ -1,46 +1,34 @@
-import * as fs from 'fs/promises'
-import path from 'node:path'
 import { NextRequest, NextResponse } from 'next/server'
-import sharp from 'sharp'
-import crypto from 'crypto'
-import { requireUser } from '@/app/login/login-actions'
+import { Role } from '@/generated/prisma/client'
+import { getStudioActor } from '@/app/lib/services/studio-actor'
+import { requireActorUser } from '@/app/lib/services/actor'
+import { MediaUploadError, uploadMedia } from '@/app/lib/services/media-upload'
 
-function getPath(relative: string): string {
-    return path.join(process.env.UPLOAD_PATH!, relative)
-}
+export const runtime = 'nodejs'
 
 export async function POST(req: NextRequest): Promise<Response> {
+    let actor
     try {
-        await fs.access(process.env.UPLOAD_PATH!)
+        actor = await getStudioActor()
+        await requireActorUser(actor, Role.writer)
     } catch {
-        await fs.mkdir(process.env.UPLOAD_PATH!, { recursive: true })
+        return NextResponse.json({ error: 'no-permission' }, { status: 403 })
     }
-    await requireUser()
-    const formData = await req.formData()
-    const file = formData.get('file') as File | null
-    if (file == null) {
-        return NextResponse.json({ error: 'no-file' })
+    const declaredLength = Number(req.headers.get('content-length'))
+    if (Number.isFinite(declaredLength) && declaredLength > 250 * 1024 * 1024) {
+        return NextResponse.json({ error: 'file-too-large' }, { status: 413 })
     }
-    if (!file.type.includes('image/')) {
-        return NextResponse.json({ error: 'not-image' })
-    }
-
-    const fileBuffer = Buffer.from(await file.arrayBuffer())
-    const webpBuffer = await sharp(fileBuffer).webp().toBuffer()
-    const thumbnailBuffer = await sharp(fileBuffer).resize(300, 200, {
-        fit: 'inside',
-        withoutEnlargement: true
-    }).webp().toBuffer()
-    const hash = crypto.createHash('sha1').update(webpBuffer).digest('hex')
-    const outputPath = getPath(hash + '.webp')
     try {
-        await fs.stat(outputPath)
-        return NextResponse.json({ error: 'duplicate' })
-    } catch {
+        const form = await req.formData()
+        const file = form.get('file')
+        if (!(file instanceof File)) return NextResponse.json({ error: 'no-file' }, { status: 400 })
+        return NextResponse.json(await uploadMedia(actor, file, req.signal))
+    } catch (error) {
+        if (req.signal.aborted) return new Response(null, { status: 499 })
+        if (error instanceof MediaUploadError) {
+            return NextResponse.json({ error: error.code }, { status: error.status })
+        }
+        console.error('Media upload failed:', error)
+        return NextResponse.json({ error: 'upload-failed' }, { status: 500 })
     }
-
-    await fs.writeFile(outputPath, webpBuffer)
-    await fs.writeFile(getPath(hash + '_thumb.webp'), thumbnailBuffer)
-
-    return NextResponse.json({ hash })
 }

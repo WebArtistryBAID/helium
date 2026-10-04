@@ -1,8 +1,41 @@
-import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { ComponentConfig } from '@puckeditor/core'
+import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import ImageGallery from '@/app/lib/puck/components/ImageGallery'
+
+type EditableGallerySlide = {
+    image: string | number | { id?: number } | null | undefined
+    title: string | undefined
+    titleSize: string | undefined
+    content: string | undefined
+    link: string | undefined
+    linkText: string | undefined
+}
+
+async function resolveSlide(slide: EditableGallerySlide | null | undefined) {
+    if (slide == null) return null
+    const imageValue = slide.image
+    const imageId = typeof imageValue === 'object' && imageValue != null
+        ? Number(imageValue.id)
+        : Number(imageValue)
+    let image = null
+    if (Number.isInteger(imageId) && imageId > 0) {
+        try {
+            image = convertDatesToStrings(await getImage(imageId))
+        } catch (error) {
+            console.error(`Unable to resolve slideshow image ${imageId}:`, error)
+        }
+    }
+    return {
+        title: slide.title,
+        titleSize: slide.titleSize,
+        content: slide.content,
+        link: slide.link,
+        linkText: slide.linkText,
+        image
+    }
+}
 
 const ImageGalleryConfig: ComponentConfig = {
     label: '全屏图片轮播',
@@ -12,19 +45,66 @@ const ImageGalleryConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
+        autoplay: {
+            label: '自动播放',
+            type: 'radio',
+            options: [
+                { label: '关闭', value: false },
+                { label: '开启', value: true }
+            ]
+        },
+        scrollable: {
+            label: '可滑动',
+            type: 'radio',
+            options: [
+                { label: '关闭', value: false },
+                { label: '开启', value: true }
+            ]
+        },
+        autoplayDuration: {
+            label: '自动播放间隔（秒）',
+            type: 'number',
+            min: 1,
+            step: 1
+        },
         slides: {
             label: '幻灯片',
             type: 'array',
             arrayFields: {
-                image: imageTypeField('图片'),
+                image: mediaTypeField('图片', [ 'image' ]),
                 title: {
                     label: '标题',
                     type: 'text',
                     contentEditable: true
                 },
+                titleSize: {
+                    label: '大小',
+                    type: 'select',
+                    options: [
+                        { label: '小', value: 'sm' },
+                        { label: '中', value: 'base' },
+                        { label: '大', value: 'lg' },
+                        { label: '2x 大', value: 'xl' },
+                        { label: '3x 大', value: '2xl' },
+                        { label: '4x 大', value: '3xl' },
+                        { label: '5x 大', value: '4xl' },
+                        { label: '6x 大', value: '5xl' },
+                        { label: '7x 大', value: '6xl' },
+                        { label: '8x 大', value: '7xl' }
+                    ]
+                },
                 content: {
                     label: '正文',
                     type: 'textarea',
+                    contentEditable: true
+                },
+                link: {
+                    label: '链接',
+                    type: 'text'
+                },
+                linkText: {
+                    label: '链接文字',
+                    type: 'text',
                     contentEditable: true
                 }
             },
@@ -38,7 +118,16 @@ const ImageGalleryConfig: ComponentConfig = {
                 title: {
                     type: 'text'
                 },
+                titleSize: {
+                    type: 'text'
+                },
                 content: {
+                    type: 'text'
+                },
+                link: {
+                    type: 'text'
+                },
+                linkText: {
                     type: 'text'
                 }
             }
@@ -50,34 +139,29 @@ const ImageGalleryConfig: ComponentConfig = {
     },
     defaultProps: {
         title: '图片轮播',
+        autoplay: false,
+        scrollable: false,
+        autoplayDuration: 5,
         slides: [
             {
                 title: '在这里填写标题',
+                titleSize: '3xl',
                 content: '在这里填写正文'
             }
         ]
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
-                resolvedSlides: await Promise.all((props.slides ?? []).map(async (slide: {
-                    image: string | null | undefined,
-                    title: string | undefined,
-                    content: string | undefined
-                }) => {
-                    if (!slide) return null
-                    return {
-                        title: slide.title,
-                        content: slide.content,
-                        image: (slide.image == null || slide.image === '') ? null : convertDatesToStrings(await getImage(parseInt(slide.image)))
-                    }
-                })),
+                resolvedSlides: await Promise.all((props.slides ?? []).map(resolveSlide)),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
     },
-    render: ({ title, resolvedSlides, resolvedUploadPrefix }) =>
-        <ImageGallery title={title} slides={resolvedSlides} uploadPrefix={resolvedUploadPrefix}/>
+    render: ({ title, resolvedSlides, resolvedUploadPrefix, autoplay, autoplayDuration, scrollable }) =>
+        <ImageGallery title={title} slides={resolvedSlides} uploadPrefix={resolvedUploadPrefix}
+                      autoplay={autoplay} autoplayDuration={autoplayDuration} scrollable={scrollable}/>
 }
 
 export default ImageGalleryConfig

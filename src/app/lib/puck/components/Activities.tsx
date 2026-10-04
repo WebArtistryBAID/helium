@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { getContentEntityURI, HydratedContentEntity, prefixLink } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { Image } from '@/generated/prisma/browser'
@@ -15,7 +16,7 @@ function ActivityTextBlock({ name, description, background, light }: {
         style={{
             background: background,
             color: light ? 'white' : 'black'
-        }} className="w-full h-80 p-8">
+        }} className="min-h-56 w-full p-5 sm:h-72 sm:p-7 lg:h-80 lg:p-8">
         <h3 className="text-xl mb-3 font-bold">
             {name}
         </h3>
@@ -41,14 +42,14 @@ function ActivityBlock({ name, description, createdAt, slug, image, background, 
             <div className="hidden sm:grid grid-cols-2">
                 {textAlign === 'left' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
-                <img alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
+                <FocusImage image={image} alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
                      className="w-full h-80 object-cover object-center"/>
                 {textAlign === 'right' &&
                     <ActivityTextBlock background={background} description={description} light={light} name={name}/>}
             </div>
 
             <div className="block sm:hidden">
-                <img alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
+                <FocusImage image={image} alt={image?.altText ?? ''} src={`${uploadPrefix}/${image?.sha1}.webp`}
                      className="w-full h-48 object-cover object-center"/>
                 <ActivityTextBlock background={background} description={description} light={light} name={name}/>
             </div>
@@ -62,15 +63,15 @@ export default function Activities({ title, resolvedActivities, uploadPrefix }: 
     uploadPrefix: string | undefined
 }) {
     const language = useLanguage()
-    const activities = resolvedActivities?.map(a => a?.activity).filter(a => a !== undefined) ?? [] as HydratedContentEntity[]
+    const activities = resolvedActivities?.map(a => a?.activity).filter(a => a != null) ?? [] as HydratedContentEntity[]
     return <section aria-labelledby="activities-heading" className="section container">
         <div className="flex justify-end">
-            <h2 id="activities-heading" className="text-4xl font-bold mb-5">
+            <h2 id="activities-heading" className="mb-5 break-words text-3xl font-bold sm:text-4xl">
                 {title}
             </h2>
         </div>
         <div aria-label="Activities"
-             className="sm:grid grid-cols-1 lg:grid-cols-2 gap-0 shadow-xl rounded-3xl overflow-clip" role="list">
+             className="sm:grid grid-cols-1 lg:grid-cols-2 gap-0 shadow-xl rounded-none overflow-clip" role="list">
             {activities?.length > 0 && <ActivityBlock
                 name={(language === 'en' ? activities[0]!.titlePublishedEN : activities[0]!.titlePublishedZH) ?? ''}
                 description={(language === 'en' ? activities[0]!.shortContentPublishedEN : activities[0]!.shortContentPublishedZH) ?? ''}

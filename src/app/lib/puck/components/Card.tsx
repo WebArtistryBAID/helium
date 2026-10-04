@@ -1,9 +1,10 @@
+import FocusImage from '@/app/lib/FocusImage'
 import If from '@/app/lib/If'
 import { Image } from '@/generated/prisma/browser'
 import Link from 'next/link'
-import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { ComponentConfig } from '@puckeditor/core'
+import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
 export default function Card({ href, image, title, shortContent, uploadPrefix }: {
@@ -16,7 +17,7 @@ export default function Card({ href, image, title, shortContent, uploadPrefix }:
     const content = <>
         <div className="overflow-hidden h-48 w-full">
             <If condition={image != null}>
-                <img src={`${uploadPrefix}/${image?.sha1}_thumb.webp`}
+                <FocusImage image={image} src={`${uploadPrefix}/${image?.sha1}_thumb.webp`}
                      alt={image?.altText ?? ''}
                      className="object-cover h-full w-full group-hover-scale"/>
             </If>
@@ -26,8 +27,8 @@ export default function Card({ href, image, title, shortContent, uploadPrefix }:
             </If>
         </div>
 
-        <div className="p-8">
-            <p className="text-xl font-bold mb-1 fancy-link">{title}</p>
+        <div className="p-5 sm:p-6 lg:p-8">
+            <p className="fancy-link mb-1 break-words text-lg font-bold sm:text-xl">{title}</p>
             <p className="text-sm secondary">{shortContent}</p>
         </div>
     </>
@@ -45,7 +46,7 @@ export const CardConfig: ComponentConfig = {
             label: '链接',
             type: 'text'
         },
-        image: imageTypeField('图片'),
+        image: mediaTypeField('图片', [ 'image' ]),
         title: {
             label: '标题',
             type: 'text',
@@ -62,7 +63,8 @@ export const CardConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedUploadPrefix: await getUploadServePath(),

@@ -1,6 +1,6 @@
-import { ComponentConfig } from '@measured/puck'
-import { imageTypeField } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { ComponentConfig } from '@puckeditor/core'
+import { mediaTypeField } from '@/app/lib/puck/custom-fields'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import Accreditations from '@/app/lib/puck/components/Accreditations'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
@@ -26,7 +26,7 @@ const AccreditationsConfig: ComponentConfig = {
                     type: 'text',
                     contentEditable: true
                 },
-                image: imageTypeField('图片')
+                image: mediaTypeField('图片', [ 'image' ])
             }
         },
         resolvedAccreditations: {
@@ -39,7 +39,8 @@ const AccreditationsConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedUploadPrefix: await getUploadServePath(),

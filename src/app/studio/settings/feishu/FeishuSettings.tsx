@@ -1,0 +1,88 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { usePathname, useRouter } from 'next/navigation'
+import { Button } from 'flowbite-react'
+import { HiCheckCircle, HiLink } from 'react-icons/hi2'
+import { getFeishuAuthUrl } from '@/app/studio/settings/feishu/feishu-actions'
+
+export default function FeishuSettings({ isLinked, result, embedded = false }: {
+    isLinked: boolean
+    result?: { success?: string; error?: string }
+    embedded?: boolean
+}) {
+    const [ authUrl, setAuthUrl ] = useState('')
+    const [ authError, setAuthError ] = useState(false)
+    const router = useRouter()
+    const pathname = usePathname()
+
+    useEffect(() => {
+        getFeishuAuthUrl()
+            .then(setAuthUrl)
+            .catch(error => {
+                console.error('Failed to create Feishu authorization URL:', error)
+                setAuthError(true)
+            })
+    }, [])
+
+    useEffect(() => {
+        if (result?.success || result?.error) {
+            router.replace(pathname)
+        }
+    }, [ pathname, result, router ])
+
+    const feedback = result?.success === 'linked'
+        ? { success: true, message: '飞书账号绑定成功。' }
+        : result?.error
+            ? { success: false, message: '飞书账号绑定失败，请重试。' }
+            : authError
+                ? { success: false, message: '飞书应用配置不完整。' }
+                : null
+
+    return <section aria-label="飞书设置" className={embedded ? '' : 'p-16'}>
+        {embedded ? <h2 className="text-xl mb-6">飞书设置</h2> : <h1 className="text-2xl mb-8">飞书设置</h1>}
+
+        <div className="bg-gray-50 rounded-3xl p-8 space-y-6 max-w-2xl">
+            <div>
+                <p className="secondary mt-2">
+                    授权后，您将可以在飞书上收到内容审核请求及发布通知。
+                </p>
+            </div>
+
+            {feedback ? (
+                <p role={feedback.success ? 'status' : 'alert'}
+                   className={feedback.success ? 'text-green-600' : 'text-red-600'}>
+                    {feedback.message}
+                </p>
+            ) : null}
+
+            <div>
+                <p className="font-bold text-sm secondary mb-2">授权状态</p>
+                {isLinked ? (
+                    <div className="flex items-center gap-3">
+                        <HiCheckCircle className="text-green-600 text-2xl"/>
+                        <div>
+                            <p className="text-xl">已授权</p>
+                            <p className="text-sm secondary">当前账号已关联飞书通知。</p>
+                        </div>
+                    </div>
+                ) : (
+                    <div>
+                        <p className="text-xl mb-3">未授权</p>
+                        {authUrl ? (
+                            <Button as="a" className="inline-flex cursor-pointer" href={authUrl} pill color="blue">
+                                <HiLink className="mr-2"/>
+                                授权飞书账号
+                            </Button>
+                        ) : (
+                            <Button pill color="blue" disabled>
+                                <HiLink className="mr-2"/>
+                                正在准备授权...
+                            </Button>
+                        )}
+                    </div>
+                )}
+            </div>
+        </div>
+    </section>
+}

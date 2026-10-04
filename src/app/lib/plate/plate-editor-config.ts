@@ -1,0 +1,163 @@
+'use client'
+
+import { createPlateEditor, ParagraphPlugin } from 'platejs/react'
+import { createBlockStartInputRule } from 'platejs'
+import {
+    BlockquotePlugin,
+    BoldPlugin,
+    CodePlugin,
+    H1Plugin,
+    H2Plugin,
+    H3Plugin,
+    H4Plugin,
+    H5Plugin,
+    H6Plugin,
+    HighlightPlugin,
+    HorizontalRulePlugin,
+    ItalicPlugin,
+    StrikethroughPlugin,
+    SubscriptPlugin,
+    SuperscriptPlugin,
+    UnderlinePlugin
+} from '@platejs/basic-nodes/react'
+import { LinkPlugin } from '@platejs/link/react'
+import {
+    BulletedListPlugin,
+    ListItemContentPlugin,
+    ListItemPlugin,
+    ListPlugin,
+    NumberedListPlugin
+} from '@platejs/list-classic/react'
+import { toggleBulletedList, toggleNumberedList } from '@platejs/list-classic'
+import { MarkdownPlugin } from '@platejs/markdown'
+import { ImagePlugin } from '@platejs/media/react'
+import { TableCellHeaderPlugin, TableCellPlugin, TablePlugin, TableRowPlugin } from '@platejs/table/react'
+import { CommentPlugin } from '@platejs/comment/react'
+import { SuggestionPlugin } from '@platejs/suggestion/react'
+import {
+    FontBackgroundColorPlugin,
+    FontColorPlugin,
+    FontSizePlugin,
+    LineHeightPlugin,
+    TextAlignPlugin
+} from '@platejs/basic-styles/react'
+import {
+    BlockquoteElement,
+    BoldLeaf,
+    BulletedListElement,
+    CodeLeaf,
+    CommentLeaf,
+    H1Element,
+    H2Element,
+    H3Element,
+    H4Element,
+    H5Element,
+    H6Element,
+    HighlightLeaf,
+    HorizontalRuleElement,
+    ItalicLeaf,
+    ImageElement,
+    LinkElement,
+    ListItemContentElement,
+    ListItemElement,
+    NumberedListElement,
+    ParagraphElement,
+    StrikethroughLeaf,
+    SubscriptLeaf,
+    SuggestionLeaf,
+    SuperscriptLeaf,
+    TableCellElement,
+    TableCellHeaderElement,
+    TableElement,
+    TableRowElement,
+    UnderlineLeaf
+} from '@/app/lib/plate/plate-elements'
+import { EMPTY_PLATE_VALUE, type HeliumPlateValue } from '@/app/lib/plate/plate-types'
+
+export const HELIUM_PLATE_EDITOR_PLUGINS = [
+    ParagraphPlugin.withComponent(ParagraphElement).configure({
+        inputRules: [
+            createBlockStartInputRule({
+                match: '*',
+                trigger: ' ',
+                apply: ({ editor }, { range }) => {
+                    editor.tf.delete({ at: range })
+                    toggleBulletedList(editor)
+                    return true
+                }
+            }),
+            createBlockStartInputRule({
+                match: '1.',
+                trigger: ' ',
+                apply: ({ editor }, { range }) => {
+                    editor.tf.delete({ at: range })
+                    toggleNumberedList(editor)
+                    return true
+                }
+            }),
+            createBlockStartInputRule({
+                match: '|',
+                node: 'blockquote',
+                trigger: ' ',
+                apply: ({ editor }, { range }) => {
+                    const block = editor.api.block({ at: range.anchor })
+                    if (block == null) return false
+                    const blockPath = block[1]
+
+                    editor.tf.withoutNormalizing(() => {
+                        editor.tf.delete({ at: range })
+                        editor.tf.setNodes({ type: editor.getType('blockquote') }, { at: blockPath })
+                        const point = editor.api.start(blockPath)
+                        if (point != null) {
+                            editor.tf.deselect()
+                            editor.tf.select(point)
+                        }
+                    })
+                    return true
+                }
+            })
+        ]
+    }),
+    BlockquotePlugin.withComponent(BlockquoteElement),
+    H1Plugin.withComponent(H1Element),
+    H2Plugin.withComponent(H2Element),
+    H3Plugin.withComponent(H3Element),
+    H4Plugin.withComponent(H4Element),
+    H5Plugin.withComponent(H5Element),
+    H6Plugin.withComponent(H6Element),
+    HorizontalRulePlugin.withComponent(HorizontalRuleElement),
+    BoldPlugin.withComponent(BoldLeaf),
+    CodePlugin.withComponent(CodeLeaf),
+    HighlightPlugin.withComponent(HighlightLeaf),
+    ItalicPlugin.withComponent(ItalicLeaf),
+    StrikethroughPlugin.withComponent(StrikethroughLeaf),
+    SubscriptPlugin.withComponent(SubscriptLeaf),
+    SuperscriptPlugin.withComponent(SuperscriptLeaf),
+    UnderlinePlugin.withComponent(UnderlineLeaf),
+    LinkPlugin.withComponent(LinkElement),
+    ImagePlugin.withComponent(ImageElement),
+    TablePlugin.withComponent(TableElement),
+    TableRowPlugin.withComponent(TableRowElement),
+    TableCellPlugin.withComponent(TableCellElement),
+    TableCellHeaderPlugin.withComponent(TableCellHeaderElement),
+    CommentPlugin.withComponent(CommentLeaf),
+    SuggestionPlugin.withComponent(SuggestionLeaf),
+    ListPlugin,
+    BulletedListPlugin.withComponent(BulletedListElement),
+    NumberedListPlugin.withComponent(NumberedListElement),
+    ListItemPlugin.withComponent(ListItemElement),
+    ListItemContentPlugin.withComponent(ListItemContentElement),
+    FontBackgroundColorPlugin,
+    FontColorPlugin,
+    FontSizePlugin,
+    LineHeightPlugin,
+    TextAlignPlugin,
+    MarkdownPlugin
+]
+
+export function createHeliumPlateEditor(value: HeliumPlateValue = structuredClone(EMPTY_PLATE_VALUE)) {
+    return createPlateEditor({
+        plugins: HELIUM_PLATE_EDITOR_PLUGINS,
+        value
+    })
+}

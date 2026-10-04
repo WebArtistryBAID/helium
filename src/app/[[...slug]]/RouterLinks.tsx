@@ -1,15 +1,15 @@
 'use client'
 
-import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import { useState } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { resolveWebsiteHref, WebsiteLink } from '@/app/lib/metadata/website-metadata-types'
 
-export default function RouterLinks({ pages }: {
-    pages: { id: number, titleEN: string, titleZH: string, slug: string }[]
+export default function RouterLinks({ items }: {
+    items: WebsiteLink[]
 }) {
-    const language = useLanguage()
-    const path = usePathname().split('/').slice(1).join('/')
+    const pathSegments = usePathname().split('/').filter(Boolean)
+    const path = `/${([ 'en', 'zh' ].includes(pathSegments[0]) ? pathSegments.slice(1) : pathSegments).join('/')}`
     const [ showBlock, setShowBlock ] = useState(false)
     const [ blockLeft, setBlockLeft ] = useState(0)
 
@@ -23,18 +23,21 @@ export default function RouterLinks({ pages }: {
                     if (!event.currentTarget.contains(event.relatedTarget)) setShowBlock(false)
                 }}
                 onMouseLeave={() => setShowBlock(false)}>
-        {pages.map((page, index) => <div key={index} className="h-full text-lg">
-            <Link href={page.slug === '/' ? '/' : `/${page.slug}`}
-                  aria-current={(path === '' ? '/' : path) === page.slug ? 'page' : undefined}
+        {items.map((item, index) => {
+            const href = resolveWebsiteHref(item.url)
+            return <div key={item.id} className="h-full text-lg">
+            <Link href={href}
+                  aria-current={path === href ? 'page' : undefined}
                   onFocus={() => updateBlock(index)}
                   onMouseOver={() => updateBlock(index)}
                   className={`inline-block w-30 h-full decoration-none opacity-80 transition-colors text-inherit hover:opacity-100 active:opacity-70
-                  ${(path === '' ? '/' : path) === page.slug ? ((path === 'life' || path === 'projects') ? 'opacity-100' : 'opacity-100 text-red-900') : ''}`}>
+                  ${path === href ? ((path === '/life' || path === '/projects') ? 'opacity-100' : 'opacity-100 text-red-900') : ''}`}>
                 <div className="flex items-center justify-center w-full h-full">
-                    {language === 'zh' ? page.titleZH : page.titleEN}
+                    {item.name}
                 </div>
             </Link>
-        </div>)}
+        </div>
+        })}
 
         <div
             className={`${showBlock ? 'opacity-10' : 'opacity-0'} absolute w-30 h-full bg-black opacity-0 z-10 pointer-events-none transition-all duration-300`}

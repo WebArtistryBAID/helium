@@ -1,10 +1,13 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
+import { withExpectedFields } from '@/app/lib/collaboration/expected-fields'
 import If from '@/app/lib/If'
 import {
     Badge,
     Button,
     Datepicker,
+    HelperText,
     Label,
     Modal,
     ModalBody,
@@ -13,10 +16,11 @@ import {
     TabItem,
     Tabs,
     TabsRef,
-    TextInput
+    TextInput,
+    Tooltip
 } from 'flowbite-react'
 import {
-    HiArrowLeft,
+    HiArrowLeft, HiArrowsRightLeft,
     HiCalendarDays,
     HiCheckCircle,
     HiClock,
@@ -29,35 +33,47 @@ import {
     HiUser
 } from 'react-icons/hi2'
 import { HiCloudUpload, HiSearch } from 'react-icons/hi'
-import { useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import { useRouter } from 'next/navigation'
-import SimpleMarkdownEditor from '@/app/studio/editor/SimpleMarkdownEditor'
-import Markdown from 'react-markdown'
+import PlateRichTextEditor, { type PlateCollaborator } from '@/app/studio/editor/PlateRichTextEditor'
 import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
-import { useEntityLock } from '@/app/lib/lock/useEntityLock'
 import { useImagePlaceholders } from '@/app/studio/media/useImagePlaceholders'
 import MediaPicker from '@/app/studio/media/MediaPicker'
-import LockBrokenPrompt from '@/app/lib/lock/LockBrokenPrompt'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
-import { HydratedContentEntity } from '@/app/lib/data-types'
+import { getContentEntityURI, HydratedContentEntity } from '@/app/lib/data-types'
 import {
     alignContentEntity,
     deleteContentEntity,
     getContentEntity,
+    restoreContentEntityDraftFromPublished,
     unpublishContentEntity,
     updateContentEntity
 } from '@/app/studio/editor/entity-actions'
-import { Role, User } from '@/generated/prisma/browser'
+import { ContentLanguage, EntityType, Role, User } from '@/generated/prisma/browser'
+import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
+import type { PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
+import {
+    createPlateCommentThread,
+    deletePlateCommentThread,
+    getPlateCommentThreads,
+    replyToPlateCommentThread,
+    setPlateCommentThreadResolved
+} from '@/app/studio/editor/comment-actions'
+import { extractContentImageIds, hasPlateSuggestions } from '@/app/lib/plate/plate-types'
+import ContentEntityDisplay from '@/app/lib/ContentEntityDisplay'
 
-export default function ContentEntityEditor({ init, user, lockToken, uploadPrefix }: {
+const AUTO_SAVE_INTERVAL_MS = 30_000
+
+export default function ContentEntityEditor({ init, initialCommentThreads, user, uploadPrefix, host }: {
     init: HydratedContentEntity,
+    initialCommentThreads: PuckCommentThread[],
     user: User,
-    lockToken: string,
-    uploadPrefix: string
+    uploadPrefix: string,
+    host: string
 }) {
     const [ loadingAdditional, setLoadingAdditional ] = useState(false)
-    const [ showLockBroken, setShowLockBroken ] = useState(false)
     const [ showMediaLibrary, setShowMediaLibrary ] = useState(false)
     const [ showTitleForm, setShowTitleForm ] = useState(false)
     const [ showShortContentForm, setShowShortContentForm ] = useState(false)
@@ -66,36 +82,85 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
     const [ showCategoryForm, setShowCategoryForm ] = useState(false)
     const [ deleteConfirm, setDeleteConfirm ] = useState(false)
     const [ unpublishConfirm, setUnpublishConfirm ] = useState(false)
-    const [ markdownContent, setMarkdownContent ] = useState(init.contentDraftZH)
+    const [ restoreConfirm, setRestoreConfirm ] = useState(false)
+    const [ contentRevision, setContentRevision ] = useState(0)
     const [ inEnglish, setInEnglish ] = useState(false)
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const [ _, setActiveTab ] = useState(0)
+    const [ languageComparisonMode, setLanguageComparisonMode ] = useState(false)
+    const [ commentThreads, setCommentThreads ] = useState(initialCommentThreads)
+    const [ activeTab, setActiveTab ] = useState(0)
+    const [ tabListElement, setTabListElement ] = useState<HTMLElement | null>(null)
+    const [ collaboratorsByLanguage, setCollaboratorsByLanguage ] = useState<{
+        en: PlateCollaborator[]
+        zh: PlateCollaborator[]
+    }>({ en: [], zh: [] })
     const tabsRef = useRef<TabsRef>(null)
+    const tabsContainerRef = useRef<HTMLDivElement>(null)
     const router = useRouter()
-
-    const { previewContent } = useImagePlaceholders({
-        markdown: markdownContent,
-        uploadPrefix
-    })
+    const canWrite = user.roles.includes(Role.writer)
+    const canModerate = user.roles.includes(Role.editor)
+    const canDeleteComments = user.roles.includes(Role.admin)
+    const {
+        permissionDenied,
+        showPermissionDenied,
+        closePermissionDenied,
+        handlePermissionError
+    } = usePermissionDialog()
 
     useEffect(() => {
-        if (location.hash === '#approval') {
-            setActiveTab(2)
-        } else if (location.hash === '#preview') {
-            setActiveTab(1)
+        const handleHashChange = () => {
+            if (window.location.hash === '#approval') {
+                setLanguageComparisonMode(false)
+                setActiveTab(2)
+                tabsRef.current?.setActiveTab(2)
+            } else if (window.location.hash === '#preview') {
+                setLanguageComparisonMode(false)
+                setActiveTab(1)
+                tabsRef.current?.setActiveTab(1)
+            } else if (window.location.hash === '#editor') {
+                setActiveTab(0)
+                tabsRef.current?.setActiveTab(0)
+            }
         }
+
+        handleHashChange()
+
+        window.addEventListener('hashchange', handleHashChange)
+
+        return () => {
+            window.removeEventListener('hashchange', handleHashChange)
+        }
+    }, [])
+
+    useEffect(() => {
+        if (activeTab !== 0) return
+        const refreshComments = async () => {
+            try {
+                setCommentThreads(await getPlateCommentThreads(init.id))
+            } catch (error) {
+                console.error('Failed to refresh collaborative comments:', error)
+            }
+        }
+        const interval = window.setInterval(() => void refreshComments(), 5000)
+        return () => window.clearInterval(interval)
+    }, [ activeTab, init.id ])
+
+    useEffect(() => {
+        setTabListElement(tabsContainerRef.current?.querySelector<HTMLElement>('[role="tablist"]') ?? null)
     }, [])
 
     // = Switch language
     function switchLanguage() {
-        if (inEnglish) {
-            setMarkdownContent(post.contentDraftZH)
-            setInEnglish(false)
-        } else {
-            setMarkdownContent(post.contentDraftEN)
-            setInEnglish(true)
-        }
+        setInEnglish(current => !current)
     }
+
+    const persistenceRef = useRef<Record<string, (() => Promise<void>) | null>>({})
+    const registerEnglishPersistence = useCallback((persist: (() => Promise<void>) | null) => {
+        persistenceRef.current.en = persist
+    }, [])
+    const registerChinesePersistence = useCallback((persist: (() => Promise<void>) | null) => {
+        persistenceRef.current.zh = persist
+    }, [])
+    const collaborative = Boolean(process.env.NEXT_PUBLIC_HOCUSPOCUS_URL)
 
     // = Save
     const {
@@ -107,20 +172,42 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
         refresh
     } = useSavableEntity({
         initial: init,
-        saveFn: async draft => await updateContentEntity({
-            id: draft.id,
-            titleDraftEN: draft.titleDraftEN,
-            titleDraftZH: draft.titleDraftZH,
-            categoryEN: draft.categoryEN,
-            categoryZH: draft.categoryZH,
-            slug: draft.slug,
-            contentDraftEN: draft.contentDraftEN,
-            contentDraftZH: draft.contentDraftZH,
-            shortContentDraftEN: draft.shortContentDraftEN,
-            shortContentDraftZH: draft.shortContentDraftZH,
-            coverImageDraftId: draft.coverImageDraft?.id,
-            createdAt: draft.createdAt
-        }),
+        saveFn: async (draft, previous) => {
+            const saveEnglish = inEnglish || languageComparisonMode
+            const saveChinese = !inEnglish || languageComparisonMode
+            if (collaborative) {
+                const languages = languageComparisonMode ? [ 'en', 'zh' ] : [ inEnglish ? 'en' : 'zh' ]
+                for (const language of languages) {
+                    const persist = persistenceRef.current[language]
+                    if (!persist) throw new Error('Collaborative editor is still initializing')
+                    await persist()
+                }
+            }
+            return await updateContentEntity(withExpectedFields({
+                id: draft.id,
+                titleDraftEN: draft.titleDraftEN !== previous.titleDraftEN
+                    ? draft.titleDraftEN : undefined,
+                titleDraftZH: draft.titleDraftZH !== previous.titleDraftZH
+                    ? draft.titleDraftZH : undefined,
+                categoryEN: draft.categoryEN !== previous.categoryEN
+                    ? draft.categoryEN : undefined,
+                categoryZH: draft.categoryZH !== previous.categoryZH
+                    ? draft.categoryZH : undefined,
+                slug: draft.slug !== previous.slug ? draft.slug : undefined,
+                contentDraftEN: !collaborative && saveEnglish && draft.contentDraftEN !== previous.contentDraftEN
+                    ? draft.contentDraftEN : undefined,
+                contentDraftZH: !collaborative && saveChinese && draft.contentDraftZH !== previous.contentDraftZH
+                    ? draft.contentDraftZH : undefined,
+                shortContentDraftEN: draft.shortContentDraftEN !== previous.shortContentDraftEN
+                    ? draft.shortContentDraftEN : undefined,
+                shortContentDraftZH: draft.shortContentDraftZH !== previous.shortContentDraftZH
+                    ? draft.shortContentDraftZH : undefined,
+                coverImageDraftId: draft.coverImageDraft?.id !== previous.coverImageDraft?.id
+                    ? draft.coverImageDraft?.id ?? null : undefined,
+                transparentNavbarDraft: undefined,
+                createdAt: String(draft.createdAt) !== String(previous.createdAt) ? draft.createdAt : undefined
+            }, previous))
+        },
         refreshFn: async () => (await getContentEntity(init.id))!,
         compareKeys: [
             'titleDraftEN',
@@ -136,23 +223,132 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             'createdAt'
         ]
     })
-    useSaveShortcut(true, save)
 
-    // = Locking
-    useEntityLock({
-        entityType: init.type,
-        entityId: post.id,
-        token: lockToken,
-        hasChanges,
-        onLockLost: () => setShowLockBroken(true)
-    })
+    const guardedSave = useCallback(async () => {
+        if (!canWrite) {
+            showPermissionDenied()
+            return
+        }
+        try {
+            await save()
+        } catch (error) {
+            if (!handlePermissionError(error)) {
+                console.error('Failed to save content entity:', error)
+            }
+        }
+    }, [ canWrite, handlePermissionError, save, showPermissionDenied ])
+
+    useSaveShortcut(true, guardedSave)
+
+    useEffect(() => {
+        if (!canWrite) return
+
+        const interval = window.setInterval(() => {
+            if (hasChanges && !loading) void guardedSave()
+        }, AUTO_SAVE_INTERVAL_MS)
+
+        return () => window.clearInterval(interval)
+    }, [ canWrite, guardedSave, hasChanges, loading ])
 
     const isPublished = post.contentPublishedEN === post.contentDraftEN &&
         post.contentPublishedZH === post.contentDraftZH
     const isDraft = post.contentPublishedEN == null && post.contentPublishedZH == null
     const statusLabel = isPublished ? '已发布' : isDraft ? '草稿' : '有更新未发布'
     const displayedShortContent = inEnglish ? post.shortContentDraftEN : post.shortContentDraftZH
+    const displayedTitle = inEnglish ? post.titleDraftEN : post.titleDraftZH
+    const displayedContent = inEnglish ? post.contentDraftEN : post.contentDraftZH
+    const displayedDate = typeof post.createdAt === 'string' ? new Date(post.createdAt) : post.createdAt
+    const contentUrl = `${host.replace(/\/+$/, '')}${getContentEntityURI(displayedDate, post.slug)}`
     const editButtonClass = 'shrink-0 rounded-lg p-1.5 text-gray-400 transition-colors hover:bg-blue-50 hover:text-blue-600'
+    const { cachedImages: chineseImages } = useImagePlaceholders({ content: post.contentDraftZH, uploadPrefix })
+    const { cachedImages: englishImages } = useImagePlaceholders({ content: post.contentDraftEN, uploadPrefix })
+    const cachedImages = inEnglish ? englishImages : chineseImages
+    const currentEntityMediaIds = Array.from(new Set([
+        ...extractContentImageIds(post.contentDraftEN),
+        ...extractContentImageIds(post.contentDraftZH),
+        ...(post.coverImageDraftId == null ? [] : [ post.coverImageDraftId ])
+    ]))
+    const commentLanguage = inEnglish ? ContentLanguage.en : ContentLanguage.zh
+    const hasUnresolvedFeedback = commentThreads.some(thread => thread.resolvedAt == null) ||
+        hasPlateSuggestions(post.contentDraftEN) || hasPlateSuggestions(post.contentDraftZH)
+    const visibleCollaborators = (languageComparisonMode
+        ? [ ...collaboratorsByLanguage.zh, ...collaboratorsByLanguage.en ]
+        : collaboratorsByLanguage[commentLanguage])
+
+    const updateChineseCollaborators = useCallback((users: PlateCollaborator[]) => {
+        setCollaboratorsByLanguage(current => ({ ...current, zh: users }))
+    }, [])
+    const updateEnglishCollaborators = useCallback((users: PlateCollaborator[]) => {
+        setCollaboratorsByLanguage(current => ({ ...current, en: users }))
+    }, [])
+
+    async function createTextComment(language: ContentLanguage, quotedText: string,
+                                     body: string): Promise<PuckCommentThread> {
+        const thread = await createPlateCommentThread({
+            entityId: post.id,
+            language,
+            quotedText,
+            body
+        })
+        setCommentThreads(current => [ ...current, thread ])
+        return thread
+    }
+
+    async function replyToTextComment(threadId: string, body: string): Promise<void> {
+        const comment = await replyToPlateCommentThread({ threadId, body })
+        setCommentThreads(current => current.map(thread => thread.id === threadId
+            ? { ...thread, comments: [ ...thread.comments, comment ] }
+            : thread))
+    }
+
+    async function setTextCommentResolved(threadId: string, resolved: boolean): Promise<void> {
+        const updated = await setPlateCommentThreadResolved({ threadId, resolved })
+        setCommentThreads(current => current.map(thread => thread.id === threadId ? updated : thread))
+    }
+
+    async function deleteTextComment(threadId: string): Promise<void> {
+        try {
+            await deletePlateCommentThread(threadId)
+            setCommentThreads(current => current.filter(thread => thread.id !== threadId))
+        } catch (error) {
+            handlePermissionError(error)
+            throw error
+        }
+    }
+
+    function renderPlateEditor(language: ContentLanguage) {
+        const english = language === ContentLanguage.en
+        const content = english ? post.contentDraftEN : post.contentDraftZH
+        const languageComments = commentThreads.filter(thread => thread.language === language)
+        return <PlateRichTextEditor
+            onPersistenceReady={english ? registerEnglishPersistence : registerChinesePersistence}
+            documentKey={`${post.id}-${english ? 'en' : 'zh'}-${contentRevision}`}
+            content={content}
+            collaboration={canWrite ? { entityId: post.id, language } : undefined}
+            commentThreads={languageComments}
+            canComment={canWrite}
+            canDeleteComments={canDeleteComments}
+            currentUserId={String(user.id)}
+            currentUserName={user.name}
+            currentEntityMediaIds={currentEntityMediaIds}
+            images={english ? englishImages : chineseImages}
+            readOnly={!canWrite}
+            uploadPrefix={uploadPrefix}
+            onCreateComment={(quotedText, body) => createTextComment(language, quotedText, body)}
+            onDeleteComment={deleteTextComment}
+            onReplyComment={replyToTextComment}
+            onSetCommentResolved={setTextCommentResolved}
+            onCollaboratorsChange={english ? updateEnglishCollaborators : updateChineseCollaborators}
+            onChange={updatedContent => {
+                if (!canWrite) {
+                    showPermissionDenied()
+                    return
+                }
+                setPost(previous => english
+                    ? { ...previous, contentDraftEN: updatedContent }
+                    : { ...previous, contentDraftZH: updatedContent })
+            }}/>
+    }
 
     return <>
         <Modal show={showTitleForm} size="md" popup onClose={() => setShowTitleForm(false)}>
@@ -297,6 +493,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                        }))
                                    }}
                                    required/>
+                        <HelperText className="break-all">本页面将显示于 {contentUrl}。</HelperText>
                     </div>
                 </div>
             </ModalBody>
@@ -329,19 +526,24 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
             </ModalFooter>
         </Modal>
 
-        <LockBrokenPrompt show={showLockBroken} returnUri="/studio"/>
+        <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
         <MediaPicker open={showMediaLibrary} onClose={() => setShowMediaLibrary(false)} allowUnpick={false}
+                     currentEntityMediaIds={currentEntityMediaIds}
                      onPick={image => {
+                         if (!canWrite) {
+                             showPermissionDenied()
+                             return
+                         }
                          setPost(prev => ({
                              ...prev,
                              coverImageDraft: image!,
                              coverImageDraftId: image!.id
                          }))
-            setShowMediaLibrary(false)
-        }}/>
+                         setShowMediaLibrary(false)
+                     }}/>
 
         <div className="mx-auto max-w-[1600px] pb-12">
-            <header className="mb-6 border-b border-gray-200 pb-6">
+            <header className="mb-6 pb-6">
                 <button type="button" onClick={() => router.back()}
                         className="mb-5 flex items-center gap-2 text-sm text-gray-500 transition-colors hover:text-gray-900">
                     <HiArrowLeft className="h-4 w-4"/>
@@ -363,52 +565,61 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                         </p>
                     </div>
                     <div className="flex shrink-0 items-center gap-3">
-                        <Button pill color="alternative" onClick={switchLanguage}>
+                        {activeTab === 0 && <Button pill color="alternative" onClick={() => {
+                            setLanguageComparisonMode(current => !current)
+                            setInEnglish(false)
+                        }}>
+                            <HiArrowsRightLeft className="mr-2 h-4 w-4"/>
+                            {languageComparisonMode ? '退出对照模式' : '对照模式'}
+                        </Button>}
+                        {!languageComparisonMode && <Button pill color="alternative" onClick={switchLanguage}>
                             <HiLanguage className="mr-2 h-4 w-4"/>
-                            {inEnglish ? 'English · 切换到中文' : '中文 · Switch to English'}
-                        </Button>
-                        <Button pill color="blue"
-                                disabled={loading || !user.roles.includes(Role.writer)}
-                                onClick={save}>
-                            <HiCheckCircle className="mr-2 h-4 w-4"/>
-                            {loading ? '正在保存...' : '保存更改'}
-                        </Button>
+                            {inEnglish ? '英文 · 切换到中文' : '中文 · 切换到英文'}
+                        </Button>}
+                        <If condition={canWrite}>
+                            <Button pill color="blue"
+                                    disabled={loading || !hasChanges}
+                                    onClick={guardedSave}>
+                                <HiCheckCircle className="mr-2 h-4 w-4"/>
+                                {loading ? '保存中…' : hasChanges ? '保存更改' : '已保存'}
+                            </Button>
+                        </If>
                     </div>
                 </div>
             </header>
 
-            <Tabs aria-label="文章编辑器选项卡" variant="default" ref={tabsRef}
-                  onActiveTabChange={(tab) => setActiveTab(tab)}>
+            <div ref={tabsContainerRef}>
+                <Tabs aria-label="文章编辑器选项卡" variant="default" ref={tabsRef}
+                  onActiveTabChange={tab => {
+                      setActiveTab(tab)
+                      if (tab !== 0) setLanguageComparisonMode(false)
+                  }}>
                 <TabItem active title="内容" icon={HiNewspaper}>
-                    <div className="mt-5 grid grid-cols-1 items-start gap-6 xl:grid-cols-[minmax(0,1fr)_22rem]">
-                        <section className="min-w-0 rounded-2xl border border-gray-200 bg-gray-50 p-4">
-                            <div className="mb-3 flex items-center justify-between px-1">
-                                <div>
-                                    <h2 className="font-semibold text-gray-900">正文</h2>
-                                    <p className="text-sm text-gray-500">
-                                        正在编辑{inEnglish ? '英文' : '中文'}版本
-                                    </p>
+                    <div className={`mt-5 grid grid-cols-1 items-start gap-6 ${
+                        languageComparisonMode ? '' : 'xl:grid-cols-[minmax(0,1fr)_22rem]'
+                    }`}>
+                        <section className="min-w-0 rounded-3xl border border-gray-200 bg-gray-50 p-4">
+                            {languageComparisonMode
+                                ? <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
+                                    <div className="min-w-0">
+                                        <h2 className="mb-3 px-1 font-semibold text-gray-900">中文</h2>
+                                        {renderPlateEditor(ContentLanguage.zh)}
+                                    </div>
+                                    <div className="min-w-0">
+                                        <h2 className="mb-3 px-1 font-semibold text-gray-900">英文</h2>
+                                        {renderPlateEditor(ContentLanguage.en)}
+                                    </div>
                                 </div>
-                                <span
-                                    className="rounded-full bg-white px-3 py-1 text-xs font-medium text-gray-600 shadow-sm">
-                                    {inEnglish ? 'EN' : '中文'}
-                                </span>
-                            </div>
-                            <SimpleMarkdownEditor
-                                className="rounded-xl shadow-none"
-                                value={markdownContent}
-                                onChange={(content: string) => {
-                                    setMarkdownContent(content)
-                                    if (inEnglish) {
-                                        setPost(prev => ({ ...prev, contentDraftEN: content }))
-                                    } else {
-                                        setPost(prev => ({ ...prev, contentDraftZH: content }))
-                                    }
-                                }}/>
+                                : <>
+                                    <div className="mb-3 flex items-center justify-between px-1">
+                                        <h2 className="font-semibold text-gray-900">正文</h2>
+                                    </div>
+                                    {renderPlateEditor(commentLanguage)}
+                                </>}
                         </section>
 
-                        <aside className="space-y-4">
-                            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                        {!languageComparisonMode && <aside className="space-y-4">
+                            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <div className="mb-5 flex items-start justify-between gap-4">
                                     <div className="min-w-0">
                                         <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-gray-400">
@@ -421,10 +632,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                             {inEnglish ? post.titleDraftZH : post.titleDraftEN}
                                         </p>
                                     </div>
-                                    <button type="button" className={editButtonClass} aria-label="编辑标题"
-                                            onClick={() => setShowTitleForm(true)}>
-                                        <HiPencil className="h-4 w-4"/>
-                                    </button>
+                                    <If condition={canWrite}>
+                                        <button type="button" className={editButtonClass} aria-label="编辑标题"
+                                                onClick={() => setShowTitleForm(true)}>
+                                            <HiPencil className="h-4 w-4"/>
+                                        </button>
+                                    </If>
                                 </div>
 
                                 <div className="space-y-4 border-t border-gray-100 pt-4">
@@ -434,10 +647,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                             <p className="text-xs font-medium text-gray-500">链接位置</p>
                                             <p className="truncate text-sm text-gray-900">{post.slug}</p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑链接位置"
-                                                onClick={() => setShowSlugForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑链接位置"
+                                                    onClick={() => setShowSlugForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                     <div className="flex gap-3">
                                         <HiTag className="mt-0.5 h-5 w-5 shrink-0 text-gray-400"/>
@@ -447,10 +662,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                 {inEnglish ? post.categoryEN : post.categoryZH || '尚未设置'}
                                             </p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑类别"
-                                                onClick={() => setShowCategoryForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑类别"
+                                                    onClick={() => setShowCategoryForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                     <div className="flex gap-3">
                                         <HiNewspaper className="mt-0.5 h-5 w-5 shrink-0 text-gray-400"/>
@@ -460,15 +677,17 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                 {displayedShortContent || '尚未设置'}
                                             </p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑短内容"
-                                                onClick={() => setShowShortContentForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑短内容"
+                                                    onClick={() => setShowShortContentForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                 </div>
                             </section>
 
-                            <section className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm">
+                            <section className="rounded-3xl border border-gray-200 bg-white p-5 shadow-sm">
                                 <h2 className="mb-4 font-semibold text-gray-900">发布信息</h2>
                                 <div className="space-y-4">
                                     <div className="flex gap-3">
@@ -487,10 +706,12 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                                     new Date(post.createdAt) : post.createdAt).toLocaleDateString()}
                                             </p>
                                         </div>
-                                        <button type="button" className={editButtonClass} aria-label="编辑显示日期"
-                                                onClick={() => setShowDateForm(true)}>
-                                            <HiPencil className="h-4 w-4"/>
-                                        </button>
+                                        <If condition={canWrite}>
+                                            <button type="button" className={editButtonClass} aria-label="编辑显示日期"
+                                                    onClick={() => setShowDateForm(true)}>
+                                                <HiPencil className="h-4 w-4"/>
+                                            </button>
+                                        </If>
                                     </div>
                                     <div className="flex gap-3">
                                         <HiClock className="mt-0.5 h-5 w-5 text-gray-400"/>
@@ -509,7 +730,7 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                 </div>
                             </section>
 
-                            <section className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+                            <section className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
                                 <div className="flex items-center justify-between p-5 pb-3">
                                     <div>
                                         <h2 className="font-semibold text-gray-900">封面图片</h2>
@@ -517,95 +738,170 @@ export default function ContentEntityEditor({ init, user, lockToken, uploadPrefi
                                     </div>
                                     <HiPhoto className="h-5 w-5 text-gray-400"/>
                                 </div>
-                                <button type="button"
-                                        aria-label={post.coverImageDraft != null ? '更换封面图片' : '选择封面图片'}
-                                        onClick={() => setShowMediaLibrary(true)}
-                                        className="block w-full text-left">
-                                    <If condition={post.coverImageDraft != null}>
-                                        <img className="h-40 w-full object-cover transition-opacity hover:opacity-90"
-                                             alt={post.coverImageDraft?.altText ?? ''}
-                                             src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
-                                    </If>
-                                    <If condition={post.coverImageDraft == null}>
-                                        <div
-                                            className="m-5 mt-1 flex h-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600">
-                                            选择封面图片
-                                        </div>
-                                    </If>
-                                </button>
+                                <If condition={canWrite}>
+                                    <button type="button"
+                                            aria-label={post.coverImageDraft != null ? '更换封面图片' : '选择封面图片'}
+                                            onClick={() => setShowMediaLibrary(true)}
+                                            className="block w-full text-left">
+                                        <If condition={post.coverImageDraft != null}>
+                                            <FocusImage image={post.coverImageDraft}
+                                                className="h-40 w-full object-cover transition-opacity hover:opacity-90"
+                                                alt={post.coverImageDraft?.altText ?? ''}
+                                                src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
+                                        </If>
+                                        <If condition={post.coverImageDraft == null}>
+                                            <div
+                                                className="m-5 mt-1 flex h-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500 hover:border-blue-300 hover:text-blue-600">
+                                                选择封面图片
+                                            </div>
+                                        </If>
+                                    </button>
+                                </If>
+                                <If condition={!canWrite}>
+                                    <div className="block w-full text-left">
+                                        <If condition={post.coverImageDraft != null}>
+                                            <FocusImage image={post.coverImageDraft}
+                                                        className="h-40 w-full object-cover"
+                                                 alt={post.coverImageDraft?.altText ?? ''}
+                                                 src={`${uploadPrefix}/${post.coverImageDraft?.sha1}_thumb.webp`}/>
+                                        </If>
+                                        <If condition={post.coverImageDraft == null}>
+                                            <div
+                                                className="m-5 mt-1 flex h-28 items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50 text-sm text-gray-500">
+                                                尚未设置封面图片
+                                            </div>
+                                        </If>
+                                    </div>
+                                </If>
                             </section>
 
-                            <section className="rounded-2xl border border-red-100 bg-red-50/50 p-5">
-                                <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-red-500">
-                                    内容管理
-                                </p>
-                                <div className="flex flex-wrap gap-2">
-                                    <If condition={post.contentPublishedEN != null || post.contentPublishedZH != null}>
-                                        <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)}
+                            <If condition={canWrite || canModerate}>
+                                <section className="rounded-3xl border border-red-100 bg-red-50/50 p-5">
+                                    <div className="flex flex-wrap gap-2">
+                                        <If condition={canWrite && post.titlePublishedEN != null && post.titlePublishedZH != null &&
+                                            post.contentPublishedEN != null && post.contentPublishedZH != null}>
+                                            <Button disabled={loadingAdditional}
+                                                    size="xs" color="red" outline onClick={async () => {
+                                                if (!restoreConfirm) {
+                                                    setRestoreConfirm(true)
+                                                    return
+                                                }
+                                                setLoadingAdditional(true)
+                                                try {
+                                                    const restored = await restoreContentEntityDraftFromPublished(post.id)
+
+                                                    setPost(restored)
+                                                    setContentRevision(current => current + 1)
+                                                    setRestoreConfirm(false)
+                                                    router.refresh()
+                                                } catch (error) {
+                                                    if (!handlePermissionError(error)) {
+                                                        console.error('Failed to restore published content:', error)
+                                                    }
+                                                } finally {
+                                                    setLoadingAdditional(false)
+                                                }
+                                            }}>{restoreConfirm ? '确认退回?' : '退回到线上版'}</Button>
+                                        </If>
+                                        <If condition={canModerate && (post.contentPublishedEN != null || post.contentPublishedZH != null)}>
+                                            <Button disabled={loadingAdditional}
+                                                    size="xs" color="red" outline onClick={async () => {
+                                                if (!canModerate) {
+                                                    showPermissionDenied()
+                                                    return
+                                                }
+                                                if (!unpublishConfirm) {
+                                                    setUnpublishConfirm(true)
+                                                    return
+                                                }
+                                                setLoadingAdditional(true)
+                                                try {
+                                                    await unpublishContentEntity(post.id)
+                                                    await refresh()
+                                                    router.refresh()
+                                                } catch (error) {
+                                                    if (!handlePermissionError(error)) {
+                                                        console.error('Failed to unpublish content entity:', error)
+                                                    }
+                                                } finally {
+                                                    setLoadingAdditional(false)
+                                                }
+                                            }}>
+                                                {unpublishConfirm ? '确认撤回?' : '撤回发布'}
+                                            </Button>
+                                        </If>
+                                        <If condition={canModerate}>
+                                            <Button disabled={loadingAdditional}
                                                 size="xs" color="red" outline onClick={async () => {
-                                            if (!unpublishConfirm) {
-                                                setUnpublishConfirm(true)
+                                            if (!canModerate) {
+                                                showPermissionDenied()
+                                                return
+                                            }
+                                            if (!deleteConfirm) {
+                                                setDeleteConfirm(true)
                                                 return
                                             }
                                             setLoadingAdditional(true)
-                                            await unpublishContentEntity(post.id)
-                                            setLoadingAdditional(false)
-                                            await refresh()
-                                            router.refresh()
-                                        }}>
-                                            {unpublishConfirm ? '确认撤回?' : '撤回发布'}
-                                        </Button>
-                                    </If>
-                                    <Button disabled={loadingAdditional || !user.roles.includes(Role.editor)}
-                                            size="xs" color="red" outline onClick={async () => {
-                                        if (!deleteConfirm) {
-                                            setDeleteConfirm(true)
-                                            return
-                                        }
-                                        setLoadingAdditional(true)
-                                        await deleteContentEntity(post.id)
-                                        setLoadingAdditional(false)
-                                        router.push('/studio')
-                                    }}>{deleteConfirm ? '确认删除?' : '删除内容'}</Button>
-                                </div>
-                            </section>
-                        </aside>
+                                            try {
+                                                await deleteContentEntity(post.id)
+                                                router.push('/studio')
+                                            } catch (error) {
+                                                if (!handlePermissionError(error)) {
+                                                    console.error('Failed to delete content entity:', error)
+                                                }
+                                            } finally {
+                                                setLoadingAdditional(false)
+                                            }
+                                            }}>{deleteConfirm ? '确认删除?' : '删除内容'}</Button>
+                                        </If>
+                                    </div>
+                                </section>
+                            </If>
+                        </aside>}
                     </div>
                 </TabItem>
                 <TabItem title="预览" icon={HiSearch}>
-                    <div className="mx-auto mt-5 max-w-5xl">
-                        <div
-                            className="mb-4 flex items-center justify-between rounded-2xl border border-gray-200 bg-gray-50 px-5 py-3">
-                            <div>
-                                <p className="font-medium text-gray-900">内容预览</p>
-                                <p className="text-sm text-gray-500">预览仅用于检查内容，发布效果可能略有不同。</p>
-                            </div>
-                            <Button pill size="sm" color="alternative" onClick={switchLanguage}>
-                                <HiLanguage className="mr-2 h-4 w-4"/>
-                                {inEnglish ? '查看中文' : 'View in English'}
-                            </Button>
-                        </div>
-                        <div className="overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-sm">
-                            <If condition={post.coverImageDraft != null}>
-                                <img className="h-80 w-full object-cover" alt={post.coverImageDraft?.altText ?? ''}
-                                     src={`${uploadPrefix}/${post.coverImageDraft?.sha1}.webp`}/>
-                            </If>
-                            <article className="p-10">
-                                <h1>{inEnglish ? post.titleDraftEN : post.titleDraftZH}</h1>
-                                <Markdown>{previewContent}</Markdown>
-                            </article>
+                    <div className="mt-5">
+                        <div className="rounded-3xl border border-gray-200 bg-white shadow-sm">
+                            <ContentEntityDisplay
+                                type={post.type}
+                                title={displayedTitle}
+                                subtitle={inEnglish ? post.titleDraftZH : post.titleDraftEN}
+                                content={displayedContent}
+                                coverImage={post.coverImageDraft}
+                                createdAt={displayedDate}
+                                locale={inEnglish ? 'en' : 'zh'}
+                                images={[ ...cachedImages.values() ]}
+                                uploadPrefix={uploadPrefix}/>
                         </div>
                     </div>
                 </TabItem>
                 <TabItem title="审核与发布" icon={HiCloudUpload}>
-                    <div className="mt-5 rounded-2xl border border-gray-200 bg-white p-6 shadow-sm">
-                        <ApprovalProcess entityType={init.type} entityId={post.id} entity={post} doAlign={async () => {
+                    <div className="mt-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
+                        <ApprovalProcess entityType={init.type} entityId={post.id} entity={post}
+                                         hasUnresolvedFeedback={hasUnresolvedFeedback} doAlign={async () => {
                             await alignContentEntity(post.id)
                             await refresh()
                         }}/>
                     </div>
                 </TabItem>
-            </Tabs>
+                </Tabs>
+                {tabListElement != null && activeTab === 0 && visibleCollaborators.length > 0 &&
+                    createPortal(<div className="ml-auto flex items-center -space-x-2 pl-3" aria-label="当前协作用户">
+                        {visibleCollaborators.map(collaborator => <Tooltip
+                            key={collaborator.clientId}
+                            content={collaborator.name}
+                            placement="top">
+            <span
+                tabIndex={0}
+                aria-label={collaborator.name}
+                className="inline-flex size-10 shrink-0 items-center justify-center rounded-full border-2 border-white text-base font-semibold text-white"
+                style={{ backgroundColor: collaborator.color }}>
+                {Array.from(collaborator.name)[0]}
+            </span>
+                        </Tooltip>)}
+                    </div>, tabListElement)}
+            </div>
         </div>
     </>
 }

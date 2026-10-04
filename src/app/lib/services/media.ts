@@ -1,0 +1,241 @@
+import 'server-only'
+
+import type { OperationActor } from '@/app/lib/mcp/contracts'
+import { requireActorUser } from '@/app/lib/services/actor'
+
+import { type Image, type Prisma, Role, UserAuditLogType } from '@/generated/prisma/client'
+
+import path from 'node:path'
+import fs from 'node:fs/promises'
+import sharp from 'sharp'
+import type { Paginated } from '@/app/lib/data-types'
+import { prisma } from '@/app/lib/prisma'
+import { ensureVideoThumbnail } from '@/app/studio/media/video-thumbnail'
+
+const PAGE_SIZE = 24
+
+export type ImagePage = Paginated<Image> & {
+    uploadServePath: string
+}
+
+export type MediaType = 'image' | 'video'
+export type MediaScope = 'all' | 'mine' | 'entity'
+
+export type MediaFilters = {
+    query?: string
+    scope?: MediaScope
+    entityMediaIds?: number[]
+}
+
+export async function getUploadServePath(): Promise<string> {
+    const configuredPath = process.env.UPLOAD_SERVE_PATH?.trim()
+    if (configuredPath == null || configuredPath === '') return '/uploads'
+    return configuredPath.startsWith('/') ? configuredPath : `/${configuredPath}`
+}
+
+export async function getImage(id: number): Promise<Image | null> {
+    return prisma.image.findUnique({
+        where: { id }
+    })
+}
+
+export async function updateImageFocus(actor: OperationActor, id: number, focus: {
+    focusX: number; focusY: number; focusSize: number
+}): Promise<Image> {
+    await requireActorUser(actor, Role.writer)
+    const image = await prisma.image.findUniqueOrThrow({ where: { id } })
+    if (image.mediaType !== 'image' || image.width <= 0 || image.height <= 0) {
+        throw new Error('Only images support a focus crop')
+    }
+    const { focusX, focusY, focusSize } = focus
+    if (![ focusX, focusY, focusSize ].every(Number.isFinite) || focusSize < 0.05 || focusSize > 1) {
+        throw new Error('Invalid focus crop')
+    }
+    const side = Math.min(image.width, image.height) * focusSize
+    const halfX = side / image.width / 2
+    const halfY = side / image.height / 2
+    const tolerance = 1e-7
+    if (focusX < halfX - tolerance || focusX > 1 - halfX + tolerance
+        || focusY < halfY - tolerance || focusY > 1 - halfY + tolerance) {
+        throw new Error('Focus crop must fit inside the image')
+    }
+    return prisma.image.update({ where: { id }, data: focus })
+}
+
+export async function getMedia(actor: OperationActor, page: number, mediaTypes: MediaType[] = [ 'image', 'video' ],
+                               filters: MediaFilters = {}): Promise<ImagePage> {
+    const user = await requireActorUser(actor, Role.writer)
+    const query = filters.query?.trim().slice(0, 200) ?? ''
+    const entityMediaIds = (filters.entityMediaIds ?? [])
+        .filter(id => Number.isInteger(id) && id > 0)
+    let searchWhere: Prisma.ImageWhereInput = {}
+    if (/^[a-f0-9]{40}$/i.test(query)) {
+        searchWhere = { sha1: query.toLowerCase() }
+    } else if (/^\d+$/.test(query)) {
+        const id = Number(query)
+        // Image IDs are PostgreSQL integers; out-of-range IDs have no match.
+        searchWhere = { id: Number.isSafeInteger(id) && id <= 2147483647 ? id : -1 }
+    } else if (query.length > 0) {
+        searchWhere = {
+            OR: [
+                { name: { contains: query, mode: 'insensitive' } },
+                { altText: { contains: query, mode: 'insensitive' } }
+            ]
+        }
+    }
+    const where: Prisma.ImageWhereInput = {
+        mediaType: { in: mediaTypes },
+        AND: [ searchWhere ],
+        ...(filters.scope === 'mine' ? { uploaderId: user.id } : {}),
+        ...(filters.scope === 'entity' ? { id: { in: entityMediaIds } } : {})
+    }
+    const [ count, images ] = await Promise.all([
+        prisma.image.count({ where }),
+        prisma.image.findMany({
+            where,
+            orderBy: { createdAt: 'desc' },
+            skip: page * PAGE_SIZE,
+            take: PAGE_SIZE
+        })
+    ])
+    await Promise.all(images.filter(image => image.mediaType === 'video').map(async video => {
+        try {
+            await ensureVideoThumbnail(video.sha1, video.extension)
+        } catch (error) {
+            console.error(`Failed to generate thumbnail for video ${video.id}`, error)
+        }
+    }))
+    return {
+        items: images,
+        page,
+        pages: Math.ceil(count / PAGE_SIZE),
+        uploadServePath: await getUploadServePath()
+    }
+}
+
+export async function getImages(actor: OperationActor, page: number): Promise<ImagePage> {
+    return getMedia(actor, page, [ 'image' ])
+}
+
+export async function searchImages(actor: OperationActor, query: string, page: number): Promise<ImagePage> {
+    return getMedia(actor, page, [ 'image' ], { query })
+}
+
+export async function createImage(actor: OperationActor, data: {
+    name: string
+    altText: string
+    sha1: string
+}): Promise<Image> {
+    const user = await requireActorUser(actor, Role.writer)
+    if (!/^[a-f0-9]{40}$/.test(data.sha1)) throw new Error('Invalid image hash')
+    const metadata = await sharp(await fs.readFile(path.join(process.env.UPLOAD_PATH!, data.sha1 + '.webp'))).metadata()
+
+    return prisma.$transaction(async tx => {
+        const image = await tx.image.create({
+            data: {
+                name: data.name,
+                altText: data.altText,
+                sha1: data.sha1,
+                mediaType: 'image',
+                extension: 'webp',
+                mimeType: 'image/webp',
+                width: metadata.width,
+                height: metadata.height,
+                sizeKB: Math.ceil((metadata.size ?? 0) / 1024),
+                uploaderId: user.id
+            }
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.uploadImage,
+                userId: user.id,
+                values: [ image.id.toString(), data.sha1 ]
+            }
+        })
+        return image
+    })
+}
+
+export async function createMedia(actor: OperationActor, data: {
+    name: string
+    altText: string
+    sha1: string
+    mediaType: MediaType
+    extension: string
+    mimeType: string
+}): Promise<Image> {
+    if (data.mediaType === 'image') {
+        return createImage(actor, { name: data.name, altText: data.altText, sha1: data.sha1 })
+    }
+
+    const user = await requireActorUser(actor, Role.writer)
+    if (!/^[a-f0-9]{40}$/.test(data.sha1)) throw new Error('Invalid media hash')
+    const allowedVideos = new Map([
+        [ 'mp4', 'video/mp4' ],
+        [ 'webm', 'video/webm' ],
+        [ 'mov', 'video/quicktime' ],
+        [ 'ogv', 'video/ogg' ]
+    ])
+    if (allowedVideos.get(data.extension) !== data.mimeType) throw new Error('Invalid video format')
+    const mediaPath = path.join(/* turbopackIgnore: true */ process.env.UPLOAD_PATH!, `${data.sha1}.${data.extension}`)
+    const stats = await fs.stat(/* turbopackIgnore: true */ mediaPath)
+
+    return prisma.$transaction(async tx => {
+        const media = await tx.image.create({
+            data: {
+                name: data.name,
+                altText: data.altText,
+                sha1: data.sha1,
+                mediaType: 'video',
+                extension: data.extension,
+                mimeType: data.mimeType,
+                width: 0,
+                height: 0,
+                sizeKB: Math.ceil(stats.size / 1024),
+                uploaderId: user.id
+            }
+        })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.uploadImage,
+                userId: user.id,
+                values: [ media.id.toString(), data.sha1, 'video' ]
+            }
+        })
+        return media
+    })
+}
+
+export async function deletePendingImageUpload(actor: OperationActor, sha1: string, extension = 'webp'): Promise<void> {
+    await requireActorUser(actor, Role.writer)
+    if (!/^[a-f0-9]{40}$/.test(sha1)) throw new Error('Invalid media hash')
+    const image = await prisma.image.findUnique({ where: { sha1 }, select: { id: true } })
+    if (image != null) throw new Error('Media is already in the media library')
+    if (!/^(webp|mp4|webm|mov|ogv)$/.test(extension)) throw new Error('Invalid media extension')
+    await fs.rm(path.join(/* turbopackIgnore: true */ process.env.UPLOAD_PATH!, `${sha1}.${extension}`), { force: true })
+    await fs.rm(path.join(process.env.UPLOAD_PATH!, `${sha1}_thumb.webp`), { force: true })
+}
+
+export async function deleteImage(actor: OperationActor, id: number): Promise<void> {
+    const user = await requireActorUser(actor, Role.writer)
+    const image = await prisma.image.findUniqueOrThrow({
+        where: { id }
+    })
+    await prisma.$transaction(async tx => {
+        await tx.image.delete({ where: { id } })
+        await tx.userAuditLog.create({
+            data: {
+                type: UserAuditLogType.deleteImage,
+                userId: user.id,
+                values: [ id.toString(), image.sha1 ]
+            }
+        })
+    })
+    const cleanupResults = await Promise.allSettled([
+        fs.rm(path.join(/* turbopackIgnore: true */ process.env.UPLOAD_PATH!, `${image.sha1}.${image.extension}`), { force: true }),
+        fs.rm(path.join(process.env.UPLOAD_PATH!, image.sha1 + '_thumb.webp'), { force: true })
+    ])
+    for (const result of cleanupResults) {
+        if (result.status === 'rejected') console.error('Failed to remove image files', result.reason)
+    }
+}

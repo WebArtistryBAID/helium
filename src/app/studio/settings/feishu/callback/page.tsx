@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 import { requireUser } from '@/app/login/login-actions'
-import { exchangeFeishuCode, linkFeishuAccount } from '@/app/studio/settings/feishu-actions'
+import { exchangeFeishuCode, linkFeishuAccount } from '@/app/studio/settings/feishu/feishu-actions'
 
 function isNextRedirect(error: unknown): error is { digest: string } {
     return typeof error === 'object' &&

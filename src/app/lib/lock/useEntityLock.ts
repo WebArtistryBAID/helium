@@ -105,19 +105,11 @@ export function useEntityLock({
             event.returnValue = ''
         }
 
-        const handlePageHide = (event: PageTransitionEvent) => {
-            if (event.persisted) return
-            navigator.sendBeacon(
-                '/lib/lock/unlock',
-                JSON.stringify({ entityType, entityId, token })
-            )
-        }
-
+        // Refresh reuses the token in the URL. An unload release can arrive after
+        // the new page renews it, so full-page exits rely on the server lock TTL.
         window.addEventListener('beforeunload', handleBeforeUnload)
-        window.addEventListener('pagehide', handlePageHide)
         return () => {
             window.removeEventListener('beforeunload', handleBeforeUnload)
-            window.removeEventListener('pagehide', handlePageHide)
         }
     }, [ entityType, entityId, token ])
 }

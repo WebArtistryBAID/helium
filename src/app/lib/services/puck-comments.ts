@@ -1,0 +1,168 @@
+import 'server-only'
+
+import type { OperationActor } from '@/app/lib/mcp/contracts'
+import { requireActorUser } from '@/app/lib/services/actor'
+
+import { CommentAnchorType, ContentLanguage, EntityType, Role } from '@/generated/prisma/client'
+
+import { prisma } from '@/app/lib/prisma'
+import type { PuckComment, PuckCommentThread } from '@/app/lib/puck/puck-comment-types'
+
+const COMMENT_AUTHOR_SELECT = {
+    id: true,
+    name: true
+} as const
+
+const COMMENT_INCLUDE = {
+    author: { select: COMMENT_AUTHOR_SELECT }
+} as const
+
+const THREAD_INCLUDE = {
+    comments: {
+        include: COMMENT_INCLUDE,
+        orderBy: { createdAt: 'asc' as const }
+    }
+} as const
+
+function normalizedBody(body: string): string {
+    const value = body.trim()
+    if (value.length === 0) throw new Error('Comment cannot be empty')
+    if (value.length > 10_000) throw new Error('Comment is too long')
+    return value
+}
+
+async function requirePage(entityId: number) {
+    const entity = await prisma.contentEntity.findUnique({
+        where: { id: entityId },
+        select: { id: true, type: true }
+    })
+    if (entity == null || entity.type !== EntityType.page) throw new Error('Page not found')
+    return entity
+}
+
+export async function getPuckCommentThreads(actor: OperationActor, entityId: number): Promise<PuckCommentThread[]> {
+    await requireActorUser(actor, Role.writer)
+    await requirePage(entityId)
+    return prisma.commentThread.findMany({
+        where: {
+            entityId,
+            anchorType: CommentAnchorType.component
+        },
+        include: THREAD_INCLUDE,
+        orderBy: { createdAt: 'asc' }
+    })
+}
+
+export async function createPuckCommentThread(actor: OperationActor, input: {
+    entityId: number
+    language: ContentLanguage
+    componentId: string
+    body: string
+}): Promise<PuckCommentThread> {
+    const user = await requireActorUser(actor, Role.writer)
+    await requirePage(input.entityId)
+    if (input.componentId.trim().length === 0 || input.componentId.length > 500) {
+        throw new Error('Invalid component id')
+    }
+
+    return prisma.commentThread.create({
+        data: {
+            entityId: input.entityId,
+            language: input.language,
+            anchorType: CommentAnchorType.component,
+            componentId: input.componentId,
+            createdById: user.id,
+            comments: {
+                create: {
+                    authorId: user.id,
+                    body: normalizedBody(input.body)
+                }
+            }
+        },
+        include: THREAD_INCLUDE
+    })
+}
+
+export async function replyToPuckCommentThread(actor: OperationActor, input: {
+    threadId: string
+    body: string
+}): Promise<PuckComment> {
+    const user = await requireActorUser(actor, Role.writer)
+    const thread = await prisma.commentThread.findUnique({
+        where: { id: input.threadId },
+        include: {
+            entity: { select: { type: true } },
+            comments: {
+                where: { parentId: null },
+                select: { id: true },
+                orderBy: { createdAt: 'asc' },
+                take: 1
+            }
+        }
+    })
+    if (thread == null || thread.entity.type !== EntityType.page) throw new Error('Comment thread not found')
+
+    return prisma.comment.create({
+        data: {
+            threadId: thread.id,
+            authorId: user.id,
+            parentId: thread.comments[0]?.id ?? null,
+            body: normalizedBody(input.body)
+        },
+        include: COMMENT_INCLUDE
+    })
+}
+
+export async function setPuckCommentThreadResolved(actor: OperationActor, input: {
+    threadId: string
+    resolved: boolean
+}): Promise<PuckCommentThread> {
+    const user = await requireActorUser(actor, Role.writer)
+    const thread = await prisma.commentThread.findUnique({
+        where: { id: input.threadId },
+        include: { entity: { select: { type: true } } }
+    })
+    if (thread == null || thread.entity.type !== EntityType.page) throw new Error('Comment thread not found')
+
+    return prisma.commentThread.update({
+        where: { id: thread.id },
+        data: input.resolved
+            ? { resolvedAt: new Date(), resolvedById: user.id }
+            : { resolvedAt: null, resolvedById: null },
+        include: THREAD_INCLUDE
+    })
+}
+
+export async function deletePuckCommentThread(actor: OperationActor, threadId: string): Promise<void> {
+    await requireActorUser(actor, Role.admin)
+    const thread = await prisma.commentThread.findUnique({
+        where: { id: threadId },
+        include: { entity: { select: { type: true } } }
+    })
+    if (thread == null || thread.anchorType !== CommentAnchorType.component ||
+        thread.entity.type !== EntityType.page) {
+        throw new Error('Comment thread not found')
+    }
+
+    await prisma.commentThread.delete({ where: { id: thread.id } })
+}
+
+export async function deletePuckComponentCommentThreads(actor: OperationActor, input: {
+    entityId: number
+    language: ContentLanguage
+    componentIds: string[]
+}): Promise<number> {
+    await requireActorUser(actor, Role.writer)
+    await requirePage(input.entityId)
+    if (input.componentIds.length === 0) return 0
+
+    const deleted = await prisma.commentThread.deleteMany({
+        where: {
+            entityId: input.entityId,
+            language: input.language,
+            anchorType: CommentAnchorType.component,
+            componentId: { in: input.componentIds }
+        }
+    })
+    return deleted.count
+}

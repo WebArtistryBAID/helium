@@ -1,9 +1,11 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { SimplifiedContentEntity } from '@/app/lib/data-types'
 import Link from 'next/link'
 import { EntityType } from '@/generated/prisma/browser'
 import If from '@/app/lib/If'
+import { WEBSITE_METADATA_SLUG, WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/metadata/website-metadata-types'
 
 export default function StudioHome({ pages, posts, pendingApprovals, uploadServePath }: {
     pages: SimplifiedContentEntity[],
@@ -22,11 +24,16 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
             <h2 className="text-2xl mb-3">待审核内容</h2>
             <div className="grid grid-cols-4 gap-4 mb-5">
                 {pendingApprovals.filter(post => post.slug !== 'temporary-slug').map(post => <Link
-                    href={post.type === EntityType.page ? `/studio/pages/${post.id}/approval` : `/studio/editor/${post.id}#approval`}
+                    href={post.slug === WEBSITE_METADATA_SLUG
+                        ? `${WEBSITE_METADATA_STUDIO_PATH}#approval`
+                        : post.type === EntityType.page
+                            ? `/studio/pages/${post.id}/approval`
+                            : `/studio/editor/${post.id}#approval`}
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
-                        <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
+                        <FocusImage image={post.coverImageDraft}
+                                    src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText ?? ''}
                              className="object-cover w-full rounded-3xl h-48"/>
                     </If>
@@ -50,7 +57,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
-                        <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
+                        <FocusImage image={post.coverImageDraft}
+                                    src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText ?? ''}
                              className="object-cover w-full rounded-3xl h-48"/>
                     </If>
@@ -74,7 +82,8 @@ export default function StudioHome({ pages, posts, pendingApprovals, uploadServe
                     className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"
                     key={post.id}>
                     <If condition={post.coverImageDraft != null}>
-                        <img src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
+                        <FocusImage image={post.coverImageDraft}
+                                    src={`${uploadServePath}/${post.coverImageDraft?.sha1}_thumb.webp`}
                              alt={post.coverImageDraft?.altText ?? ''}
                              className="object-cover w-full rounded-3xl h-48"/>
                     </If>

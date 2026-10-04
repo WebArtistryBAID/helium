@@ -8,8 +8,18 @@ export enum WeChatWorkerStatus {
     creatingPost = 'creatingPost'
 }
 
+export type WeChatTask = {
+    id: string
+    startedAt: number
+    title?: string
+    status: Exclude<WeChatWorkerStatus, WeChatWorkerStatus.idle> | 'error' | 'cancelling'
+    error?: string
+    canCancel: boolean
+}
+
 export enum AlignEntityResponse {
     success = 'success',
     insufficientApprovals = 'insufficientApprovals',
+    unresolvedFeedback = 'unresolvedFeedback',
     notFound = 'notFound'
 }

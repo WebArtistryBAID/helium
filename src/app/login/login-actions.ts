@@ -1,13 +1,18 @@
 'use server'
 
 import { Role, User } from '@/generated/prisma/client'
+import * as userServices from '@/app/lib/services/users'
+import type { UserFilters } from '@/app/lib/services/users'
+import type { OperationActor } from '@/app/lib/mcp/contracts'
+
+export type { UserFilters } from '@/app/lib/services/users'
 import { me } from '@/app/login/login'
-import { Paginated, SIMPLIFIED_USER_SELECT, SimplifiedUser } from '@/app/lib/data-types'
+import { Paginated, SimplifiedUser } from '@/app/lib/data-types'
 import { prisma } from '@/app/lib/prisma'
 
 export async function getLoginTarget(redirect: string): Promise<string> {
     // We are really abusing state here... But it works.
-    return `${process.env.ONELOGIN_HOST}/oauth2/authorize?client_id=${process.env.ONELOGIN_CLIENT_ID}&redirect_uri=${process.env.HOST}/login/authorize&scope=basic+phone&response_type=code&state=${redirect}`
+    return `${process.env.ONELOGIN_HOST}/oauth2/authorize?client_id=${process.env.ONELOGIN_CLIENT_ID}&redirect_uri=${process.env.HOST}/login/authorize&scope=basic+phone&response_type=code&state=${encodeURIComponent(redirect)}`
 }
 
 export async function requireUser(): Promise<User> {
@@ -32,57 +37,23 @@ export async function getMyUser(): Promise<User | null> {
     })
 }
 
+async function studioActor(): Promise<OperationActor> {
+    const user = await requireUser()
+    return { userId: user.id, roles: user.roles, source: 'studio' }
+}
+
 export async function getSimplifiedUser(id: number): Promise<SimplifiedUser | null> {
-    await requireUser()
-    return prisma.user.findUnique({
-        where: { id },
-        select: SIMPLIFIED_USER_SELECT
-    })
+    return userServices.getSimplifiedUser(await studioActor(), id)
 }
 
 export async function getUser(id: number): Promise<User | null> {
-    await requireUserWithRole(Role.admin)
-    return prisma.user.findUnique({
-        where: { id }
-    })
+    return userServices.getUser(await studioActor(), id)
 }
 
-export async function getUsers(page: number, keyword: string | undefined = undefined): Promise<Paginated<User>> {
-    await requireUserWithRole(Role.admin)
-    const pages = Math.ceil(await prisma.user.count({
-        where: keyword != null ? {
-            OR: [
-                { name: { contains: keyword, mode: 'insensitive' } },
-                { pinyin: { contains: keyword, mode: 'insensitive' } }
-            ]
-        } : undefined
-    }) / 10)
-    const users = await prisma.user.findMany({
-        where: keyword != null ? {
-            OR: [
-                { name: { contains: keyword, mode: 'insensitive' } },
-                { pinyin: { contains: keyword, mode: 'insensitive' } }
-            ]
-        } : undefined,
-        orderBy: {
-            pinyin: 'asc'
-        },
-        skip: page * 10,
-        take: 10
-    })
-    return {
-        items: users,
-        page,
-        pages
-    }
+export async function getUsers(page: number, filters: UserFilters = {}): Promise<Paginated<User>> {
+    return userServices.getUsers(await studioActor(), page, filters)
 }
 
 export async function updateUserRoles(id: number, roles: Role[]): Promise<User> {
-    await requireUserWithRole(Role.admin)
-    return prisma.user.update({
-        where: { id },
-        data: {
-            roles
-        }
-    })
+    return userServices.updateUserRoles(await studioActor(), id, roles)
 }

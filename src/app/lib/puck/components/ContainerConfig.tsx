@@ -1,6 +1,6 @@
 import Container from '@/app/lib/puck/components/Container'
 import { colorTypeField } from '@/app/lib/puck/custom-fields'
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 const ContainerConfig: ComponentConfig = {
     label: '容器',

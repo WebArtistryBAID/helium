@@ -1,7 +1,8 @@
-import { ComponentConfig } from '@measured/puck'
-import { colorTypeField, imageTypeField } from '@/app/lib/puck/custom-fields'
+import FocusImage from '@/app/lib/FocusImage'
+import { ComponentConfig } from '@puckeditor/core'
+import { colorTypeField, mediaTypeField } from '@/app/lib/puck/custom-fields'
 import { convertDatesToStrings } from '@/app/lib/data-types'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { Image } from '@/generated/prisma/client'
 import ReadMore from '@/app/lib/puck/components/ReadMore'
 
@@ -32,7 +33,8 @@ function ImageTextLayout({
     return <div className={`flex w-full flex-col ${inverseOrder ? 'md:flex-row-reverse' : 'md:flex-row'}`}
                 data-surface={lightText ? 'dark' : 'light'}>
         <div className="w-full md:w-1/2">
-            <img src={`${uploadPrefix}/${resolvedImage?.sha1}.webp`} alt={resolvedImage?.altText ?? ''}
+            <FocusImage image={resolvedImage} src={`${uploadPrefix}/${resolvedImage?.sha1}.webp`}
+                        alt={resolvedImage?.altText ?? ''}
                  className="h-64 w-full object-cover object-center sm:h-80 md:h-full"/>
         </div>
         <div className="flex w-full flex-col justify-center p-5 sm:p-6 md:w-1/2 md:p-8 lg:p-10"
@@ -54,7 +56,7 @@ function ImageTextLayout({
 const ImageTextLayoutConfig: ComponentConfig = {
     label: '图文排布',
     fields: {
-        image: imageTypeField('图片'),
+        image: mediaTypeField('图片', [ 'image' ]),
         topText: {
             label: '顶部小标题',
             type: 'text',
@@ -106,7 +108,8 @@ const ImageTextLayoutConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         const resolvedImage = (props.image == null || props.image === '') ? null : convertDatesToStrings(await getImage(parseInt(props.image)))
         return {
             props: {

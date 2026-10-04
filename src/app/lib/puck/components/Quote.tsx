@@ -1,7 +1,7 @@
 import { Image } from '@/generated/prisma/browser'
-import { ComponentConfig } from '@measured/puck'
-import { imageTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { ComponentConfig } from '@puckeditor/core'
+import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
 function Quote({ text, source, image, uploadPrefix }: {
@@ -11,7 +11,7 @@ function Quote({ text, source, image, uploadPrefix }: {
     uploadPrefix: string | null
 }) {
     return <section
-        className="relative flex flex-col-reverse gap-5 md:flex-row container py-24 px-4 md:px-36 my-12 md:my-24 items-center"
+        className="container relative my-12 flex flex-col-reverse items-center gap-8 px-8 py-16 sm:px-12 md:my-20 md:flex-row md:px-20 md:py-20 lg:px-36"
         aria-labelledby="principal-quote-heading">
         <h2
             id="principal-quote-heading"
@@ -21,11 +21,11 @@ function Quote({ text, source, image, uploadPrefix }: {
         </h2>
         <div className="w-full md:w-1/2">
             <p
-                className="!text-3xl !mb-3"
+                className="!mb-3 break-words !text-2xl leading-relaxed sm:!text-3xl"
                 aria-label="Quote"
                 role="region"
-                style={{ lineHeight: '4rem' }}>{text}</p>
-            <p className="w-full text-right font-sans text-xl">
+            >{text}</p>
+            <p className="w-full text-right font-sans text-base sm:text-lg">
                 — {source}
             </p>
         </div>
@@ -33,7 +33,7 @@ function Quote({ text, source, image, uploadPrefix }: {
             <img
                 src={`${uploadPrefix}/${image?.sha1}.webp`}
                 alt={image?.altText ?? ''}
-                className="object-contain w-64 rounded-3xl"/>
+                className="h-auto w-48 max-w-full rounded-none object-contain sm:w-56 md:w-64"/>
         </div>
 
         <div
@@ -162,20 +162,23 @@ const QuoteConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
-        image: imageTypeField('图片'),
+        image: mediaTypeField('图片', [ 'image' ]),
         resolvedImage: RESOLVED_IMAGE_TYPE,
         resolvedUploadPrefix: {
             type: 'text',
             visible: false
         }
     },
-    resolveData: async ({ props }) => ({
-        props: {
-            ...props,
-            resolvedImage: props.image == null ? null : convertDatesToStrings(await getImage(parseInt(props.image))),
-            resolvedUploadPrefix: await getUploadServePath()
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
+        return {
+            props: {
+                ...props,
+                resolvedImage: props.image == null ? null : convertDatesToStrings(await getImage(parseInt(props.image))),
+                resolvedUploadPrefix: await getUploadServePath()
+            }
         }
-    }),
+    },
     defaultProps: {
         text: '我们会让校园成为师生的精神家园，让校园成为师生的学习中心，让校园成为师生的创新沃土，进而让孩子们能爱别人、帮助别人、尊重别人。',
         source: '北京中学校长 夏青峰'

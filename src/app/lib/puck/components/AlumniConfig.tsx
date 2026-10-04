@@ -1,6 +1,6 @@
-import { ComponentConfig } from '@measured/puck'
-import { imageTypeField } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { ComponentConfig } from '@puckeditor/core'
+import { mediaTypeField } from '@/app/lib/puck/custom-fields'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import Alumni from '@/app/lib/puck/components/Alumni'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
@@ -11,6 +11,20 @@ const AlumniConfig: ComponentConfig = {
             label: '标题',
             type: 'text',
             contentEditable: true
+        },
+        autoplay: {
+            label: '自动播放',
+            type: 'radio',
+            options: [
+                { label: '关闭', value: false },
+                { label: '开启', value: true }
+            ]
+        },
+        autoplayDuration: {
+            label: '自动播放间隔 (秒)',
+            type: 'number',
+            min: 1,
+            step: 1
         },
         alumni: {
             label: '项目',
@@ -26,7 +40,7 @@ const AlumniConfig: ComponentConfig = {
                     type: 'textarea',
                     contentEditable: true
                 },
-                image: imageTypeField('照片')
+                image: mediaTypeField('照片', [ 'image' ])
             }
         },
         resolvedAlumni: {
@@ -41,6 +55,8 @@ const AlumniConfig: ComponentConfig = {
     },
     defaultProps: {
         title: '校友寄语',
+        autoplay: false,
+        autoplayDuration: 5,
         alumni: [
             {
                 name: '田学姐',
@@ -56,7 +72,8 @@ const AlumniConfig: ComponentConfig = {
             }
         ]
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedAlumni: await Promise.all((props.alumni ?? []).map(async (alum: {
@@ -75,8 +92,9 @@ const AlumniConfig: ComponentConfig = {
             }
         }
     },
-    render: ({ title, resolvedAlumni, resolvedUploadPrefix }) =>
-        <Alumni title={title} alumni={resolvedAlumni} uploadPrefix={resolvedUploadPrefix}/>
+    render: ({ title, resolvedAlumni, resolvedUploadPrefix, autoplay, autoplayDuration }) =>
+        <Alumni title={title} alumni={resolvedAlumni} uploadPrefix={resolvedUploadPrefix}
+                autoplay={autoplay} autoplayDuration={autoplayDuration}/>
 }
 
 export default AlumniConfig

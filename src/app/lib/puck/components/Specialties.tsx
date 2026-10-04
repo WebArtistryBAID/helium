@@ -1,5 +1,6 @@
 'use client'
 
+import FocusImage from '@/app/lib/FocusImage'
 import { Image } from '@/generated/prisma/browser'
 import { useCallback, useState } from 'react'
 
@@ -37,7 +38,7 @@ export default function Specialties({ items, uploadPrefix }: {
 
             <div className="md:hidden">
                 <div className="relative">
-                    <img
+                    <FocusImage image={active?.image}
                         className={`w-full h-64 object-cover transition-opacity duration-300 ${transition ? 'opacity-60' : ''}`}
                         src={`${uploadPrefix}/${active?.image?.sha1}.webp`}
                         alt={active?.image?.altText ?? ''}
@@ -64,7 +65,7 @@ export default function Specialties({ items, uploadPrefix }: {
                                 className="block"
                                 onClick={() => change(index)}
                             >
-                                <img
+                                <FocusImage image={method?.image}
                                     alt=""
                                     className={`w-32 h-32 object-cover block opacity-60 transition-all cursor-pointer ${current === index ? '!opacity-100' : (!transition ? 'hover:opacity-100 active:brightness-90' : '')}`}
                                     src={`${uploadPrefix}/${method?.image?.sha1}.webp`}
@@ -78,7 +79,7 @@ export default function Specialties({ items, uploadPrefix }: {
             {/* Desktop Layout */}
             <div className="hidden md:grid gap-1" style={{ gridTemplateColumns: '3fr 1fr' }}>
                 <div className="relative">
-                    <img
+                    <FocusImage image={active?.image}
                         src={`${uploadPrefix}/${active?.image?.sha1}.webp`}
                         className={`w-full h-full object-cover transition-opacity duration-300 ${transition ? 'opacity-60' : ''}`}
                         alt={`Specialty: ${active?.name ?? ''}`}
@@ -87,8 +88,8 @@ export default function Specialties({ items, uploadPrefix }: {
                     <div
                         className={`absolute bottom-0 p-10 pt-20 text-white from-red-900/70 to-transparent bg-gradient-to-t w-full transition-opacity duration-300 ${transition ? 'opacity-0' : ''}`}
                     >
-                        <h2 className="text-4xl font-bold mb-2">{active?.name}</h2>
-                        <p className="text-xl" dangerouslySetInnerHTML={{ __html: active?.description ?? '' }}/>
+                        <h2 className="mb-2 break-words text-3xl font-bold lg:text-4xl">{active?.name}</h2>
+                        <p className="whitespace-pre-line text-lg lg:text-xl">{active?.description}</p>
                     </div>
                 </div>
                 <div
@@ -106,7 +107,7 @@ export default function Specialties({ items, uploadPrefix }: {
                                 className="block h-full w-full"
                                 onClick={() => change(index)}
                             >
-                                <img
+                                <FocusImage image={method?.image}
                                     className={`w-full h-full object-cover block opacity-60 transition-all cursor-pointer ${current === index ? '!opacity-100' : (!transition ? 'hover:opacity-100 active:brightness-90' : '')}`}
                                     src={`${uploadPrefix}/${method?.image?.sha1}.webp`}
                                     alt=""

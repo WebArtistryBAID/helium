@@ -1,0 +1,138 @@
+import FocusImage from '@/app/lib/FocusImage'
+import { SlateElement, SlateLeaf, type SlateElementProps, type SlateLeafProps } from 'platejs/static'
+import type { TImageElement, TLinkElement, TTableCellElement, TTableElement } from 'platejs'
+import { getColSpan, getRowSpan } from '@platejs/table'
+
+export const ParagraphStatic = (props: SlateElementProps) =>
+    <SlateElement {...props} as="p" className="mb-4 w-full leading-7 last:mb-0"/>
+
+export const BlockquoteStatic = (props: SlateElementProps) =>
+    <SlateElement {...props} as="blockquote"
+                  className="my-5 w-full border-l-4 border-gray-300 pl-4 text-gray-600"/>
+
+export const H1Static = (props: SlateElementProps) =>
+    <SlateElement {...props} as="h1" className="mb-4 mt-8 w-full text-3xl font-bold first:mt-0"/>
+export const H2Static = (props: SlateElementProps) =>
+    <SlateElement {...props} as="h2" className="mb-3 mt-7 w-full text-2xl font-bold first:mt-0"/>
+export const H3Static = (props: SlateElementProps) =>
+    <SlateElement {...props} as="h3" className="mb-3 mt-6 w-full text-xl font-bold first:mt-0"/>
+export const H4Static = (props: SlateElementProps) =>
+    <SlateElement {...props} as="h4" className="mb-2 mt-5 w-full text-lg font-bold first:mt-0"/>
+export const H5Static = (props: SlateElementProps) =>
+    <SlateElement {...props} as="h5" className="mb-2 mt-5 w-full font-bold first:mt-0"/>
+export const H6Static = (props: SlateElementProps) =>
+    <SlateElement {...props} as="h6" className="mb-2 mt-5 w-full font-semibold first:mt-0"/>
+
+export const HorizontalRuleStatic = ({ children, ...props }: SlateElementProps) =>
+    <SlateElement {...props} as="div" className="my-6 w-full">
+        <hr className="border-gray-200"/>
+        {children}
+    </SlateElement>
+
+export const BulletedListStatic = (props: SlateElementProps) =>
+    <SlateElement {...props} as="ul" className="my-4 w-full list-disc space-y-1 pl-6"/>
+export const NumberedListStatic = (props: SlateElementProps) =>
+    <SlateElement {...props} as="ol" className="my-4 w-full list-decimal space-y-1 pl-6"/>
+export const ListItemStatic = (props: SlateElementProps) => <SlateElement {...props} as="li"/>
+export const ListItemContentStatic = (props: SlateElementProps) => <SlateElement {...props} as="div"/>
+
+export const LinkStatic = (props: SlateElementProps<TLinkElement>) =>
+    <SlateElement {...props} as="a" attributes={{ ...props.attributes, href: props.element.url }}
+                  className="text-blue-600 underline decoration-blue-300 underline-offset-2"/>
+
+export const TableStatic = ({ children, ...props }: SlateElementProps<TTableElement>) =>
+    <div className="my-5 w-full overflow-hidden rounded-xl border border-gray-200">
+        <div className="overflow-x-auto">
+            <SlateElement {...props} as="table"
+                          className="helium-plate-table w-full min-w-[24rem] border-separate border-spacing-0 text-left text-sm">
+                {props.element.colSizes && <colgroup>
+                    {props.element.colSizes.map((width, index) => <col key={index} style={{ width }}/>)}
+                </colgroup>}
+                <tbody>{children}</tbody>
+            </SlateElement>
+        </div>
+    </div>
+
+export const TableRowStatic = (props: SlateElementProps) => <SlateElement {...props} as="tr"/>
+
+function TableCellStaticBase({ as, ...props }: SlateElementProps<TTableCellElement> & { as: 'td' | 'th' }) {
+    return <SlateElement {...props} as={as}
+                         attributes={{
+                             ...props.attributes,
+                             colSpan: getColSpan(props.element),
+                             rowSpan: getRowSpan(props.element),
+                             ...(as === 'th' ? { scope: 'col' as const } : {})
+                         }}
+                         className={`min-w-28 px-3 py-2 align-top [&>p]:mb-0 ${
+                             as === 'th' ? 'bg-gray-50 font-semibold' : 'bg-white'
+                         }`}/>
+}
+
+export const TableCellStatic = (props: SlateElementProps<TTableCellElement>) =>
+    <TableCellStaticBase {...props} as="td"/>
+
+export const TableCellHeaderStatic = (props: SlateElementProps<TTableCellElement>) =>
+    <TableCellStaticBase {...props} as="th"/>
+
+function isImageNode(candidate: unknown): candidate is TImageElement & {
+    imageHeight?: number
+    imageWidth?: number
+} {
+    return candidate != null && typeof candidate === 'object' && 'type' in candidate && candidate.type === 'img'
+}
+
+export const ImageStatic = ({ children, ...props }: SlateElementProps<TImageElement & {
+    alt?: string
+    imageHeight?: number
+    imageWidth?: number
+    imageFocus?: import('@/app/lib/image-focus').FocusImageData
+}>) => {
+    const index = props.path[0]
+    let firstImageIndex = typeof index === 'number' ? index : 0
+    while (firstImageIndex > 0) {
+        const candidate = props.editor.children[firstImageIndex - 1]
+        if (!isImageNode(candidate)) break
+        firstImageIndex--
+    }
+    let imageCount = 0
+    while (isImageNode(props.editor.children[firstImageIndex + imageCount])) imageCount++
+    const grouped = typeof index === 'number' && imageCount > 1 && imageCount % 2 === 0
+    const firstImageNode = props.editor.children[firstImageIndex]
+    const groupAspectRatio = isImageNode(firstImageNode) && typeof firstImageNode.imageWidth === 'number' &&
+    typeof firstImageNode.imageHeight === 'number' && firstImageNode.imageWidth > 0 &&
+    firstImageNode.imageHeight > 0
+        ? `${firstImageNode.imageWidth} / ${firstImageNode.imageHeight}`
+        : undefined
+    const imageStyle = {
+        borderRadius: '0.75rem',
+        ...(grouped && groupAspectRatio ? { aspectRatio: groupAspectRatio } : {})
+    }
+
+    return <SlateElement {...props} as="figure"
+                         className={`box-border rounded-xl align-top ${
+                             grouped
+                                 ? 'my-2 block w-full sm:w-1/2 sm:px-2'
+                                 : 'mx-auto my-5 block w-fit max-w-full overflow-hidden'
+                         }`}>
+        <FocusImage image={grouped ? props.element.imageFocus : null} src={props.element.url}
+                    alt={props.element.alt ?? ''} loading="lazy"
+             style={imageStyle}
+             className={`!m-0 mx-auto ${
+                 grouped
+                     ? 'w-full max-h-[28rem] !object-cover'
+                     : 'block h-auto max-h-[36rem] max-w-full object-contain'
+             }`}/>
+        {children}
+    </SlateElement>
+}
+
+export const BoldStatic = (props: SlateLeafProps) => <SlateLeaf {...props} as="strong"/>
+export const CodeStatic = (props: SlateLeafProps) =>
+    <SlateLeaf {...props} as="code" className="rounded bg-gray-100 px-1 py-0.5 font-mono text-sm"/>
+export const HighlightStatic = (props: SlateLeafProps) =>
+    <SlateLeaf {...props} as="mark" className="bg-yellow-200"/>
+export const ItalicStatic = (props: SlateLeafProps) => <SlateLeaf {...props} as="em"/>
+export const StrikethroughStatic = (props: SlateLeafProps) => <SlateLeaf {...props} as="s"/>
+export const SubscriptStatic = (props: SlateLeafProps) => <SlateLeaf {...props} as="sub"/>
+export const SuperscriptStatic = (props: SlateLeafProps) => <SlateLeaf {...props} as="sup"/>
+export const UnderlineStatic = (props: SlateLeafProps) => <SlateLeaf {...props} as="u"/>

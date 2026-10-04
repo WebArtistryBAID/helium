@@ -1,6 +1,6 @@
-import { ComponentConfig } from '@measured/puck'
-import { imageTypeField } from '@/app/lib/puck/custom-fields'
-import { getImage, getUploadServePath } from '@/app/studio/media/media-actions'
+import { ComponentConfig } from '@puckeditor/core'
+import { mediaTypeField } from '@/app/lib/puck/custom-fields'
+import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import Specialties from '@/app/lib/puck/components/Specialties'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
@@ -21,7 +21,7 @@ const SpecialtiesConfig: ComponentConfig = {
                     type: 'textarea',
                     contentEditable: true
                 },
-                image: imageTypeField('图片')
+                image: mediaTypeField('图片', [ 'image' ])
             }
         },
         resolvedItems: {
@@ -34,7 +34,8 @@ const SpecialtiesConfig: ComponentConfig = {
             visible: false
         }
     },
-    resolveData: async ({ props }) => {
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
         return {
             props: {
                 resolvedItems: await Promise.all((props.items ?? []).map(async (item: {

@@ -1,4 +1,4 @@
-import { ComponentConfig } from '@measured/puck'
+import { ComponentConfig } from '@puckeditor/core'
 
 function Spacer({ height }: { height: string }) {
     return <div style={{ height }}/>
