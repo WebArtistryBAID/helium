@@ -6,7 +6,6 @@ import { ComponentConfig } from '@puckeditor/core'
 import { mediaTypeField } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { convertDatesToStrings } from '@/app/lib/data-types'
-import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 interface Highlight {
     image: Image | null
@@ -17,7 +16,6 @@ interface Highlight {
 }
 
 function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | null, uploadPrefix: string }) {
-    const language = useLanguage()
     return <section
         aria-label="Highlights"
         className="border-t border-gray-200 my-0 mx-auto"
@@ -41,7 +39,7 @@ function Highlights({ highlights, uploadPrefix }: { highlights: Highlight[] | nu
                                 src={`${uploadPrefix}/${highlight.image?.sha1}.webp`}
                          className="w-full h-full object-cover group-hover-scale"/>
                 </div>
-                <p className={`fancy-link mb-1 break-words font-serif font-bold ${language === 'zh' ? 'text-xl sm:text-2xl' : 'text-2xl sm:text-3xl'}`}>
+                <p className="highlights-title fancy-link mb-1 break-words font-serif text-2xl font-bold sm:text-3xl">
                     {highlight.title}
                 </p>
                 <p>{highlight.text}</p>
