@@ -17,6 +17,7 @@ BA 大讲堂: BA Lectures
 北中小讲师: BAID Speaker
 世界大课堂: BA Global Classroom
 阅历课程: Experiential Program
+3/28 走进自然: Spring Outing
 中华文化寻根之旅: Chinese Traditional Culture Exploration (= 阅历课程)
 北京文化探究: Beijing Culture Exploration
 无障碍发展 "未来星" 培养计划: Accessibility Development Future Stars Program
@@ -80,6 +81,13 @@ EOT 经济竞赛 (指课程): Economics Olympiad Team
 北中杯: BA Cup
 北中小舞台: BAID's Got Talent
 露营: Camping
+北中学术墙: BAID Academic Wall
+BAID 最强大脑: BAID Super Brain Quizbowl
+AP 分享会: AP Course Experience Sharing Session
+英文戏剧节: English Drama Festival
+中文戏剧节: Chinese Drama Festival
+夏日舞会: Summer Prom
+春日集市: Vernal Fair
 爱心社: BAID Humanity Club
 BAID 文创社: BAID Cultural & Creative Club
 学委会: Students' Union
