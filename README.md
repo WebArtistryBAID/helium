@@ -1,4 +1,8 @@
-# Welcome to Helium
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="public/assets/helium-lockup-dark.svg">
+  <source media="(prefers-color-scheme: light)" srcset="public/assets/helium-lockup-light.svg">
+  <img width="200px" alt="Welcome to Helium" src="public/assets/helium-lockup-light.svg">
+</picture>
 
 Helium is the new content management system for the website of Beijing Academy International Division (BAID) and the
 International School of Beijing Academy (ISBA).

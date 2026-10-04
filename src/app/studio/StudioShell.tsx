@@ -64,8 +64,8 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                 <div className="h-screen relative">
                     <Sidebar className="h-full relative">
                         <div className="relative">
-                            <SidebarLogo href="/" img="/assets/icon.png"><span
-                                className="font-display">Helium</span></SidebarLogo>
+                            <SidebarLogo href="/" img="/assets/helium-lockup-light.svg"><span
+                                className="sr-only">Helium</span></SidebarLogo>
                             <button
                                 type="button"
                                 onClick={toggleSidebar}
