@@ -17,10 +17,10 @@ function ImageItem({ item, uploadPrefix, portrait = false, small = false }: {
     item?: ScatteredImageItem; uploadPrefix?: string; portrait?: boolean; small?: boolean
 }) {
     return <div>
-        <div className={portrait ? 'aspect-[5/7] w-full' : 'aspect-[20/13] w-full'}>
+        <div className={portrait ? 'relative aspect-[5/7] w-full' : 'relative aspect-[20/13] w-full'}>
             {item?.image && <FocusImage image={item.image} src={`${uploadPrefix}/${item.image.sha1}.webp`}
                                         alt={item.image.altText ?? ''}
-                                 className="h-full w-full object-cover"/>}
+                                 className="absolute inset-0 h-full w-full object-cover" style={{ aspectRatio: 'auto' }}/>}
         </div>
         {item?.text &&
             <p className={`mt-4 whitespace-pre-line break-words font-sans font-bold leading-[1.1] ${small
@@ -52,11 +52,11 @@ export default function ScatteredImageText({
 }) {
     const portraitContents = <>
         <div className="w-[49%] shrink-0 lg:w-full">
-            <div className="aspect-[5/7] w-full">
+            <div className="relative aspect-[5/7] w-full">
                 {secondPortrait?.image &&
                     <FocusImage image={secondPortrait.image} src={`${uploadPrefix}/${secondPortrait.image.sha1}.webp`}
                                                alt={secondPortrait.image.altText ?? ''}
-                                               className="h-full w-full object-cover"/>}
+                                               className="absolute inset-0 h-full w-full object-cover" style={{ aspectRatio: 'auto' }}/>}
             </div>
             <div className="lg:hidden"><ImageLink item={secondPortrait}/></div>
         </div>
