@@ -23,11 +23,11 @@ export function PuckClipboardButtons() {
     if (!clipboard) return null
     return <>
         <IconButton title="复制组件 (Ctrl/Cmd+C)" disabled={!selected} onClick={clipboard.copy}>
-            <HiOutlineSquare2Stack className="size-5" aria-hidden="true"/>
+            <HiOutlineSquare2Stack className="size-7" aria-hidden="true"/>
         </IconButton>
         <span ref={anchorRef} className="inline-flex">
         <IconButton title="粘贴组件 (Ctrl/Cmd+V)" disabled={!clipboard.canWrite} onClick={clipboard.paste}>
-            <HiOutlineClipboard className="size-5" aria-hidden="true"/>
+            <HiOutlineClipboard className="size-6" aria-hidden="true"/>
         </IconButton>
         </span>
         {clipboard.notice && position && createPortal(
