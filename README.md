@@ -22,18 +22,7 @@ BAID's website. Built with Next.js.
 
 </div>
 
-## Get Started
 
-To run in production:
-
-* Using `pm2` allows for proper deployment in production.
-* Remember to set the environment variables.
-* Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier).
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="public/assets/helium-lockup-dark.svg">
-  <source media="(prefers-color-scheme: light)" srcset="public/assets/helium-lockup-light.svg">
-  <img width="200px" alt="Welcome to Helium" src="public/assets/helium-lockup-light.svg">
-</picture>
 
 Helium is the new content management system for the website of Beijing Academy International Division (BAID) and the
 International School of Beijing Academy (ISBA).
@@ -210,3 +199,10 @@ All rights reserved unless otherwise stated. Refer to `LICENSE` for details.
 
 "Beijing Academy," "BAID," "Better Me, Better World," and the Beijing Academy logo are legally protected and may not be
 used without official authorization.
+
+
+<br>
+
+<div align="center">
+  <img src="docs/assets/helium-icon.svg" alt="" width="40">
+</div>
