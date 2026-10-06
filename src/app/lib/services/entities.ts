@@ -1,5 +1,8 @@
 import 'server-only'
 
+import type { ContentSort } from '@/app/lib/content-sort'
+import type { Prisma } from '@/generated/prisma/client'
+
 import type { OperationActor } from '@/app/lib/mcp/contracts'
 import { requireActorUser } from '@/app/lib/services/actor'
 
@@ -28,6 +31,24 @@ import { deserializeMarkdownToPlate } from '@/app/lib/plate/plate-markdown'
 import { parsePuckData } from '@/app/lib/puck/puck-data'
 
 const PAGE_SIZE = 24
+
+function contentOrderBy(sort: ContentSort): Prisma.ContentEntityOrderByWithRelationInput[] {
+    switch (sort) {
+        case 'title-en-asc':
+            return [ { titlePublishedEN: 'asc' }, { id: 'asc' } ]
+        case 'title-en-desc':
+            return [ { titlePublishedEN: 'desc' }, { id: 'asc' } ]
+        case 'title-zh-asc':
+            return [ { titlePublishedZH: 'asc' }, { id: 'asc' } ]
+        case 'title-zh-desc':
+            return [ { titlePublishedZH: 'desc' }, { id: 'asc' } ]
+        case 'oldest':
+            return [ { createdAt: 'asc' }, { id: 'asc' } ]
+        default:
+            return [ { createdAt: 'desc' }, { id: 'asc' } ]
+    }
+}
+
 const AUTOMATIC_SLUG_SECTION_LIMIT = 8
 
 function createAutomaticSlug(title: string): string {
@@ -198,7 +219,7 @@ export async function getPublishedContentEntity(id: number): Promise<PublicConte
     })
 }
 
-export async function getPublishedProjectsByCategory(page: number, category: string): Promise<Paginated<SimplifiedContentEntity>> {
+export async function getPublishedProjectsByCategory(page: number, category: string, sort: ContentSort = 'title-en-asc'): Promise<Paginated<SimplifiedContentEntity>> {
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
             linkOnly: false,
@@ -220,6 +241,9 @@ export async function getPublishedProjectsByCategory(page: number, category: str
                 { categoryZH: category }
             ]
         },
+        orderBy: contentOrderBy(sort),
+        skip: page * PAGE_SIZE,
+        take: PAGE_SIZE,
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT
     })
     return {
@@ -229,7 +253,7 @@ export async function getPublishedProjectsByCategory(page: number, category: str
     }
 }
 
-export async function getPublishedProjectsByCategoriesForInit(): Promise<{
+export async function getPublishedProjectsByCategoriesForInit(sort: ContentSort = 'title-en-asc'): Promise<{
     categoryEN: string,
     categoryZH: string,
     projects: Paginated<SimplifiedContentEntity>
@@ -253,7 +277,7 @@ export async function getPublishedProjectsByCategoriesForInit(): Promise<{
         result.push({
             categoryEN: cat.categoryEN!,
             categoryZH: cat.categoryZH!,
-            projects: await getPublishedProjectsByCategory(0, cat.categoryEN!)
+            projects: await getPublishedProjectsByCategory(0, cat.categoryEN!, sort)
         })
     }
     return result
@@ -270,7 +294,7 @@ export async function getAllPublishedContentEntities(): Promise<SimplifiedConten
     })
 }
 
-export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined, pageSize = PAGE_SIZE): Promise<Paginated<SimplifiedContentEntity>> {
+export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined, pageSize = PAGE_SIZE, sort: ContentSort = 'newest'): Promise<Paginated<SimplifiedContentEntity>> {
     const effectivePageSize = Math.min(100, Math.max(1, Math.floor(pageSize)))
     const pages = Math.ceil(await prisma.contentEntity.count({
         where: {
@@ -299,7 +323,7 @@ export async function getPublishedContentEntities(page: number, type: EntityType
                 { slug: { contains: query, mode: 'insensitive' } }
             ]
         },
-        orderBy: { createdAt: 'desc' },
+        orderBy: contentOrderBy(sort),
         skip: page * effectivePageSize,
         take: effectivePageSize,
         select: SIMPLIFIED_CONTENT_ENTITY_SELECT

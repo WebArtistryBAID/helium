@@ -1,3 +1,4 @@
+import { contentSortField } from '@/app/lib/content-sort'
 import { ComponentConfig } from '@puckeditor/core'
 import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { getPublishedContentEntities } from '@/app/lib/puck/resolve-resources'
@@ -8,6 +9,7 @@ import { convertDatesToStrings } from '@/app/lib/data-types'
 const ClubsConfig: ComponentConfig = {
     label: '社团',
     fields: {
+        sort: contentSortField,
         title: {
             label: '标题',
             type: 'text',
@@ -27,19 +29,20 @@ const ClubsConfig: ComponentConfig = {
         if (trigger === 'move') return { props }
         return {
             props: {
-                resolvedClubs: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.club)),
+                resolvedClubs: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.club, undefined, undefined, undefined, props.sort ?? 'title-en-asc')),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
     },
     defaultProps: {
+        sort: 'title-en-asc',
         title: '社团'
     },
-    render: ({ title, resolvedClubs, resolvedUploadPrefix }) => {
+    render: ({ sort, title, resolvedClubs, resolvedUploadPrefix }) => {
         if (resolvedClubs == null) {
             return <></>
         }
-        return <Clubs title={title} init={resolvedClubs} uploadPrefix={resolvedUploadPrefix}/>
+        return <Clubs sort={sort} title={title} init={resolvedClubs} uploadPrefix={resolvedUploadPrefix}/>
     }
 }
 

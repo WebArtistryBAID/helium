@@ -1,5 +1,7 @@
 'use server'
 
+import type { ContentSort } from '@/app/lib/content-sort'
+
 import { EntityType } from '@/generated/prisma/client'
 import { HydratedContentEntity, Paginated, PublicContentEntity, SimplifiedContentEntity } from '@/app/lib/data-types'
 
@@ -28,24 +30,24 @@ export async function getPublishedContentEntity(id: number): Promise<PublicConte
     return services.getPublishedContentEntity(id)
 }
 
-export async function getPublishedProjectsByCategory(page: number, category: string): Promise<Paginated<SimplifiedContentEntity>> {
-    return services.getPublishedProjectsByCategory(page, category)
+export async function getPublishedProjectsByCategory(page: number, category: string, sort?: ContentSort): Promise<Paginated<SimplifiedContentEntity>> {
+    return services.getPublishedProjectsByCategory(page, category, sort)
 }
 
-export async function getPublishedProjectsByCategoriesForInit(): Promise<{
+export async function getPublishedProjectsByCategoriesForInit(sort?: ContentSort): Promise<{
     categoryEN: string,
     categoryZH: string,
     projects: Paginated<SimplifiedContentEntity>
 }[]> {
-    return services.getPublishedProjectsByCategoriesForInit()
+    return services.getPublishedProjectsByCategoriesForInit(sort)
 }
 
 export async function getAllPublishedContentEntities(): Promise<SimplifiedContentEntity[]> {
     return services.getAllPublishedContentEntities()
 }
 
-export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined, pageSize?: number): Promise<Paginated<SimplifiedContentEntity>> {
-    return services.getPublishedContentEntities(page, type, query, category, pageSize)
+export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined, pageSize?: number, sort?: ContentSort): Promise<Paginated<SimplifiedContentEntity>> {
+    return services.getPublishedContentEntities(page, type, query, category, pageSize, sort)
 }
 
 export async function getContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {

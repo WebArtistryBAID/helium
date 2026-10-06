@@ -1,3 +1,4 @@
+import { contentSortField } from '@/app/lib/content-sort'
 import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedProjectsByCategoriesForInit } from '@/app/lib/puck/resolve-resources'
 import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
@@ -7,6 +8,7 @@ import { convertDatesToStrings, Paginated, SimplifiedContentEntity } from '@/app
 const ProjectCategoryConfig: ComponentConfig = {
     label: '项目列表',
     fields: {
+        sort: contentSortField,
         resolvedProjectsInit: {
             type: 'array',
             visible: false,
@@ -17,16 +19,17 @@ const ProjectCategoryConfig: ComponentConfig = {
             visible: false
         }
     },
+    defaultProps: { sort: 'title-en-asc' },
     resolveData: async ({ props }, { trigger }) => {
         if (trigger === 'move') return { props }
         return {
             props: {
-                resolvedProjectsInit: convertDatesToStrings(await getPublishedProjectsByCategoriesForInit()),
+                resolvedProjectsInit: convertDatesToStrings(await getPublishedProjectsByCategoriesForInit(props.sort ?? 'title-en-asc')),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
     },
-    render: ({ resolvedProjectsInit, resolvedUploadPrefix }) => {
+    render: ({ sort, resolvedProjectsInit, resolvedUploadPrefix }) => {
         if (resolvedProjectsInit == null) {
             return <></>
         }
@@ -36,7 +39,7 @@ const ProjectCategoryConfig: ComponentConfig = {
                 categoryZH: string,
                 projects: Paginated<SimplifiedContentEntity>
             }) =>
-                <ProjectCategory titleEN={proj.categoryEN} titleZH={proj.categoryZH} init={proj.projects}
+                <ProjectCategory sort={sort} titleEN={proj.categoryEN} titleZH={proj.categoryZH} init={proj.projects}
                                  key={proj.categoryEN}
                                  uploadPrefix={resolvedUploadPrefix}/>)}
         </>

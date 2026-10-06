@@ -1,5 +1,7 @@
 'use client'
 
+import type { ContentSort } from '@/app/lib/content-sort'
+
 import { getContentEntityURI, Paginated, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
@@ -8,8 +10,9 @@ import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import { EntityType } from '@/generated/prisma/browser'
 import Card from '@/app/lib/puck/components/Card'
 
-export default function NewsList({ init, uploadPrefix, category: rawCategory, itemsPerPage }: {
+export default function NewsList({ sort = 'newest', init, uploadPrefix, category: rawCategory, itemsPerPage }: {
     init: Paginated<SimplifiedContentEntity>,
+    sort?: ContentSort,
     uploadPrefix: string,
     category?: string | null,
     itemsPerPage?: number
@@ -26,13 +29,19 @@ export default function NewsList({ init, uploadPrefix, category: rawCategory, it
 
     useEffect(() => {
         if (currentPage === 0) {
+            setPage(init)
             return
         }
 
-        (async () => {
-            setPage(await getPublishedContentEntities(currentPage, EntityType.post, undefined, category, itemsPerPage))
+        let cancelled = false
+        ;(async () => {
+            const result = await getPublishedContentEntities(currentPage, EntityType.post, undefined, category, itemsPerPage, sort)
+            if (!cancelled) setPage(result)
         })()
-    }, [ category, currentPage, itemsPerPage ])
+        return () => {
+            cancelled = true
+        }
+    }, [ category, currentPage, itemsPerPage, sort, init ])
 
     return <section className="section container my-16 md:my-24">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-3">

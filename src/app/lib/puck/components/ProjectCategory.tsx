@@ -1,5 +1,7 @@
 'use client'
 
+import type { ContentSort } from '@/app/lib/content-sort'
+
 import { getContentEntityURI, Paginated, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedProjectsByCategory } from '@/app/studio/editor/entity-actions'
@@ -7,10 +9,11 @@ import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import Card from '@/app/lib/puck/components/Card'
 
-export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }: {
+export default function ProjectCategory({ sort = 'title-en-asc', titleEN, titleZH, init, uploadPrefix }: {
     titleEN: string,
     titleZH: string,
     init: Paginated<SimplifiedContentEntity>,
+    sort?: ContentSort,
     uploadPrefix: string
 }) {
     const language = useLanguage()
@@ -18,10 +21,24 @@ export default function ProjectCategory({ titleEN, titleZH, init, uploadPrefix }
     const [ currentPage, setCurrentPage ] = useState(0)
 
     useEffect(() => {
-        (async () => {
-            setPage(await getPublishedProjectsByCategory(currentPage, titleEN))
+        setPage(init)
+        setCurrentPage(0)
+    }, [ init ])
+
+    useEffect(() => {
+        if (currentPage === 0) {
+            setPage(init)
+            return
+        }
+        let cancelled = false
+        ;(async () => {
+            const result = await getPublishedProjectsByCategory(currentPage, titleEN, sort)
+            if (!cancelled) setPage(result)
         })()
-    }, [ currentPage, titleEN ])
+        return () => {
+            cancelled = true
+        }
+    }, [ currentPage, titleEN, sort, init ])
 
     return <section className="section container my-16 md:my-24">
         <h2 className="text-3xl font-bold mb-5">{language === 'en' ? titleEN : titleZH}</h2>

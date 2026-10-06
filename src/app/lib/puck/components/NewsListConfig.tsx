@@ -1,3 +1,4 @@
+import { contentSortField } from '@/app/lib/content-sort'
 import { ComponentConfig } from '@puckeditor/core'
 import { getPublishedContentEntities } from '@/app/lib/puck/resolve-resources'
 import { getUploadServePath } from '@/app/lib/puck/resolve-resources'
@@ -8,6 +9,7 @@ import { convertDatesToStrings } from '@/app/lib/data-types'
 const NewsListConfig: ComponentConfig = {
     label: '新闻列表',
     fields: {
+        sort: contentSortField,
         category: {
             label: '筛选分类',
             type: 'text'
@@ -28,6 +30,7 @@ const NewsListConfig: ComponentConfig = {
             visible: false
         }
     },
+    defaultProps: { sort: 'newest' },
     resolveData: async ({ props }, { trigger }) => {
         if (trigger === 'move') return { props }
         const category = props.category?.trim() || undefined
@@ -35,16 +38,17 @@ const NewsListConfig: ComponentConfig = {
 
         return {
             props: {
-                resolvedEntitiesInit: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post, undefined, category, itemsPerPage)),
+                resolvedEntitiesInit: convertDatesToStrings(await getPublishedContentEntities(0, EntityType.post, undefined, category, itemsPerPage, props.sort ?? 'newest')),
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
     },
-    render: ({ category, itemsPerPage, resolvedEntitiesInit, resolvedUploadPrefix }) => {
+    render: ({ sort, category, itemsPerPage, resolvedEntitiesInit, resolvedUploadPrefix }) => {
         if (resolvedEntitiesInit == null) {
             return <></>
         }
-        return <NewsList init={resolvedEntitiesInit} uploadPrefix={resolvedUploadPrefix} category={category} itemsPerPage={itemsPerPage}/>
+        return <NewsList sort={sort} init={resolvedEntitiesInit} uploadPrefix={resolvedUploadPrefix} category={category}
+                         itemsPerPage={itemsPerPage}/>
     }
 }
 

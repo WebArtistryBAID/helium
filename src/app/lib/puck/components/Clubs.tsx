@@ -1,5 +1,7 @@
 'use client'
 
+import type { ContentSort } from '@/app/lib/content-sort'
+
 import { getContentEntityURI, Paginated, prefixLink, SimplifiedContentEntity } from '@/app/lib/data-types'
 import { useEffect, useState } from 'react'
 import { getPublishedContentEntities } from '@/app/studio/editor/entity-actions'
@@ -8,9 +10,10 @@ import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import Card from '@/app/lib/puck/components/Card'
 
-export default function Clubs({ title, init, uploadPrefix }: {
+export default function Clubs({ sort = 'title-en-asc', title, init, uploadPrefix }: {
     title: string,
     init: Paginated<SimplifiedContentEntity>,
+    sort?: ContentSort,
     uploadPrefix: string
 }) {
     const language = useLanguage()
@@ -18,10 +21,24 @@ export default function Clubs({ title, init, uploadPrefix }: {
     const [ currentPage, setCurrentPage ] = useState(0)
 
     useEffect(() => {
-        (async () => {
-            setPage(await getPublishedContentEntities(currentPage, EntityType.club))
+        setPage(init)
+        setCurrentPage(0)
+    }, [ init ])
+
+    useEffect(() => {
+        if (currentPage === 0) {
+            setPage(init)
+            return
+        }
+        let cancelled = false
+        ;(async () => {
+            const result = await getPublishedContentEntities(currentPage, EntityType.club, undefined, undefined, undefined, sort)
+            if (!cancelled) setPage(result)
         })()
-    }, [ currentPage ])
+        return () => {
+            cancelled = true
+        }
+    }, [ currentPage, sort, init ])
 
     return <section aria-labelledby="clubs-heading" className="border-b border-gray-200 py-12 md:py-20">
         <div className="container">
