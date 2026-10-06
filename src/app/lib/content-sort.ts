@@ -4,11 +4,11 @@ export const contentSortField = {
     label: '排序',
     type: 'select' as const,
     options: [
-        { label: 'A-Z by English title', value: 'title-en-asc' },
-        { label: 'Z-A by English title', value: 'title-en-desc' },
-        { label: 'A-Z by Chinese title', value: 'title-zh-asc' },
-        { label: 'Z-A by Chinese title', value: 'title-zh-desc' },
-        { label: 'Newest to oldest', value: 'newest' },
-        { label: 'Oldest to newest', value: 'oldest' }
+        { label: 'A-Z (按英文标题)', value: 'title-en-asc' },
+        { label: 'Z-A (按英文标题)', value: 'title-en-desc' },
+        { label: 'A-Z (按中文标题)', value: 'title-zh-asc' },
+        { label: 'Z-A (按中文标题)', value: 'title-zh-desc' },
+        { label: '从新到旧', value: 'newest' },
+        { label: '从旧到新', value: 'oldest' }
     ]
 }
