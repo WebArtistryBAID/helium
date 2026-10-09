@@ -16,19 +16,20 @@ BAID 暑期生活: #SummerAtBAID
 BA 大讲堂: BA Lectures
 北中小讲师: BAID Speaker
 世界大课堂: BA Global Classroom
-阅历课程: Experiential Program
+阅历课程: Experiential Course
 3/28 走进自然: Spring Outing
-中华文化寻根之旅: Chinese Traditional Culture Exploration (= 阅历课程)
-北京文化探究: Beijing Culture Exploration
-无障碍发展 "未来星" 培养计划: Accessibility Development Future Stars Program
+中华文化寻根之旅: Chinese Cultural Roots Exploration (= 阅历课程)
+北京文化探究项目: Beijing Culture Exploration Program
+无障碍发展 "未来星" 培养计划: Future Stars Program for Accessibility and Innovation
 全球院士公益创新英才营: Global Academician Public Welfare Innovation Talents Workshop (字数不够时，可以省去 "Public Welfare")
 全球视野阅读营: Global Vision Reading Camp
 职业体验: Career Experiences
-英才学者: Talent Scholar
+英才学者: Elite Scholar
 世界因我更美好: Better Me, Better World
 仁、智、勇、乐: Humanity, Wisdom, Courage, Happiness
 和而不同 乐在其中: Harmony in Diversity, Joy in Learning
 学会学习 学会共处 学会创新 学会生活: Learning to Acquire, Learning to Coexist, Learning to Pioneer, Learning to Live
+享幸福人生，做中华栋梁: Live a Happy Life and Become Pillars of China
 京领: KingLead
 京西学校: Western Academy of Beijing
 社团: Student Club
@@ -90,19 +91,21 @@ AP 分享会: AP Course Experience Sharing Session
 春日集市: Vernal Fair
 爱心社: BAID Humanity Club
 BAID 文创社: BAID Cultural & Creative Club
-学委会: Students' Union
+学委会: Student Council
 主席 (学委会职务): President
 副主席 (学委会职务): Vice President
-活动部长 (学委会): Secretary of the Activities Department
-宣传部长 (学委会): Secretary of the Publicity Department
-文体部长 (学委会): Secretary of the Recreation and Sports Department
-学术部长 (学委会): Secretary of the Academics Department
+主席团: Executive Board
+活动部长 (学委会): Secretary of the Activities Committee
+宣传部长 (学委会): Secretary of the Publicity Committee
+文体部长 (学委会): Secretary of the Arts and Sports Committee
+学术部长 (学委会): Secretary of the Academics Committee
 全球视野阅读营: Global Vision Reading Camp
 升学指导中心: Center for College Counseling
 课程教学中心: Center for Curriculum and Instruction
 行政管理中心: Center for Administration
 学生发展中心: Center for Student Development
-英才管理办公室: Student Talent Development Office
+英才管理办公室: Elite Scholar Development Office
+教务组: Academic Affairs Team
 主任 (指教职工职位，某个中心/办公室): Head of the (...)
 学科组: Department
 数学学科组: Mathematics Department
@@ -115,8 +118,10 @@ BAID 文创社: BAID Cultural & Creative Club
 经济学科组: Economics Department
 学科组组长 (指职务): Head of the ... Department
 外事 (指职务): International Affairs Officer
-信息中心: IT Office
-德育老师 (指职务): Student Development Officer
+信息中心: Information Technology Office
+德育老师 (指职务): Moral Education Teacher
+德育组: Moral Education Team
+运维组: IT Operations and Support Team
 高一年级组长: Head of Grade 10
 高二年级组长: Head of Grade 11
 高三年级组长: Head of Grade 12
@@ -124,7 +129,8 @@ BAID 文创社: BAID Cultural & Creative Club
 某个课程的教师: Instructor of (...)
 宿管 / 宿舍管理员: Dormitory Supervisor
 升学指导 (指职务): College Counselor
-后勤 (指职务): Logistics Officer
+后勤 (指职务): Support Officer
+后勤组: Support Team
 中国香港地区: Hong Kong SAR China
 中国澳门地区: Macao SAR China
 中国台湾: Taiwan, China
@@ -165,9 +171,9 @@ MFP (指项目): Major Foundation Program
 爱国情怀: Patriotism
 健康人格: Healthy Character
 创新精神: Innovative Spirit
-基础课程: Foundation Courses (在这个语境下，包含 语文: Chinese Language Arts & Culture；核心英语: Core English；核心数学: Core Mathematics；核心科学: Core Sciences；核心人文: Core Humanities)
-拓展课程: Enrichment Courses (在这个语境下，包含 学院系列: Academic Series；阅历系列: Experiential Series；雅趣系列: Fine Arts Series；健身系列: Fitness Series；服务系列: Service Series)
-潜能课程: Talent Courses (在这个语境下，包含 领导力系列: Leadership Series；创造力系列: Innovation Series；优势力系列: Arts Series)
+基础课程: Basic Courses (在这个语境下，包含 语文: Chinese Language Arts & Culture；核心英语: Core English；核心数学: Core Mathematics；核心科学: Core Sciences；核心人文: Core Humanities)
+拓展课程: Enrichment Courses (在这个语境下，包含 学院系列: Academy Series；阅历系列: Experiential Series；雅趣系列:  Arts and Culture Series；健身系列: Fitness Series；服务系列: Service Series)
+潜能课程: Potential Courses (在这个语境下，包含 领导力系列: Leadership Series；创造力系列: Creativity Series；优势力系列: Strengths Series)
 过境免签: transit without visa`
 
 export const MCP_TRANSLATION_INSTRUCTIONS = `
