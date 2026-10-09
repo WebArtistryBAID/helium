@@ -164,7 +164,7 @@ CTB (指比赛): China Thinks Big
 MFP (指项目): Major Foundation Program
 雍和宫: The Lama Temple
 夏校: summer program (注意，不是 summer school)
-一体两翼 (指办学理念): One Core, Two Twings
+一体两翼 (指办学理念): One Core, Two Wings
 让人成为人: To nurture humanity
 让自己成为自己: To help every individual become their true self
 让世界因我更美好: To make the world a better place because of me
