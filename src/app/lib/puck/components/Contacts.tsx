@@ -45,7 +45,7 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
 
                     <div className="w-full max-w-md rounded-none bg-white p-4 sm:p-5">
                         {emailText ? <p className="font-bold">{emailText}</p> : null}
-                        <ul aria-label="Contact emails" className="list-inside list-disc mb-2" role="list">
+                        <ul aria-label="Contact emails" className="list-inside list-disc mb-2 text-lg" role="list">
                             {(emails ?? []).map((email) => (
                                 <li key={email!.text} role="listitem" className="break-words">
                                     {email!.text}
@@ -54,7 +54,7 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
                         </ul>
 
                         {phoneText ? <p className="font-bold">{phoneText}</p> : null}
-                        <ul aria-label="Contact phone numbers" className="list-inside list-disc" role="list">
+                        <ul aria-label="Contact phone numbers" className="list-inside list-disc text-lg" role="list">
                             {(phones ?? []).map((phone) => (
                                 <li key={phone!.text} role="listitem" className="break-words">
                                     {phone!.text}
