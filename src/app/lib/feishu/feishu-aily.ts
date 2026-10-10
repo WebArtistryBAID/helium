@@ -1,4 +1,5 @@
 import { setTimeout as delay } from 'node:timers/promises'
+import type { SyncDebugLogger } from '@/app/lib/wechat/wechat-debug'
 
 const FEISHU_API = 'https://open.feishu.cn/open-apis'
 const POLL_INTERVAL_MS = 3000
@@ -9,22 +10,70 @@ type FeishuResponse = {
     msg?: string
 }
 
-async function requestFeishu<T extends FeishuResponse>(endpoint: string, init: RequestInit): Promise<T> {
-    const response = await fetch(`${FEISHU_API}${endpoint}`, { ...init, cache: 'no-store' })
+async function requestFeishuJson<T extends FeishuResponse>(endpoint: string, init: RequestInit, debug?: SyncDebugLogger) {
+    const startedAt = Date.now()
+    debug?.('Feishu request started', {
+        endpoint,
+        method: init.method ?? 'GET',
+        body: typeof init.body === 'string' ? init.body : undefined
+    })
+    try {
+        const response = await fetch(`${FEISHU_API}${endpoint}`, { ...init, cache: 'no-store' })
+        const body = await response.text()
+        let result: T
+        try {
+            result = JSON.parse(body) as T
+        } catch (error) {
+            debug?.('Feishu response', {
+                endpoint,
+                status: response.status,
+                headers: Object.fromEntries(response.headers),
+                body,
+                elapsedMs: Date.now() - startedAt
+            })
+            throw new Error(`Feishu Aily returned invalid JSON (${endpoint}): HTTP ${response.status}`, { cause: error })
+        }
+        debug?.('Feishu response', {
+            endpoint,
+            status: response.status,
+            headers: Object.fromEntries(response.headers),
+            body: result,
+            elapsedMs: Date.now() - startedAt
+        })
+        return { response, result }
+    } catch (error) {
+        debug?.('Feishu request failed', { endpoint, elapsedMs: Date.now() - startedAt, error })
+        throw error
+    }
+}
+
+async function requestFeishu<T extends FeishuResponse>(endpoint: string, init: RequestInit, debug?: SyncDebugLogger): Promise<T> {
+    const { response, result } = await requestFeishuJson<T>(endpoint, init, debug)
     if (response.status === 429) {
         throw new Error('飞书请求过于频繁，请稍后再试。')
     }
     if (!response.ok) {
         throw new Error(`Feishu Aily request failed (${endpoint}): HTTP ${response.status}`)
     }
-    const result: T = await response.json()
     if (result.code !== 0) {
         throw new Error(`Feishu Aily request failed (${endpoint}): ${result.msg ?? result.code}`)
     }
     return result
 }
 
-export async function callFeishuAily(prompt: string, articleContent: string, cancellationSignal?: AbortSignal): Promise<string> {
+export async function callFeishuAily(prompt: string, articleContent: string, cancellationSignal?: AbortSignal, debug?: SyncDebugLogger): Promise<string> {
+    debug?.('Feishu Aily started', { prompt, articleContent })
+    try {
+        const result = await runFeishuAily(prompt, articleContent, cancellationSignal, debug)
+        debug?.('Feishu Aily completed', { content: result })
+        return result
+    } catch (error) {
+        debug?.('Feishu Aily failed', error)
+        throw error
+    }
+}
+
+async function runFeishuAily(prompt: string, articleContent: string, cancellationSignal?: AbortSignal, debug?: SyncDebugLogger): Promise<string> {
     cancellationSignal?.throwIfAborted()
     const appId = process.env.FEISHU_AI_CLIENT_ID
     const appSecret = process.env.FEISHU_AI_CLIENT_SECRET
@@ -34,13 +83,14 @@ export async function callFeishuAily(prompt: string, articleContent: string, can
     }
 
     // Retrieve the tenant access token
+    debug?.('Feishu authentication started')
     const token = await requestFeishu<FeishuResponse & { tenant_access_token: string }>(
         '/auth/v3/tenant_access_token/internal', {
             method: 'POST',
             signal: cancellationSignal,
             headers: { 'Content-Type': 'application/json; charset=utf-8' },
             body: JSON.stringify({ app_id: appId, app_secret: appSecret })
-        }
+        }, debug
     )
     if (!token.tenant_access_token) {
         throw new Error('Feishu Aily response is missing the tenant access token')
@@ -49,6 +99,7 @@ export async function callFeishuAily(prompt: string, articleContent: string, can
         'Content-Type': 'application/json; charset=utf-8',
         Authorization: `Bearer ${token.tenant_access_token}`
     }
+    debug?.('Feishu authentication completed')
 
     const agentPath = `/aily/v1/agents/${encodeURIComponent(ailyAppId)}`
 
@@ -57,14 +108,15 @@ export async function callFeishuAily(prompt: string, articleContent: string, can
     const formData = new FormData()
     formData.append('file', file, 'article.md')
     formData.append('type', 'file')
-    const uploadResponse = await fetch(`${FEISHU_API}${agentPath}/attachments`, {
+    debug?.('Feishu attachment upload started', { filename: 'article.md', sizeBytes: file.size })
+    const { response: uploadResponse, result: upload } = await requestFeishuJson<FeishuResponse & {
+        data?: { agent_attachment_id?: string }
+    }>(`${agentPath}/attachments`, {
         method: 'POST',
         signal: cancellationSignal,
         headers: { Authorization: `Bearer ${token.tenant_access_token}` },
         body: formData
-    })
-
-    const upload: FeishuResponse & { data?: { agent_attachment_id?: string } } = await uploadResponse.json()
+    }, debug)
     if (!uploadResponse.ok) {
         throw new Error(`Feishu Aily file upload failed: HTTP ${uploadResponse.status} - ${upload.msg ?? upload.code}`)
     }
@@ -75,8 +127,10 @@ export async function callFeishuAily(prompt: string, articleContent: string, can
     if (!attachmentId) {
         throw new Error('Feishu Aily response is missing the agent attachment ID')
     }
+    debug?.('Feishu attachment upload completed', { attachmentId })
 
     // Send the chat message
+    debug?.('Feishu chat creation started', { attachmentId })
     const chat = await requestFeishu<FeishuResponse & { data?: { agent_chat_id?: string } }>(
         `${agentPath}/chats`, {
             method: 'POST',
@@ -88,12 +142,13 @@ export async function callFeishuAily(prompt: string, articleContent: string, can
                     agent_attachment_ids: [ attachmentId ]
                 }
             })
-        }
+        }, debug
     )
     const chatId = chat.data?.agent_chat_id
     if (!chatId) {
         throw new Error('Feishu Aily response is missing the agent chat ID')
     }
+    debug?.('Feishu chat creation completed', { chatId })
 
     // Poll for response
     const controller = new AbortController()
@@ -102,13 +157,17 @@ export async function callFeishuAily(prompt: string, articleContent: string, can
     const signal = cancellationSignal ? AbortSignal.any([ controller.signal, cancellationSignal ]) : controller.signal
 
     try {
+        let pollCount = 0
         while (true) {
+            debug?.('Feishu polling wait', { chatId, nextPoll: pollCount + 1, intervalMs: POLL_INTERVAL_MS })
             await delay(POLL_INTERVAL_MS, undefined, { signal })
+            pollCount++
             const result = await requestFeishu<FeishuResponse & {
                 data?: { status?: string; content?: { text?: string }[] }
             }>(
-                `${agentPath}/chats/${encodeURIComponent(chatId)}`, { method: 'GET', headers, signal }
+                `${agentPath}/chats/${encodeURIComponent(chatId)}`, { method: 'GET', headers, signal }, debug
             )
+            debug?.('Feishu chat status', { chatId, pollCount, status: result.data?.status })
             if (result.data?.status === 'Completed') {
                 const text = result.data.content?.[0]?.text
                 if (typeof text !== 'string') {

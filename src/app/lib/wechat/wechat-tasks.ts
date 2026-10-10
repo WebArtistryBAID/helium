@@ -2,6 +2,7 @@ import { randomUUID } from 'node:crypto'
 import { Role, User } from '@/generated/prisma/client'
 import { WeChatTask, WeChatWorkerStatus } from '@/app/studio/editor/entity-types'
 import { synchronizeWeChatArticle } from '@/app/lib/wechat/wechat-worker'
+import { createWeChatDebugLogger } from '@/app/lib/wechat/wechat-debug'
 
 export type RunningWeChatTask = Omit<WeChatTask, 'canCancel'> & {
     userId: number
@@ -10,6 +11,8 @@ export type RunningWeChatTask = Omit<WeChatTask, 'canCancel'> & {
     controller: AbortController
     done: Promise<void>
     cleanup?: () => Promise<void>
+    logs: NonNullable<WeChatTask['logs']>
+    completedAt?: number
 }
 
 const state = globalThis as typeof globalThis & {
@@ -36,25 +39,36 @@ export function parseWeChatUrls(input: string): string[] {
 }
 
 export function listWeChatTasks(user: User): WeChatTask[] {
+    for (const task of tasks.values()) {
+        if (task.completedAt && Date.now() - task.completedAt > 15 * 60 * 1000) tasks.delete(task.id)
+    }
     return Array.from(tasks.values())
         .sort((a, b) => b.startedAt - a.startedAt || b.id.localeCompare(a.id))
-        .map(({ id, startedAt, title, status, error, userId }) => ({
-            id, startedAt, title, status, error,
+        .map(({ id, startedAt, title, status, error, userId, debug, logs }) => ({
+            id, startedAt, title, status, error, debug,
+            logs: debug && (userId === user.id || user.roles.includes(Role.admin)) ? [ ...logs ] : undefined,
             canCancel: userId === user.id || user.roles.includes(Role.admin)
         }))
 }
 
-export function startWeChatTask(url: string, coverImageId: number | null, user: User): string {
+export function startWeChatTask(url: string, coverImageId: number | null, user: User, debug = false): string {
     const parsed = parseWeChatUrl(url)
     const task: RunningWeChatTask = {
         id: randomUUID(), startedAt: Date.now(), userId: user.id,
-        sourceUrl: parsed.href, coverImageId,
+        sourceUrl: parsed.href, coverImageId, debug, logs: [],
         status: WeChatWorkerStatus.download, controller: new AbortController(), done: Promise.resolve()
     }
     tasks.set(task.id, task)
+    const log = createWeChatDebugLogger(task)
+    log('Task created', { sourceUrl: parsed.href, coverImageId })
     task.done = synchronizeWeChatArticle(task, parsed.href, coverImageId, user).then(() => {
-        tasks.delete(task.id)
+        if (task.debug) {
+            task.status = 'completed'
+            task.completedAt = Date.now()
+            log('Sync completed')
+        } else tasks.delete(task.id)
     }).catch(error => {
+        log(task.controller.signal.aborted ? 'Sync cancelled' : 'Sync failed', error)
         if (task.controller.signal.aborted) return
         task.status = 'error'
         task.error = error instanceof Error ? error.message : '同步失败'
@@ -63,18 +77,28 @@ export function startWeChatTask(url: string, coverImageId: number | null, user: 
     return task.id
 }
 
-export function startWeChatTasks(input: string, coverImageId: number | null, user: User): string[] {
+export function startWeChatTasks(input: string, coverImageId: number | null, user: User, debug = false): string[] {
     const urls = parseWeChatUrls(input)
-    return urls.map(url => startWeChatTask(url, coverImageId, user))
+    return urls.map(url => startWeChatTask(url, coverImageId, user, debug))
 }
 
-export async function retryWeChatTask(id: string, user: User): Promise<string> {
+export function enableWeChatDebugMode(user: User): WeChatTask[] {
+    for (const task of tasks.values()) {
+        if (!task.debug && (task.userId === user.id || user.roles.includes(Role.admin))) {
+            task.debug = true
+            createWeChatDebugLogger(task)('Debug mode enabled', { currentStage: task.status })
+        }
+    }
+    return listWeChatTasks(user)
+}
+
+export async function retryWeChatTask(id: string, user: User, debug = false): Promise<string> {
     const task = tasks.get(id)
     if (!task || task.status !== 'error') throw new Error('Task cannot be retried')
     if (task.userId !== user.id && !user.roles.includes(Role.admin)) throw new Error('Unauthorized')
     await task.cleanup?.()
     tasks.delete(id)
-    return startWeChatTask(task.sourceUrl, task.coverImageId, user)
+    return startWeChatTask(task.sourceUrl, task.coverImageId, user, debug || task.debug)
 }
 
 export async function cancelWeChatTask(id: string, user: User) {
@@ -82,12 +106,15 @@ export async function cancelWeChatTask(id: string, user: User) {
     if (!task) return
     if (task.userId !== user.id && !user.roles.includes(Role.admin)) throw new Error('Unauthorized')
     task.status = 'cancelling'
+    const log = createWeChatDebugLogger(task)
+    log('Cancellation requested')
     task.controller.abort(new Error('同步任务已取消'))
     await task.done
     try {
         await task.cleanup?.()
         tasks.delete(id)
     } catch (error) {
+        log('Cancellation cleanup failed', error)
         task.status = 'error'
         task.error = `清理失败: ${error instanceof Error ? error.message : '请重试'}`
         throw error

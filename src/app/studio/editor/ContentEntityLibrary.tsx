@@ -29,6 +29,7 @@ import { WeChatTask } from '@/app/studio/editor/entity-types'
 import {
     createPostsFromWeChat,
     deleteWeChatTask,
+    enableWeChatTaskDebugMode,
     getWeChatTasks,
     retryFailedWeChatTask
 } from '@/app/studio/editor/wechat-actions'
@@ -52,6 +53,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
     const [ wechatLink, setWeChatLink ] = useState('')
     const [ wechatTasks, setWeChatTasks ] = useState<WeChatTask[]>([])
     const [ showWeChatTasks, setShowWeChatTasks ] = useState(false)
+    const [ wechatDebug, setWeChatDebug ] = useState(false)
     const [ wechatError, setWeChatError ] = useState('')
     const [ startingWeChat, setStartingWeChat ] = useState(false)
     const [ openingWeChat, setOpeningWeChat ] = useState(false)
@@ -68,6 +70,22 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
 
     const router = useRouter()
     const canWrite = user.roles.includes(Role.writer)
+
+    useEffect(() => {
+        if (!canWrite || (!showWeChatLink && !showWeChatTasks)) return
+        const handleKeyDown = (event: KeyboardEvent) => {
+            if (!event.ctrlKey || event.altKey || event.metaKey || event.key.toLowerCase() !== 'd') return
+            event.preventDefault()
+            if (wechatDebug || event.repeat) return
+            setWeChatDebug(true)
+            void enableWeChatTaskDebugMode().then(setWeChatTasks).catch(error => {
+                setWeChatDebug(false)
+                if (!handlePermissionError(error)) setWeChatError('为当前任务启用调试模式失败，请重试。')
+            })
+        }
+        window.addEventListener('keydown', handleKeyDown, true)
+        return () => window.removeEventListener('keydown', handleKeyDown, true)
+    }, [ canWrite, showWeChatLink, showWeChatTasks, wechatDebug, handlePermissionError ])
 
     useEffect(() => {
         const t = setTimeout(() => setDebouncedSearch(search), 300)
@@ -101,7 +119,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                 const tasks = await getWeChatTasks()
                 if (stopped) return
                 setWeChatTasks(tasks)
-                const ids = tasks.map(task => task.id)
+                const ids = tasks.filter(task => task.status !== 'completed').map(task => task.id)
                 const removed = previousTaskIds.current.some(id => !ids.includes(id))
                 previousTaskIds.current = ids
                 if (removed) {
@@ -178,6 +196,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
             <ModalBody>
                 <div className="space-y-6">
                     <h3 className="text-xl font-bold">创建同步任务</h3>
+                    {wechatDebug && <Alert color="info">已启用调试模式。</Alert>}
                     {wechatError && <Alert color="failure">{wechatError}</Alert>}
                     <div>
                         <div className="mb-2 block">
@@ -200,7 +219,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                     setStartingWeChat(true)
                     setWeChatError('')
                     try {
-                        const ids = await createPostsFromWeChat(wechatLink, null)
+                        const ids = await createPostsFromWeChat(wechatLink, null, wechatDebug)
                         previousTaskIds.current = [ ...previousTaskIds.current, ...ids ]
                         setWeChatLink('')
                         setShowWeChatLink(false)
@@ -223,6 +242,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
             <ModalBody className="min-h-0 overflow-y-auto">
                 <div className="space-y-4">
                     <h3 className="text-xl font-bold">微信公众号同步任务</h3>
+                    {wechatDebug && <Alert color="info">已启用调试模式。</Alert>}
                     <Button pill color="blue" onClick={() => {
                         setWeChatError('')
                         setShowWeChatTasks(false)
@@ -239,7 +259,8 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                             savingImages: { value: 85, text: '正在保存图片' },
                             creatingPost: { value: 95, text: '正在创建文章' },
                             cancelling: { value: 100, text: '正在取消并清理' },
-                            error: { value: 100, text: '错误' }
+                            error: { value: 100, text: '错误' },
+                            completed: { value: 100, text: '同步完成' }
                         }[task.status]
                         return <Card key={task.id} theme={{ root: {
                             base: 'flex rounded-3xl border-0 bg-gray-50 shadow-none',
@@ -257,7 +278,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                                                                             setDeletingWeChat(ids => [ ...ids, task.id ])
                                                                             setWeChatError('')
                                                                             try {
-                                                                                await retryFailedWeChatTask(task.id)
+                                                                                await retryFailedWeChatTask(task.id, wechatDebug)
                                                                                 setWeChatTasks(await getWeChatTasks())
                                                                             } catch (error) {
                                                                                 if (!handlePermissionError(error)) setWeChatError('重试任务失败，请稍后再试。')
@@ -276,14 +297,26 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                                             } catch (error) {
                                                 if (!handlePermissionError(error)) setWeChatError('删除任务失败，请重试。')
                                             } finally { setDeletingWeChat(ids => ids.filter(id => id !== task.id)) }
-                                        }}>{task.status === 'error' ? '删除任务' : '取消任务'}</Button>
+                                        }}>{task.status === 'error' || task.status === 'completed' ? '删除任务' : '取消任务'}</Button>
                             </div>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="flex-1"><Progress progress={progress.value} color={task.status === 'error' ? 'red' : 'blue'} aria-label={`${task.title || task.id}: ${progress.text}`}/></div>
+                                <div className="flex-1"><Progress progress={progress.value}
+                                                                  color={task.status === 'error' ? 'red' : task.status === 'completed' ? 'green' : 'blue'}
+                                                                  aria-label={`${task.title || task.id}: ${progress.text}`}/>
+                                </div>
                                 <span role="status" className="text-sm text-gray-600">{progress.text}</span>
                             </div>
                             {task.error && <Alert color="failure">{task.error}</Alert>}
+                            {task.debug && task.canCancel && <details className="min-w-0">
+                                <summary className="cursor-pointer text-sm font-medium text-blue-700">调试日志</summary>
+                                <pre
+                                    className="mt-3 max-h-96 overflow-auto whitespace-pre-wrap break-words rounded-xl bg-gray-900 p-4 text-xs text-gray-100">
+                                    {task.logs?.length ? task.logs.map(entry =>
+                                        `${new Date(entry.timestamp).toLocaleString('zh-CN')} [${entry.stage}] ${entry.event}\n${entry.details}`
+                                    ).join('\n\n') : '等待调试日志…'}
+                                </pre>
+                            </details>}
                         </Card>
                     })}
                 </div>
