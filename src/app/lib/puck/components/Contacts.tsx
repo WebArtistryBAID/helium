@@ -6,7 +6,7 @@ import { convertDatesToStrings } from '@/app/lib/data-types'
 import FocusImage from '@/app/lib/FocusImage'
 import { hasImageFocus } from '@/app/lib/image-focus'
 
-function Contacts({ title, description, emailText, emails, phoneText, phones, backgroundImage, uploadPrefix }: {
+function Contacts({ title, description, emailText, emails, phoneText, phones, backgroundImage, qrCode, uploadPrefix }: {
     title: string | undefined,
     description: string | undefined,
     emailText: string | undefined,
@@ -14,12 +14,14 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
     phoneText: string | undefined,
     phones: ({ text: string } | undefined)[] | undefined,
     backgroundImage: Image | undefined,
+    qrCode: Image | null | undefined,
     uploadPrefix: string | undefined
 }) {
     emails = (emails?.filter(email => email !== undefined) ?? []) as { text: string }[]
     phones = (phones?.filter(phone => phone !== undefined) ?? []) as { text: string }[]
 
     const bgUrl = uploadPrefix && backgroundImage?.sha1 ? `${uploadPrefix}/${backgroundImage.sha1}.webp` : undefined
+    const qrCodeUrl = uploadPrefix && qrCode?.sha1 ? `${uploadPrefix}/${qrCode.sha1}.${qrCode.extension || 'webp'}` : undefined
 
     return (
         <div
@@ -32,33 +34,39 @@ function Contacts({ title, description, emailText, emails, phoneText, phones, ba
                                                            aria-hidden="true"
                                                            className="absolute inset-0 h-full w-full object-cover"/>}
             <section aria-labelledby="contact-heading"
-                     className="relative section container mt-12 py-12 md:!mt-20 md:!py-20">
-                <h2 id="contact-heading" className="mb-4 break-words text-3xl font-bold sm:text-4xl">
-                    {title}
-                </h2>
-                {description ? (
-                    <p className="!mb-4 text-lg sm:text-xl md:text-2xl">{description}</p>
-                ) : null}
+                     className={`relative section container mt-12 py-12 md:!mt-20 md:!py-20${qrCodeUrl ? ' flex flex-col gap-8 md:flex-row md:items-center md:gap-12' : ''}`}>
+                <div className={qrCodeUrl ? 'min-w-0 flex-1' : undefined}>
+                    <h2 id="contact-heading" className="mb-4 break-words text-3xl font-bold sm:text-4xl">
+                        {title}
+                    </h2>
+                    {description ? (
+                        <p className="!mb-4 text-lg sm:text-xl md:text-2xl">{description}</p>
+                    ) : null}
 
-                <div className="w-full max-w-md rounded-none bg-white p-4 sm:p-5">
-                    {emailText ? <p className="font-bold">{emailText}</p> : null}
-                    <ul aria-label="Contact emails" className="list-inside list-disc mb-2" role="list">
-                        {(emails ?? []).map((email) => (
-                            <li key={email!.text} role="listitem" className="break-words">
-                                {email!.text}
-                            </li>
-                        ))}
-                    </ul>
+                    <div className="w-full max-w-md rounded-none bg-white p-4 sm:p-5">
+                        {emailText ? <p className="font-bold">{emailText}</p> : null}
+                        <ul aria-label="Contact emails" className="list-inside list-disc mb-2" role="list">
+                            {(emails ?? []).map((email) => (
+                                <li key={email!.text} role="listitem" className="break-words">
+                                    {email!.text}
+                                </li>
+                            ))}
+                        </ul>
 
-                    {phoneText ? <p className="font-bold">{phoneText}</p> : null}
-                    <ul aria-label="Contact phone numbers" className="list-inside list-disc" role="list">
-                        {(phones ?? []).map((phone) => (
-                            <li key={phone!.text} role="listitem" className="break-words">
-                                {phone!.text}
-                            </li>
-                        ))}
-                    </ul>
+                        {phoneText ? <p className="font-bold">{phoneText}</p> : null}
+                        <ul aria-label="Contact phone numbers" className="list-inside list-disc" role="list">
+                            {(phones ?? []).map((phone) => (
+                                <li key={phone!.text} role="listitem" className="break-words">
+                                    {phone!.text}
+                                </li>
+                            ))}
+                        </ul>
+                    </div>
                 </div>
+                {qrCodeUrl && <div className="flex justify-center md:w-1/3 md:shrink-0">
+                    <img src={qrCodeUrl} alt={qrCode?.altText || 'QR code'}
+                         className="h-auto w-64 max-w-full object-contain lg:w-72"/>
+                </div>}
             </section>
         </div>
     )
@@ -110,7 +118,9 @@ const ContactsConfig: ComponentConfig = {
             }
         },
         backgroundImage: mediaTypeField('背景图片', [ 'image' ]),
+        qrCode: mediaTypeField('二维码', [ 'image' ]),
         resolvedBackgroundImage: RESOLVED_IMAGE_TYPE,
+        resolvedQrCode: RESOLVED_IMAGE_TYPE,
         resolvedUploadPrefix: {
             type: 'text',
             visible: false
@@ -118,10 +128,12 @@ const ContactsConfig: ComponentConfig = {
     },
     resolveData: async ({ props }, { trigger }) => {
         if (trigger === 'move') return { props }
+        const qrCodeId = Number(typeof props.qrCode === 'object' && props.qrCode != null ? props.qrCode.id : props.qrCode)
         return {
             props: {
                 ...props,
                 resolvedBackgroundImage: props.backgroundImage == null ? null : convertDatesToStrings(await getImage(parseInt(props.backgroundImage))),
+                resolvedQrCode: Number.isInteger(qrCodeId) && qrCodeId > 0 ? convertDatesToStrings(await getImage(qrCodeId)) : null,
                 resolvedUploadPrefix: await getUploadServePath()
             }
         }
@@ -132,7 +144,8 @@ const ContactsConfig: ComponentConfig = {
         emailText: '邮箱:',
         emails: [ { text: 'baid@bjacademy.com.cn' } ],
         phoneText: '电话:',
-        phones: [ { text: '+86 ... .... ....' } ]
+        phones: [ { text: '+86 ... .... ....' } ],
+        qrCode: null
     },
     render: ({
                  title,
@@ -142,10 +155,12 @@ const ContactsConfig: ComponentConfig = {
                  phoneText,
                  phones,
                  resolvedBackgroundImage,
+                 resolvedQrCode,
                  resolvedUploadPrefix
              }) =>
         <Contacts title={title} description={description} emailText={emailText} emails={emails}
                   phoneText={phoneText} phones={phones} backgroundImage={resolvedBackgroundImage}
+                  qrCode={resolvedQrCode}
                   uploadPrefix={resolvedUploadPrefix}/>
 }
 
