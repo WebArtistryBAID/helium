@@ -9,6 +9,13 @@ export type { UserFilters } from '@/app/lib/services/users'
 import { me } from '@/app/login/login'
 import { Paginated, SimplifiedUser } from '@/app/lib/data-types'
 import { prisma } from '@/app/lib/prisma'
+import { cookies } from 'next/headers'
+import { redirect } from 'next/navigation'
+
+export async function logout(): Promise<never> {
+    (await cookies()).delete('access_token')
+    redirect('/')
+}
 
 export async function getLoginTarget(redirect: string): Promise<string> {
     // We are really abusing state here... But it works.

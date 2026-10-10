@@ -28,6 +28,7 @@ import {
 import type { PersonalTokenSummary } from '@/app/lib/mcp/contracts'
 import FeishuSettings from '@/app/studio/settings/feishu/FeishuSettings'
 import { createPersonalToken, revokePersonalToken } from '@/app/studio/settings/personal-settings-actions'
+import { logout } from '@/app/login/login-actions'
 
 export default function PersonalSettings({ isFeishuLinked, tokens, result, endpoint }: {
     isFeishuLinked: boolean
@@ -301,5 +302,8 @@ export default function PersonalSettings({ isFeishuLinked, tokens, result, endpo
                 </Modal>
             </div>
         </section>
+        <form action={logout}>
+            <Button className="cursor-pointer" pill color="alternative" type="submit">退出登录</Button>
+        </form>
     </div>
 }
