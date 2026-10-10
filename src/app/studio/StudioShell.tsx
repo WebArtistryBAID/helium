@@ -9,7 +9,8 @@ import {
     SidebarItem,
     SidebarItemGroup,
     SidebarItems,
-    SidebarLogo
+    SidebarLogo,
+    Tooltip
 } from 'flowbite-react'
 import Link from 'next/link'
 import { HiUser } from 'react-icons/hi'
@@ -33,6 +34,7 @@ import {
 } from 'react-icons/hi2'
 import If from '@/app/lib/If'
 import { usePathname } from 'next/navigation'
+import { logout } from '@/app/login/login-actions'
 
 export default function StudioShell({ children, myUser }: { children: ReactNode; myUser: User }) {
     const pathName = usePathname()
@@ -155,14 +157,18 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                             </SidebarItemGroup>
                         </SidebarItems>
                         <div className="mr-3 mb-3 absolute bottom-0">
-                            <Link href="/studio/"
-                                  className="flex items-center gap-3 rounded-full p-3 hover:bg-gray-100 transition-colors duration-100">
-                                <Badge icon={HiUser}/>
-                                <div>
-                                    <p className="font-bold font-display text-sm">{myUser?.name ?? '...'}</p>
-                                    <p className="secondary text-xs">{myUser?.roles.map(s => ROLES_TRANSLATIONS[s]).join(' / ')}</p>
-                                </div>
-                            </Link>
+                            <form action={logout}>
+                                <Tooltip content="退出登录" placement="top">
+                                    <button type="submit" aria-label="退出登录"
+                                            className="flex cursor-pointer items-center gap-3 rounded-full p-3 text-left hover:bg-gray-100 transition-colors duration-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500">
+                                        <Badge icon={HiUser}/>
+                                        <div>
+                                            <p className="font-bold font-display text-sm">{myUser?.name ?? '...'}</p>
+                                            <p className="secondary text-xs">{myUser?.roles.map(s => ROLES_TRANSLATIONS[s]).join(' / ')}</p>
+                                        </div>
+                                    </button>
+                                </Tooltip>
+                            </form>
                         </div>
                     </Sidebar>
                 </div>
