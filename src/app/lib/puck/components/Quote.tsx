@@ -42,9 +42,6 @@ function Quote({ text, source, image, uploadPrefix, items }: {
                 aria-label="Quote"
                 role="region"
             >{text}</p>}
-            {hasContent(source) && <p className="w-full text-right font-sans text-base sm:text-lg">
-                — {source}
-            </p>}
             {visibleItems.length > 0 && <ol aria-label="Message items" className="mt-8 space-y-8">
                 {visibleItems.map((item, index) => <li key={index} className="flex items-center gap-4 sm:gap-6">
                     <span aria-hidden="true"
@@ -62,6 +59,10 @@ function Quote({ text, source, image, uploadPrefix, items }: {
                     </div>
                 </li>)}
             </ol>}
+            {hasContent(source) &&
+                <p className={`${visibleItems.length > 0 ? 'mt-8 ' : ''}w-full text-right font-sans text-base sm:text-lg`}>
+                    — {source}
+                </p>}
         </div>
         <div className="w-full md:w-1/2 flex justify-center items-center">
             <img
