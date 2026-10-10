@@ -6,6 +6,15 @@ export const COMPONENT_CLIPBOARD_FORMAT = 'helium-puck-component-v1'
 
 type Bundle = { format: string; component: ComponentData; zones: Record<string, ComponentData[]> }
 
+export function isComponentClipboard(text: string): boolean {
+    try {
+        const value = JSON.parse(text)
+        return value?.format === COMPONENT_CLIPBOARD_FORMAT
+    } catch {
+        return false
+    }
+}
+
 function visitComponents(value: unknown, visit: (component: ComponentData) => void) {
     if (Array.isArray(value)) value.forEach(child => visitComponents(child, visit))
     else if (value && typeof value === 'object') {

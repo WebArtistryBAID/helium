@@ -4,7 +4,7 @@ import { createContext, useContext, useEffect, useRef, useState, type ReactNode 
 import { createPortal } from 'react-dom'
 import { createUsePuck, IconButton, resolveAllData, useGetPuck } from '@puckeditor/core'
 import { HiOutlineClipboard, HiOutlineSquare2Stack } from 'react-icons/hi2'
-import { copyComponent, pasteComponent, COMPONENT_CLIPBOARD_FORMAT } from './component-clipboard'
+import { copyComponent, isComponentClipboard, pasteComponent, COMPONENT_CLIPBOARD_FORMAT } from './component-clipboard'
 import { PUCK_CONFIG } from './puck-config'
 
 const ClipboardContext = createContext<{ copy: () => void; paste: () => void; canWrite: boolean; notice: string | null } | null>(null)
@@ -144,17 +144,19 @@ export function PuckClipboardProvider({ children, canWrite }: { children: ReactN
             event.preventDefault()
         }
         const onPaste = (event: ClipboardEvent) => {
-            if (editable(event) || !canWrite) return
+            if (!canWrite) return
             const value = event.clipboardData?.getData('text/plain') ?? ''
-            if (!value.includes(COMPONENT_CLIPBOARD_FORMAT)) return
+            if (!isComponentClipboard(value)) return
+            // Component bundles take precedence even while an inline text field has focus.
             event.preventDefault()
+            event.stopPropagation()
             void applyPaste(value)
         }
         const attach = (doc: Document) => {
             if (documents.has(doc)) return
             documents.add(doc)
             doc.addEventListener('copy', onCopy)
-            doc.addEventListener('paste', onPaste)
+            doc.addEventListener('paste', onPaste, true)
         }
         const refresh = () => {
             editor.querySelectorAll<HTMLIFrameElement>('iframe').forEach(frame => {
@@ -174,7 +176,7 @@ export function PuckClipboardProvider({ children, canWrite }: { children: ReactN
             frames.forEach(frame => frame.removeEventListener('load', refresh))
             documents.forEach(doc => {
                 doc.removeEventListener('copy', onCopy)
-                doc.removeEventListener('paste', onPaste)
+                doc.removeEventListener('paste', onPaste, true)
             })
         }
     }, [ canWrite, getPuck ])
