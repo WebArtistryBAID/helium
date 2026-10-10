@@ -311,6 +311,18 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
         }))
     }
 
+    function updateGoogleSiteVerification(value: string) {
+        if (!canWrite) {
+            showPermissionDenied()
+            return
+        }
+        setDraft(current => ({
+            ...current,
+            en: { ...current.en, googleSiteVerification: value },
+            zh: { ...current.zh, googleSiteVerification: value }
+        }))
+    }
+
     function addNavbarItem() {
         const id = newItemId('navbar')
         pendingFocusRef.current = `navbar-${language}-${id}-name`
@@ -550,6 +562,19 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                                           description: value
                                                       }))
                                                   }}/>
+                                    </div>
+                                    <div>
+                                        <div className="mb-2 block">
+                                            <Label htmlFor="website-google-site-verification">Google Search Console
+                                                网站验证</Label>
+                                        </div>
+                                        <TextInput id="website-google-site-verification"
+                                                   value={content.googleSiteVerification}
+                                                   disabled={!canWrite}
+                                                   autoComplete="off"
+                                                   spellCheck={false}
+                                                   aria-describedby="website-google-site-verification-description"
+                                                   onChange={event => updateGoogleSiteVerification(event.currentTarget.value)}/>
                                     </div>
                                 </div>
                             </div>

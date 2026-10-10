@@ -72,6 +72,9 @@ export async function saveWebsiteMetadata(actor: OperationActor,
 
     const en = normalizeWebsiteMetadataContent(draft.en, 'en')
     const zh = normalizeWebsiteMetadataContent(draft.zh, 'zh')
+    const sharedGoogleSiteVerification = en.googleSiteVerification || zh.googleSiteVerification
+    en.googleSiteVerification = sharedGoogleSiteVerification
+    zh.googleSiteVerification = sharedGoogleSiteVerification
     const sharedChineseWebsiteUrl = en.footer.chineseWebsiteUrl || zh.footer.chineseWebsiteUrl
     const sharedIcpNumber = en.footer.icpNumber || zh.footer.icpNumber
     en.footer.chineseWebsiteUrl = sharedChineseWebsiteUrl
