@@ -35,6 +35,8 @@ import ImageGalleryConfig from '@/app/lib/puck/components/ImageGalleryConfig'
 import FullscreenVideoConfig from '@/app/lib/puck/components/FullscreenVideoConfig'
 import ScatteredImageTextConfig from '@/app/lib/puck/components/ScatteredImageTextConfig'
 import HalfScreenImageTextConfig from '@/app/lib/puck/components/HalfScreenImageText'
+import ImageConfig from '@/app/lib/puck/components/Image'
+import GridConfig from '@/app/lib/puck/components/Grid'
 
 export const PUCK_CONFIG: Config = {
     components: {
@@ -44,6 +46,8 @@ export const PUCK_CONFIG: Config = {
         HeadingConfig,
         ButtonConfig,
         ContainerConfig,
+        GridConfig,
+        ImageConfig,
         SpacerConfig,
         TopTextConfig,
         HighlightsConfig,
@@ -83,7 +87,7 @@ export const PUCK_CONFIG: Config = {
             title: '基础与布局',
             components: [
                 'HeadingConfig', 'ParagraphConfig', 'ButtonConfig', 'ContainerConfig',
-                'SpacerConfig', 'CardConfig', 'GridTextConfig'
+                'GridConfig', 'ImageConfig', 'SpacerConfig', 'CardConfig', 'GridTextConfig'
             ]
         },
         introductions: {
