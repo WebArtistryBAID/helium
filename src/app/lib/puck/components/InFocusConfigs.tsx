@@ -17,14 +17,14 @@ export const InFocusCommencementConfig: ComponentConfig = {
     label: '毕业季',
     fields: {
         heroBg: mediaTypeField('背景图片', [ 'image' ]),
-        heroTitle: { label: '主标题', type: 'text', contentEditable: true },
+        heroTitle: { label: '主标题', type: 'textarea', contentEditable: true },
         heroDescription: { label: '主描述', type: 'textarea', contentEditable: true },
         collageBackgroundColor: colorTypeField('拼贴背景颜色'),
-        collageEyebrow: { label: '拼贴小标题', type: 'text', contentEditable: true },
-        collageTitle: { label: '拼贴标题', type: 'text', contentEditable: true },
+        collageEyebrow: { label: '拼贴小标题', type: 'textarea', contentEditable: true },
+        collageTitle: { label: '拼贴标题', type: 'textarea', contentEditable: true },
         collageDescription: { label: '拼贴描述', type: 'textarea', contentEditable: true },
         collageLink: { label: '拼贴链接', type: 'text' },
-        collageLinkText: { label: '拼贴链接文字', type: 'text', contentEditable: true },
+        collageLinkText: { label: '拼贴链接文字', type: 'textarea', contentEditable: true },
         collageImages: {
             label: '拼贴图片',
             type: 'array',
@@ -37,11 +37,11 @@ export const InFocusCommencementConfig: ComponentConfig = {
             label: '故事章节',
             type: 'array',
             arrayFields: {
-                eyebrow: { label: '小标题', type: 'text', contentEditable: true },
-                title: { label: '标题', type: 'text', contentEditable: true },
+                eyebrow: { label: '小标题', type: 'textarea', contentEditable: true },
+                title: { label: '标题', type: 'textarea', contentEditable: true },
                 description: { label: '描述', type: 'textarea', contentEditable: true },
                 link: { label: '链接', type: 'text' },
-                linkText: { label: '链接文字', type: 'text', contentEditable: true }
+                linkText: { label: '链接文字', type: 'textarea', contentEditable: true }
             },
             max: 6
         },
@@ -134,10 +134,10 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
     label: '欢迎新生',
     fields: {
         heroBg: mediaTypeField('背景图片', [ 'image' ]),
-        title: { label: '标题', type: 'text', contentEditable: true },
+        title: { label: '标题', type: 'textarea', contentEditable: true },
         description: { label: '描述', type: 'textarea', contentEditable: true },
 
-        introTitle: { label: '新生引导标题', type: 'text', contentEditable: true },
+        introTitle: { label: '新生引导标题', type: 'textarea', contentEditable: true },
         introDescription: { label: '新生引导描述', type: 'textarea', contentEditable: true },
         introCards: {
             label: '新生卡片',
@@ -145,26 +145,26 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
             arrayFields: {
                 href: { label: '链接', type: 'text' },
                 image: mediaTypeField('图片', [ 'image' ]),
-                title: { label: '标题', type: 'text', contentEditable: true },
+                title: { label: '标题', type: 'textarea', contentEditable: true },
                 shortContent: { label: '简介', type: 'textarea', contentEditable: true }
             },
             max: 4
         },
 
-        resourcesTitle: { label: '资源标题', type: 'text', contentEditable: true },
+        resourcesTitle: { label: '资源标题', type: 'textarea', contentEditable: true },
         resourcesDescription: { label: '资源描述', type: 'textarea', contentEditable: true },
         resourcesImage: mediaTypeField('资源图片', [ 'image' ]),
         resources: {
             label: '资源列表',
             type: 'array',
             arrayFields: {
-                name: { label: '名称', type: 'text', contentEditable: true },
-                content: { label: '内容', type: 'text', contentEditable: true }
+                name: { label: '名称', type: 'textarea', contentEditable: true },
+                content: { label: '内容', type: 'textarea', contentEditable: true }
             },
             max: 4
         },
 
-        projectsTitle: { label: '项目标题', type: 'text', contentEditable: true },
+        projectsTitle: { label: '项目标题', type: 'textarea', contentEditable: true },
         projectsDescription: { label: '项目描述', type: 'textarea', contentEditable: true },
         projects: {
             label: '项目',
@@ -187,7 +187,7 @@ export const InFocusNewStudentsConfig: ComponentConfig = {
                     placeholder: '选择',
                     showSearch: true
                 },
-                discipline: { label: '学科', type: 'text', contentEditable: true }
+                discipline: { label: '学科', type: 'textarea', contentEditable: true }
             },
             max: 6
         },
@@ -344,7 +344,7 @@ export const InFocusProjectsConfig: ComponentConfig = {
         heroBg: mediaTypeField('背景图片', [ 'image' ]),
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         description: {
@@ -358,7 +358,7 @@ export const InFocusProjectsConfig: ComponentConfig = {
         },
         linkText: {
             label: '链接文字',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         projects: {
@@ -385,7 +385,7 @@ export const InFocusProjectsConfig: ComponentConfig = {
                 },
                 discipline: {
                     label: '学科',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 description: {
@@ -395,7 +395,7 @@ export const InFocusProjectsConfig: ComponentConfig = {
                 },
                 linkText: {
                     label: '链接文字',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             },
@@ -403,7 +403,7 @@ export const InFocusProjectsConfig: ComponentConfig = {
         },
         startTopText: {
             label: '收尾标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         startMainText: {

@@ -9,10 +9,10 @@ const HalfScreenImageTextConfig: ComponentConfig = {
     label: '半屏图文排布',
     fields: {
         image: mediaTypeField('图片', [ 'image' ]),
-        title: { label: '标题', type: 'text', contentEditable: true },
+        title: { label: '标题', type: 'textarea', contentEditable: true },
         text: { label: '文字', type: 'textarea', contentEditable: true },
         link: { label: '链接', type: 'text' },
-        linkText: { label: '链接文字', type: 'text' },
+        linkText: { label: '链接文字', type: 'textarea' },
         resolvedImage: RESOLVED_IMAGE_TYPE,
         uploadPrefix: { type: 'text', visible: false }
     },

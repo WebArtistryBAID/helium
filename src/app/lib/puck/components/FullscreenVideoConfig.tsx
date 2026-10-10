@@ -27,7 +27,7 @@ const FullscreenVideoConfig: ComponentConfig = {
         poster: mediaTypeField('视频加载前显示的图片', [ 'image' ]),
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         titleSize: {
@@ -57,7 +57,7 @@ const FullscreenVideoConfig: ComponentConfig = {
         },
         linkText: {
             label: '链接文字',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         resolvedVideo: RESOLVED_IMAGE_TYPE,

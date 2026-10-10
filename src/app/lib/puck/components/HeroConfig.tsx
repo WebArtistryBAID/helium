@@ -9,7 +9,7 @@ const HeroConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         image: mediaTypeField('图片', [ 'image' ]),

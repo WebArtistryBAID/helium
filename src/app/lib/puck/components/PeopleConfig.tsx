@@ -36,7 +36,7 @@ const PeopleConfig: ComponentConfig = {
                 },
                 title: {
                     label: '职称',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             }

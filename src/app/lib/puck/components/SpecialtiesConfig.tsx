@@ -13,7 +13,7 @@ const SpecialtiesConfig: ComponentConfig = {
             arrayFields: {
                 name: {
                     label: '名称',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 description: {

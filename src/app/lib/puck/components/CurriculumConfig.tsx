@@ -6,7 +6,7 @@ const CurriculumConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         curricula: {
@@ -15,7 +15,7 @@ const CurriculumConfig: ComponentConfig = {
             arrayFields: {
                 title: {
                     label: '名称',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 description: {
@@ -29,7 +29,7 @@ const CurriculumConfig: ComponentConfig = {
                     arrayFields: {
                         name: {
                             label: '课程名称',
-                            type: 'text',
+                            type: 'textarea',
                             contentEditable: true
                         }
                     }

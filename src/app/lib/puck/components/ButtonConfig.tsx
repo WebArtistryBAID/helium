@@ -6,7 +6,7 @@ const ButtonConfig: ComponentConfig = {
     fields: {
         text: {
             label: '文字',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         link: {

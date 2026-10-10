@@ -19,7 +19,7 @@ const GridTextConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         texts: {
@@ -28,7 +28,7 @@ const GridTextConfig: ComponentConfig = {
             arrayFields: {
                 text: {
                     label: '文字',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             }

@@ -62,7 +62,7 @@ const HighlightsConfig: ComponentConfig = {
             arrayFields: {
                 title: {
                     label: '标题',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 text: {
@@ -77,7 +77,7 @@ const HighlightsConfig: ComponentConfig = {
                 },
                 linkText: {
                     label: '链接文字',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             },

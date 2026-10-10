@@ -1,4 +1,5 @@
 import type { Config } from '@puckeditor/core'
+import type { ReactNode } from 'react'
 import TopTextConfig from '@/app/lib/puck/components/TopText'
 import HighlightsConfig from '@/app/lib/puck/components/Highlights'
 import ContainerConfig from '@/app/lib/puck/components/ContainerConfig'
@@ -39,6 +40,9 @@ import ImageConfig from '@/app/lib/puck/components/Image'
 import GridConfig from '@/app/lib/puck/components/Grid'
 
 export const PUCK_CONFIG: Config = {
+    root: {
+        render: ({ children }: { children: ReactNode }) => <div className="whitespace-pre-line">{children}</div>
+    },
     components: {
         ScatteredImageTextConfig,
         HalfScreenImageTextConfig,

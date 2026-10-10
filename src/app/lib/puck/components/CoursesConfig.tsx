@@ -8,7 +8,7 @@ const CoursesConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         categoryENList: {

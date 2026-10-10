@@ -54,7 +54,7 @@ import { PuckClipboardProvider } from '@/app/lib/puck/PuckClipboard'
 const STABLE_INLINE_TEXT_TRANSFORMS = {
     text: ({ componentId, field, isReadOnly, propPath, value }: any) =>
         field.contentEditable && typeof value === 'string'
-            ? <StableInlineText componentId={componentId} disableLineBreaks isReadOnly={isReadOnly}
+            ? <StableInlineText componentId={componentId} isReadOnly={isReadOnly}
                                 propPath={propPath} value={value}/>
             : value,
     textarea: ({ componentId, field, isReadOnly, propPath, value }: any) =>

@@ -59,12 +59,12 @@ const ImageTextLayoutConfig: ComponentConfig = {
         image: mediaTypeField('图片', [ 'image' ]),
         topText: {
             label: '顶部小标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         text: {
@@ -78,7 +78,7 @@ const ImageTextLayoutConfig: ComponentConfig = {
         },
         linkText: {
             label: '链接文字',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         backgroundColor: colorTypeField('背景颜色'),

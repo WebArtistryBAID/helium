@@ -9,7 +9,7 @@ const AccreditationsConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         text: {
@@ -23,7 +23,7 @@ const AccreditationsConfig: ComponentConfig = {
             arrayFields: {
                 name: {
                     label: '名称',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 image: mediaTypeField('图片', [ 'image' ])

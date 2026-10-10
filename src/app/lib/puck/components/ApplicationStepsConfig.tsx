@@ -6,7 +6,7 @@ const ApplicationStepsConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         steps: {
@@ -15,7 +15,7 @@ const ApplicationStepsConfig: ComponentConfig = {
             arrayFields: {
                 name: {
                     label: '名称',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 content: {
@@ -29,7 +29,7 @@ const ApplicationStepsConfig: ComponentConfig = {
                 },
                 linkText: {
                     label: '链接文本',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             },

@@ -11,7 +11,7 @@ const FeaturedProjectsConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         projects: {
@@ -47,13 +47,13 @@ const FeaturedProjectsConfig: ComponentConfig = {
                 },
                 name: {
                     label: '引用来源',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 image: mediaTypeField('图片', [ 'image' ]),
                 linkText: {
                     label: '链接文字',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             }

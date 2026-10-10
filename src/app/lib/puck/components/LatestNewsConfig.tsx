@@ -14,15 +14,15 @@ const LatestNewsConfig: ComponentConfig = {
         },
         title: {
             label: '标题',
-            type: 'text'
+            type: 'textarea'
         },
         otherNewsText: {
             label: '其他文章头文字',
-            type: 'text'
+            type: 'textarea'
         },
         readMoreText: {
             label: '查看更多文字',
-            type: 'text'
+            type: 'textarea'
         },
         resolvedPosts: {
             type: 'array',

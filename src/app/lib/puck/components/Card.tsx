@@ -49,7 +49,7 @@ export const CardConfig: ComponentConfig = {
         image: mediaTypeField('图片', [ 'image' ]),
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         shortContent: {

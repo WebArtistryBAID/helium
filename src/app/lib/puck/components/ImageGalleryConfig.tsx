@@ -42,7 +42,7 @@ const ImageGalleryConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         autoplay: {
@@ -74,7 +74,7 @@ const ImageGalleryConfig: ComponentConfig = {
                 image: mediaTypeField('图片', [ 'image' ]),
                 title: {
                     label: '标题',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 titleSize: {
@@ -104,7 +104,7 @@ const ImageGalleryConfig: ComponentConfig = {
                 },
                 linkText: {
                     label: '链接文字',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             },

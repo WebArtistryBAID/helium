@@ -28,7 +28,7 @@ const TopTextConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         text: {
@@ -42,7 +42,7 @@ const TopTextConfig: ComponentConfig = {
         },
         linkText: {
             label: '链接文字',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         }
     },

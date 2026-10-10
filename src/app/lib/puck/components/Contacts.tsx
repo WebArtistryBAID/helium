@@ -77,17 +77,17 @@ const ContactsConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         description: {
             label: '介绍',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         emailText: {
             label: '邮件标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         emails: {
@@ -96,14 +96,14 @@ const ContactsConfig: ComponentConfig = {
             arrayFields: {
                 text: {
                     label: '邮件',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             }
         },
         phoneText: {
             label: '电话标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         phones: {
@@ -112,7 +112,7 @@ const ContactsConfig: ComponentConfig = {
             arrayFields: {
                 text: {
                     label: '电话',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 }
             }

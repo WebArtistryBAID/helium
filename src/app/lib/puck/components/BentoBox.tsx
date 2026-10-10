@@ -246,12 +246,12 @@ const BentoBoxConfig: ComponentConfig = {
     fields: {
         title: {
             label: '标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         motto: {
             label: '校训',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         mottoText: {
@@ -261,7 +261,7 @@ const BentoBoxConfig: ComponentConfig = {
         },
         admissionsTitle: {
             label: '录取标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         admissionsText: {
@@ -271,7 +271,7 @@ const BentoBoxConfig: ComponentConfig = {
         },
         facultyTitle: {
             label: '师资标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         facultyText: {
@@ -281,7 +281,7 @@ const BentoBoxConfig: ComponentConfig = {
         },
         countriesTitle: {
             label: '国家标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         countriesText: {
@@ -291,7 +291,7 @@ const BentoBoxConfig: ComponentConfig = {
         },
         academicsTitle: {
             label: '学术标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         academicsText: {
@@ -301,12 +301,12 @@ const BentoBoxConfig: ComponentConfig = {
         },
         lifeText: {
             label: '校园生活标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         diversityText: {
             label: '多元性标题',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         }
     },

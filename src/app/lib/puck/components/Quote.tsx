@@ -194,7 +194,7 @@ const QuoteConfig: ComponentConfig = {
         },
         source: {
             label: '来源',
-            type: 'text',
+            type: 'textarea',
             contentEditable: true
         },
         items: {
@@ -203,7 +203,7 @@ const QuoteConfig: ComponentConfig = {
             arrayFields: {
                 title: {
                     label: '标题',
-                    type: 'text',
+                    type: 'textarea',
                     contentEditable: true
                 },
                 content: {
