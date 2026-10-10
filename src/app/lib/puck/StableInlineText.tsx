@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useRef, useState } from 'react'
+import { useLayoutEffect, useRef } from 'react'
 import { createUsePuck } from '@puckeditor/core'
 
 const usePuckSelector = createUsePuck()
@@ -43,21 +43,24 @@ export default function StableInlineText({
                                              value
                                          }: StableInlineTextProps) {
     const ref = useRef<HTMLSpanElement>(null)
-    const [ isHovering, setIsHovering ] = useState(false)
-    const [ isFocused, setIsFocused ] = useState(false)
+    const isComposing = useRef(false)
     const dispatch = usePuckSelector(state => state.dispatch)
     const getItemById = usePuckSelector(state => state.getItemById)
     const getSelectorForId = usePuckSelector(state => state.getSelectorForId)
 
     // Do not rewrite an active editable node. Replacing its children resets the browser selection,
     // which is especially noticeable when an older asynchronous update arrives after a keystroke.
-    useEffect(() => {
-        if (ref.current != null && document.activeElement !== ref.current && ref.current.innerText !== value) {
-            ref.current.replaceChildren(value)
+    useLayoutEffect(() => {
+        const element = ref.current
+        // The canvas lives in an iframe; the host document's active element is the iframe.
+        if (element != null && element.ownerDocument.activeElement !== element && element.innerText !== value) {
+            element.replaceChildren(value)
         }
     }, [ value ])
 
     function commit(nextValue: string) {
+        if (isReadOnly) return
+        if (disableLineBreaks) nextValue = nextValue.replaceAll(/\n/gm, '')
         const item = getItemById(componentId)
         if (item == null) return
 
@@ -88,39 +91,53 @@ export default function StableInlineText({
         })
     }
 
+    function selectComponent() {
+        dispatch({ type: 'setUi', ui: { itemSelector: getSelectorForId(componentId) ?? null } })
+    }
+
     return <span
         ref={ref}
-        contentEditable={!isReadOnly && (isHovering || isFocused) ? 'plaintext-only' : false}
+        contentEditable={isReadOnly ? false : 'plaintext-only'}
         data-puck-overlay-portal="true"
+        role={isReadOnly ? undefined : 'textbox'}
+        aria-multiline={!disableLineBreaks}
+        style={{
+            display: 'inline-block',
+            minWidth: '1ch',
+            minHeight: '1em',
+            whiteSpace: 'pre-wrap',
+            textDecoration: 'inherit',
+            cursor: isReadOnly ? undefined : 'text',
+            userSelect: 'text',
+            WebkitUserSelect: 'text',
+            caretColor: 'auto'
+        }}
         suppressContentEditableWarning
-        onBlur={() => setIsFocused(false)}
-        onClick={event => {
-            event.preventDefault()
-            event.stopPropagation()
-        }}
         onClickCapture={event => {
-            event.preventDefault()
             event.stopPropagation()
-            dispatch({ type: 'setUi', ui: { itemSelector: getSelectorForId(componentId) ?? null } })
+            selectComponent()
         }}
-        onFocus={() => setIsFocused(true)}
+        onFocus={selectComponent}
+        onCompositionStart={() => {
+            isComposing.current = true
+        }}
+        onCompositionEnd={event => {
+            isComposing.current = false
+            commit(event.currentTarget.innerText)
+        }}
         onInput={event => {
-            let nextValue = event.currentTarget.innerText
-            if (disableLineBreaks) nextValue = nextValue.replaceAll(/\n/gm, '')
-            commit(nextValue)
+            event.stopPropagation()
+            if (!isComposing.current) commit(event.currentTarget.innerText)
         }}
         onKeyDown={event => {
             event.stopPropagation()
             if (isReadOnly || (disableLineBreaks && event.key === 'Enter')) event.preventDefault()
         }}
         onKeyUp={event => event.stopPropagation()}
-        onMouseOutCapture={() => setIsHovering(false)}
-        onMouseOverCapture={event => {
-            event.stopPropagation()
-            setIsHovering(true)
-        }}
+        onMouseOverCapture={event => event.stopPropagation()}
         onPointerDownCapture={event => {
-            if (isFocused) event.stopPropagation()
+            // Preserve the browser's caret placement while keeping the first click out of DnD.
+            if (!isReadOnly) event.stopPropagation()
         }}
     />
 }

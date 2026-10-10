@@ -1,4 +1,5 @@
 import type { ComponentConfig } from '@puckeditor/core'
+import StableSlot from '@/app/lib/puck/StableSlot'
 
 const GridConfig: ComponentConfig = {
     label: '网格',
@@ -15,7 +16,7 @@ const GridConfig: ComponentConfig = {
     render: ({ columns, gap, children: Children }) => {
         const count = Number(columns)
         const columnCount = Number.isFinite(count) ? Math.max(1, Math.min(6, Math.floor(count))) : 2
-        return <Children className="grid max-md:!grid-cols-1 [&>*]:min-w-0" style={{
+        return <StableSlot slot={Children} className="grid max-md:!grid-cols-1 [&>*]:min-w-0" style={{
             display: 'grid',
             gridTemplateColumns: `repeat(${columnCount}, minmax(0, 1fr))`,
             gap: typeof gap === 'string' ? gap.trim() || '24px' : '24px'

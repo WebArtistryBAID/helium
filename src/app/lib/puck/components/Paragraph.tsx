@@ -77,6 +77,7 @@ const ParagraphConfig: ComponentConfig = {
         color: colorTypeField('颜色')
     },
     defaultProps: {
+        text: '在这里输入文字',
         size: 'base',
         align: 'left',
         bold: false,

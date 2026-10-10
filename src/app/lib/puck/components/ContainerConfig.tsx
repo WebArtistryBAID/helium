@@ -1,4 +1,5 @@
 import Container from '@/app/lib/puck/components/Container'
+import StableSlot from '@/app/lib/puck/StableSlot'
 import { colorTypeField } from '@/app/lib/puck/custom-fields'
 import { ComponentConfig } from '@puckeditor/core'
 
@@ -56,7 +57,7 @@ const ContainerConfig: ComponentConfig = {
     render: ({ ml, mr, mt, mb, pl, pr, pt, pb, contentWidth, backgroundColor, children: Children }) =>
         <Container ml={ml} mr={mr} mt={mt} mb={mb} pl={pl} pr={pr} pt={pt} pb={pb}
                    backgroundColor={backgroundColor} contentWidth={contentWidth}>
-            <Children/>
+            <StableSlot slot={Children}/>
         </Container>
 }
 
