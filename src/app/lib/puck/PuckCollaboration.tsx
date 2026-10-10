@@ -16,6 +16,7 @@ import {
     useCallback,
     useEffect,
     useLayoutEffect,
+    useMemo,
     useRef,
     useState
 } from 'react'
@@ -53,6 +54,21 @@ type PuckApiLike = {
 
 type GetPuck = () => PuckApiLike
 type ConnectionStatus = 'connected' | 'joining' | 'offline'
+
+type PuckConnection = {
+    document: Y.Doc
+    provider: HocuspocusProvider | null
+    active: boolean
+    ready: boolean
+    applyingRemote: boolean
+}
+
+type PuckSession = {
+    active: boolean
+    initialData: Data
+    getPuck: GetPuck | null
+    connection: PuckConnection | null
+}
 
 function cursorColor(userId: string): string {
     const hash = Array.from(userId).reduce(
@@ -104,6 +120,7 @@ export function usePuckCollaboration({
                                          entityId,
                                          initialData,
                                          language,
+                                         documentKey,
                                          userId,
                                          userName,
                                          onCommentsChanged,
@@ -113,6 +130,7 @@ export function usePuckCollaboration({
     entityId: number
     initialData: Data
     language: 'en' | 'zh'
+    documentKey: string
     userId: string
     userName: string
     onCommentsChanged?: () => void | Promise<void>
@@ -121,20 +139,31 @@ export function usePuckCollaboration({
     const [ status, setStatus ] = useState<ConnectionStatus>(enabled ? 'joining' : 'offline')
     const [ collaborators, setCollaborators ] = useState<PuckCollaborator[]>([])
     const [ remoteCursors, setRemoteCursors ] = useState<RemoteCursor[]>([])
-    const getPuckRef = useRef<GetPuck | null>(null)
-    const docRef = useRef<Y.Doc | null>(null)
-    const providerRef = useRef<HocuspocusProvider | null>(null)
     const localOrigin = useRef({ source: 'puck' })
     const commentOrigin = useRef({ source: 'puck-comments' })
-    const applyingRemote = useRef(false)
-    const initialDataRef = useRef(initialData)
-    const onCommentsChangedRef = useRef(onCommentsChanged)
-    const onRemoteDataRef = useRef(onRemoteData)
-    onCommentsChangedRef.current = onCommentsChanged
-    onRemoteDataRef.current = onRemoteData
+    const resolvedRoom = useCollaborationRoom(entityId, language, 'puck', enabled)
+    // Each editor instance owns its callbacks and document. Async Puck resolvers
+    // can dispatch after unmount, including after returning to the same language.
+    const session = useMemo<PuckSession>(() => ({
+        active: false,
+        initialData,
+        getPuck: null,
+        connection: null
+    }), [ entityId, language, documentKey, initialData, resolvedRoom ])
+
+    useLayoutEffect(() => {
+        session.active = true
+        setStatus(enabled ? 'joining' : 'offline')
+        return () => {
+            session.active = false
+        }
+    }, [ enabled, session ])
+
+    const isActive = useCallback(() => session.active, [ session ])
 
     const publishAwareness = useCallback(() => {
-        const awareness = providerRef.current?.awareness
+        if (!session.active) return
+        const awareness = session.connection?.provider?.awareness
         if (awareness == null) return
         const users: PuckCollaborator[] = []
         const cursors: RemoteCursor[] = []
@@ -151,23 +180,22 @@ export function usePuckCollaboration({
         }
         setCollaborators(users.sort((left, right) => left.clientId - right.clientId))
         setRemoteCursors(cursors)
-    }, [])
+    }, [ session ])
 
-    const applyRemoteDocument = useCallback(() => {
-        const document = docRef.current
-        const getPuck = getPuckRef.current
-        if (document == null || getPuck == null || document.getMap('data').size === 0) return
+    const applyRemoteDocument = useCallback((connection: PuckConnection | null = session.connection) => {
+        if (!session.active || !connection?.active || session.connection !== connection) return
+        const { document } = connection
+        const getPuck = session.getPuck
+        if (getPuck == null || document.getMap('data').size === 0) return
         const data = readPuckYjsDocument(document)
-        applyingRemote.current = true
+        connection.applyingRemote = true
         try {
             synchronizePuck(getPuck, data)
-            onRemoteDataRef.current(data)
+            onRemoteData(data)
         } finally {
-            applyingRemote.current = false
+            connection.applyingRemote = false
         }
-    }, [])
-
-    const resolvedRoom = useCollaborationRoom(entityId, language, 'puck', enabled)
+    }, [ onRemoteData, session ])
 
     useEffect(() => {
         if (!enabled) return
@@ -178,20 +206,24 @@ export function usePuckCollaboration({
         const room = resolvedRoom
         const document = new Y.Doc()
         const indexeddb = new IndexeddbPersistence(`helium:${room}`, document)
-        docRef.current = document
+        const connection: PuckConnection = {
+            document, provider: null, active: true, ready: false, applyingRemote: false
+        }
+        session.connection = connection
+        const isCurrent = () => session.active && connection.active && session.connection === connection
         setStatus('joining')
 
         let remoteFrame = 0
         const commentSignals = document.getMap('commentSignals')
         const refreshComments = (_event: Y.YMapEvent<unknown>, transaction: Y.Transaction) => {
-            if (transaction.origin === commentOrigin.current) return
-            void onCommentsChangedRef.current?.()
+            if (!isCurrent() || transaction.origin === commentOrigin.current) return
+            void onCommentsChanged?.()
         }
         commentSignals.observe(refreshComments)
         const scheduleRemote = (transaction: Y.Transaction) => {
-            if (transaction.origin === localOrigin.current || transaction.origin === commentOrigin.current) return
+            if (!isCurrent() || transaction.origin === localOrigin.current || transaction.origin === commentOrigin.current) return
             window.cancelAnimationFrame(remoteFrame)
-            remoteFrame = window.requestAnimationFrame(applyRemoteDocument)
+            remoteFrame = window.requestAnimationFrame(() => applyRemoteDocument(connection))
         }
         document.on('afterTransaction', scheduleRemote)
 
@@ -207,16 +239,24 @@ export function usePuckCollaboration({
                 if (result.token == null) throw new Error('Puck collaboration token is missing')
                 return result.token
             },
-            onStatus: ({ status: nextStatus }) => setStatus(nextStatus === 'connected' ? 'joining' : 'offline'),
-            onSynced: () => {
-                if (document.getMap('data').size === 0) initializePuckYjsDocument(document, initialDataRef.current)
-                setStatus('connected')
-                applyRemoteDocument()
+            onStatus: ({ status: nextStatus }) => {
+                if (isCurrent()) setStatus(nextStatus === 'connected' ? 'joining' : 'offline')
             },
-            onDisconnect: () => setStatus('offline'),
-            onAwarenessChange: publishAwareness
+            onSynced: ({ state }) => {
+                if (!isCurrent() || !state) return
+                if (document.getMap('data').size === 0) initializePuckYjsDocument(document, session.initialData)
+                applyRemoteDocument(connection)
+                connection.ready = true
+                setStatus('connected')
+            },
+            onDisconnect: () => {
+                if (isCurrent()) setStatus('offline')
+            },
+            onAwarenessChange: () => {
+                if (isCurrent()) publishAwareness()
+            }
         })
-        providerRef.current = provider
+        connection.provider = provider
         provider.setAwarenessField('user', {
             color: cursorColor(userId),
             name: userName,
@@ -224,11 +264,12 @@ export function usePuckCollaboration({
         })
         publishAwareness()
 
-        const handleOffline = () => setStatus('offline')
-        const handleOnline = () => setStatus('joining')
+        const handleOffline = () => { if (isCurrent()) setStatus('offline') }
+        const handleOnline = () => { if (isCurrent()) setStatus('joining') }
         window.addEventListener('offline', handleOffline)
         window.addEventListener('online', handleOnline)
         return () => {
+            connection.active = false
             window.cancelAnimationFrame(remoteFrame)
             window.removeEventListener('offline', handleOffline)
             window.removeEventListener('online', handleOnline)
@@ -236,36 +277,38 @@ export function usePuckCollaboration({
             document.off('afterTransaction', scheduleRemote)
             provider.destroy()
             void indexeddb.destroy()
-            providerRef.current = null
-            docRef.current = null
-            getPuckRef.current = null
+            if (session.connection === connection) session.connection = null
             setCollaborators([])
             setRemoteCursors([])
         }
-    }, [ applyRemoteDocument, enabled, entityId, language, resolvedRoom, publishAwareness, userId, userName ])
+    }, [ applyRemoteDocument, enabled, entityId, language, resolvedRoom, publishAwareness, userId, userName, onCommentsChanged, session ])
 
     const registerPuck = useCallback((getPuck: GetPuck | null) => {
-        getPuckRef.current = getPuck
+        if (!session.active) return
+        session.getPuck = getPuck
         if (getPuck != null) applyRemoteDocument()
-    }, [ applyRemoteDocument ])
+    }, [ applyRemoteDocument, session ])
 
     const updateFromPuck = useCallback((data: Data) => {
-        if (applyingRemote.current) return
-        const document = docRef.current
-        if (document != null) updatePuckYjsDocument(document, data, localOrigin.current)
-    }, [])
+        const connection = session.connection
+        if (!session.active || !connection?.active || !connection.ready || connection.applyingRemote) return
+        updatePuckYjsDocument(connection.document, data, localOrigin.current)
+    }, [ session ])
 
     const updateCursor = useCallback((position: SharedCursorPosition) => {
-        providerRef.current?.setAwarenessField('cursor', position)
-    }, [])
+        if (session.active) session.connection?.provider?.setAwarenessField('cursor', position)
+    }, [ session ])
     const signalCommentsChanged = useCallback(() => {
-        const document = docRef.current
-        if (document == null) return
+        const connection = session.connection
+        if (!session.active || !connection?.active) return
+        const { document } = connection
         document.transact(() => {
             document.getMap('commentSignals').set('revision', `${userId}:${createClientId()}`)
         }, commentOrigin.current)
-    }, [ userId ])
-    const clearCursor = useCallback(() => providerRef.current?.setAwarenessField('cursor', null), [])
+    }, [ session, userId ])
+    const clearCursor = useCallback(() => {
+        if (session.active) session.connection?.provider?.setAwarenessField('cursor', null)
+    }, [ session ])
     useEffect(() => {
         if (!enabled) return
         const clearWhenHidden = () => {
@@ -283,11 +326,16 @@ export function usePuckCollaboration({
 
     return {
         persist: async () => {
-            if (!providerRef.current) throw new Error('Collaboration is unavailable')
-            await persistCollaborationDocument(providerRef.current)
+            const connection = session.connection
+            if (!session.active || !connection?.active || !connection.ready || !connection.provider) {
+                throw new Error('Collaboration is unavailable or still initializing')
+            }
+            await persistCollaborationDocument(connection.provider)
         },
         clearCursor,
         collaborators,
+        isActive,
+        room: resolvedRoom,
         registerPuck,
         remoteCursors,
         signalCommentsChanged,

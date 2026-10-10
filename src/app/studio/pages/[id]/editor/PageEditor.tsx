@@ -192,10 +192,6 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             : { label: '草稿', color: 'gray' }
     const pageUrl = `${host.replace(/\/+$/, '')}/${draft.slug.replace(/^\/+/, '')}`
     const puckDocumentKey = `${inEnglish ? 'en' : 'zh'}-${puckRevision}`
-    const editorConfig = useRef<{ key: string; config: ReturnType<typeof createEditorConfig> } | null>(null)
-    if (editorConfig.current?.key !== puckDocumentKey) {
-        editorConfig.current = { key: puckDocumentKey, config: createEditorConfig(PUCK_CONFIG) }
-    }
     const puckDataRef = useRef<{ data: ReturnType<typeof JSON.parse>, key: string } | null>(null)
     if (puckDataRef.current?.key !== puckDocumentKey) {
         puckDataRef.current = {
@@ -229,11 +225,18 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         entityId: draft.id,
         initialData: puckDataRef.current.data as Data,
         language: inEnglish ? 'en' : 'zh',
+        documentKey: puckDocumentKey,
         userId: String(user.id),
         userName: user.name,
         onCommentsChanged: refreshCommentThreads,
         onRemoteData: applyRemotePuckData
     })
+    const puckSessionKey = `${puckDocumentKey}:${collaboration.room ?? 'pending'}`
+    const editorConfig = useRef<{ key: string; config: ReturnType<typeof createEditorConfig> } | null>(null)
+    if (editorConfig.current?.key !== puckSessionKey) {
+        editorConfig.current = { key: puckSessionKey, config: createEditorConfig(PUCK_CONFIG) }
+    }
+    const canEditPuck = canWrite && (!collaborative || collaboration.status === 'connected')
 
     persistenceRef.current = collaboration.persist
 
@@ -580,16 +583,25 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         <div className="page-editor">
             <PuckCommentHighlights componentIds={Object.keys(commentThreadCounts)}/>
             <Puck
-                key={puckDocumentKey} // Force re-render only for intentional document changes
+                key={puckSessionKey}
                 config={editorConfig.current.config}
                 data={puckDataRef.current.data}
+                permissions={{
+                    drag: canEditPuck,
+                    duplicate: canEditPuck,
+                    delete: canEditPuck,
+                    edit: canEditPuck,
+                    insert: canEditPuck
+                }}
                 fieldTransforms={STABLE_INLINE_TEXT_TRANSFORMS}
                 onAction={(_action, appState, previousAppState) => {
+                    if (!collaboration.isActive()) return
                     if (appState.data === previousAppState.data) return
                     removeDeletedComponentComments(appState.data, previousAppState.data)
                     collaboration.updateFromPuck(appState.data)
                 }}
                 onChange={data => {
+                    if (!collaboration.isActive()) return
                     if (!canWrite) {
                         showPermissionDenied()
                         return
