@@ -6,7 +6,7 @@ import { prisma } from '@/app/lib/prisma'
 
 /** The authenticated transport supplies identity; the database supplies current roles. */
 export async function requireActorUser(actor: OperationActor, role?: Role) {
-    if (!Number.isSafeInteger(actor.userId) || actor.userId <= 0) {
+    if (!Number.isSafeInteger(actor.userId)) {
         throw new Error('Unauthorized')
     }
     const user = await prisma.user.findUnique({ where: { id: actor.userId } })

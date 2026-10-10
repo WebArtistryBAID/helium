@@ -32,8 +32,10 @@ export async function requireUserWithRole(role: Role): Promise<User> {
 }
 
 export async function getMyUser(): Promise<User | null> {
+    const userId = await me()
+    if (userId == null) return null
     return prisma.user.findUnique({
-        where: { id: await me() ?? -1 }
+        where: { id: userId }
     })
 }
 
