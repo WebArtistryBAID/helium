@@ -1,15 +1,32 @@
+import { isValidElement, type ReactNode } from 'react'
 import { Image } from '@/generated/prisma/browser'
 import { ComponentConfig } from '@puckeditor/core'
 import { mediaTypeField, RESOLVED_IMAGE_TYPE } from '@/app/lib/puck/custom-fields'
 import { getImage, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 import { convertDatesToStrings } from '@/app/lib/data-types'
 
-function Quote({ text, source, image, uploadPrefix }: {
+type QuoteItem = {
+    title?: ReactNode
+    content?: ReactNode
+}
+
+function hasContent(value: ReactNode): boolean {
+    if (typeof value === 'string') return value.trim().length > 0
+    // Studio inline fields expose their original text through the value prop.
+    return isValidElement<{ value?: string }>(value) && Boolean(value.props.value?.trim())
+}
+
+function Quote({ text, source, image, uploadPrefix, items }: {
     text: string | null,
     source: string | null,
     image: Image | null,
-    uploadPrefix: string | null
+    uploadPrefix: string | null,
+    items?: (QuoteItem | null | undefined)[]
 }) {
+    const visibleItems = (items ?? []).filter((item): item is QuoteItem =>
+        item != null && (hasContent(item.title) || hasContent(item.content)))
+    if (!hasContent(text) && !hasContent(source) && visibleItems.length === 0 && !image?.sha1) return null
+
     return <section
         className="container relative my-12 flex flex-col-reverse items-center gap-8 px-8 py-16 sm:px-12 md:my-20 md:flex-row md:px-20 md:py-20 lg:px-36"
         aria-labelledby="principal-quote-heading">
@@ -20,14 +37,31 @@ function Quote({ text, source, image, uploadPrefix }: {
             Quote
         </h2>
         <div className="w-full md:w-1/2">
-            <p
+            {hasContent(text) && <p
                 className="!mb-3 break-words !text-2xl leading-relaxed sm:!text-3xl"
                 aria-label="Quote"
                 role="region"
-            >{text}</p>
-            <p className="w-full text-right font-sans text-base sm:text-lg">
+            >{text}</p>}
+            {hasContent(source) && <p className="w-full text-right font-sans text-base sm:text-lg">
                 — {source}
-            </p>
+            </p>}
+            {visibleItems.length > 0 && <ol aria-label="Message items" className="mt-8 space-y-8">
+                {visibleItems.map((item, index) => <li key={index} className="flex items-center gap-4 sm:gap-6">
+                    <span aria-hidden="true"
+                          className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-[var(--standard-red)] text-xl font-bold text-white sm:h-16 sm:w-16 sm:text-2xl">
+                        {index + 1}
+                    </span>
+                    <div className="min-w-0">
+                        {hasContent(item.title) && <h3 className="mb-1 break-words text-xl font-bold sm:text-2xl">
+                            {item.title}
+                        </h3>}
+                        {hasContent(item.content) &&
+                            <p className="whitespace-pre-line break-words text-lg leading-relaxed sm:text-xl">
+                                {item.content}
+                            </p>}
+                    </div>
+                </li>)}
+            </ol>}
         </div>
         <div className="w-full md:w-1/2 flex justify-center items-center">
             <img
@@ -162,6 +196,23 @@ const QuoteConfig: ComponentConfig = {
             type: 'text',
             contentEditable: true
         },
+        items: {
+            label: '项目',
+            type: 'array',
+            arrayFields: {
+                title: {
+                    label: '标题',
+                    type: 'text',
+                    contentEditable: true
+                },
+                content: {
+                    label: '内容',
+                    type: 'textarea',
+                    contentEditable: true
+                }
+            },
+            defaultItemProps: { title: '', content: '' }
+        },
         image: mediaTypeField('图片', [ 'image' ]),
         resolvedImage: RESOLVED_IMAGE_TYPE,
         resolvedUploadPrefix: {
@@ -181,10 +232,11 @@ const QuoteConfig: ComponentConfig = {
     },
     defaultProps: {
         text: '我们会让校园成为师生的精神家园，让校园成为师生的学习中心，让校园成为师生的创新沃土，进而让孩子们能爱别人、帮助别人、尊重别人。',
-        source: '北京中学校长 夏青峰'
+        source: '北京中学校长 夏青峰',
+        items: []
     },
-    render: ({ text, source, resolvedImage, resolvedUploadPrefix }) =>
-        <Quote text={text} source={source} image={resolvedImage} uploadPrefix={resolvedUploadPrefix}/>
+    render: ({ text, source, items, resolvedImage, resolvedUploadPrefix }) =>
+        <Quote text={text} source={source} items={items} image={resolvedImage} uploadPrefix={resolvedUploadPrefix}/>
 }
 
 export default QuoteConfig
