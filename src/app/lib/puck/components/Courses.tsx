@@ -6,10 +6,11 @@ import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import Link from 'next/link'
 
-export default function Courses({ title, courses, categoryOrder = [] }: {
+export default function Courses({ title, courses, categoryOrder = [], linkToCourse = false }: {
     title: string | undefined,
     courses: { [courseName: string]: (SimplifiedContentEntity | undefined)[] | undefined },
-    categoryOrder?: string[]
+    categoryOrder?: string[],
+    linkToCourse?: boolean
 }) {
     const language = useLanguage()
     const tabNames = useMemo(() => {
@@ -98,14 +99,22 @@ export default function Courses({ title, courses, categoryOrder = [] }: {
                     tabIndex={0}
                     className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-6 gap-5 mb-5 transition-opacity duration-200"
                 >
-                    {currentItems?.map((item) => (
-                        <Link href={prefixLink(language, getContentEntityURI(item?.createdAt, item?.slug))}
-                            key={item?.id ?? Math.random()}
-                            role="listitem"
-                              className="col-span-1 block break-words border-l-4 border-red-800 pl-3 text-lg sm:text-xl md:col-span-2 lg:text-2xl">
-                            {language === 'en' ? (item?.titlePublishedEN ?? '') : (item?.titlePublishedZH ?? '')}
-                        </Link>
-                    ))}
+                    {currentItems?.map((item) => {
+                        const courseTitle = language === 'en' ? (item?.titlePublishedEN ?? '') : (item?.titlePublishedZH ?? '')
+                        const className = 'col-span-1 block break-words border-l-4 border-red-800 pl-3 text-lg sm:text-xl md:col-span-2 lg:text-2xl'
+                        const key = item?.id ?? Math.random()
+
+                        return linkToCourse ? (
+                            <Link href={prefixLink(language, getContentEntityURI(item?.createdAt, item?.slug))}
+                                  key={key} role="listitem" className={className}>
+                                {courseTitle}
+                            </Link>
+                        ) : (
+                            <div key={key} role="listitem" className={className}>
+                                {courseTitle}
+                            </div>
+                        )
+                    })}
                 </div>
             )}
         </section>

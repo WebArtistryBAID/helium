@@ -11,6 +11,14 @@ const CoursesConfig: ComponentConfig = {
             type: 'textarea',
             contentEditable: true
         },
+        linkToCourse: {
+            label: '链接到课程',
+            type: 'radio',
+            options: [
+                { label: '关闭', value: false },
+                { label: '开启', value: true }
+            ]
+        },
         categoryENList: {
             label: '英文分类筛选',
             type: 'array',
@@ -29,6 +37,7 @@ const CoursesConfig: ComponentConfig = {
     },
     defaultProps: {
         title: '我们的课程',
+        linkToCourse: false,
         categoryENList: []
     },
     resolveData: async ({ props }, { trigger }) => {
@@ -59,8 +68,8 @@ const CoursesConfig: ComponentConfig = {
             }
         }
     },
-    render: ({ title, categoryENList, resolvedCourses }) =>
-        <Courses title={title} courses={resolvedCourses}
+    render: ({ title, linkToCourse, categoryENList, resolvedCourses }) =>
+        <Courses title={title} courses={resolvedCourses} linkToCourse={linkToCourse}
                  categoryOrder={(categoryENList ?? []).map((item: {
                      value?: string | null
                  } | null | undefined) => item?.value?.trim() ?? '').filter(Boolean)}/>
