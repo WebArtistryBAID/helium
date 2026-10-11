@@ -10,10 +10,11 @@ import { HiArrowLeft, HiArrowRight } from 'react-icons/hi2'
 import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 import Card from '@/app/lib/puck/components/Card'
 
-export default function Clubs({ sort = 'title-en-asc', title, init, uploadPrefix }: {
+export default function Clubs({ sort = 'title-en-asc', title, init, clubIds, uploadPrefix }: {
     title: string,
     init: Paginated<SimplifiedContentEntity>,
     sort?: ContentSort,
+    clubIds?: number[],
     uploadPrefix: string
 }) {
     const language = useLanguage()
@@ -32,13 +33,13 @@ export default function Clubs({ sort = 'title-en-asc', title, init, uploadPrefix
         }
         let cancelled = false
         ;(async () => {
-            const result = await getPublishedContentEntities(currentPage, EntityType.club, undefined, undefined, undefined, sort)
+            const result = await getPublishedContentEntities(currentPage, EntityType.club, undefined, undefined, undefined, sort, clubIds)
             if (!cancelled) setPage(result)
         })()
         return () => {
             cancelled = true
         }
-    }, [ currentPage, sort, init ])
+    }, [ currentPage, sort, init, clubIds ])
 
     return <section aria-labelledby="clubs-heading" className="border-b border-gray-200 py-12 md:py-20">
         <div className="container">

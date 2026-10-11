@@ -46,8 +46,8 @@ export async function getAllPublishedContentEntities(): Promise<SimplifiedConten
     return services.getAllPublishedContentEntities()
 }
 
-export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined, pageSize?: number, sort?: ContentSort): Promise<Paginated<SimplifiedContentEntity>> {
-    return services.getPublishedContentEntities(page, type, query, category, pageSize, sort)
+export async function getPublishedContentEntities(page: number, type: EntityType, query: string | undefined = undefined, category: string | undefined = undefined, pageSize?: number, sort?: ContentSort, ids?: number[]): Promise<Paginated<SimplifiedContentEntity>> {
+    return services.getPublishedContentEntities(page, type, query, category, pageSize, sort, ids)
 }
 
 export async function getContentEntities(page: number, type: EntityType, query: string | undefined = undefined): Promise<Paginated<SimplifiedContentEntity>> {
