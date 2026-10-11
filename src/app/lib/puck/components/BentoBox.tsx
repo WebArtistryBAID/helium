@@ -63,10 +63,10 @@ function BentoBox({
                 </div>
                 <div className="min-w-0 w-full md:w-1/2">
                     <img
-                        src="/assets/components/bento/stanford.webp"
+                        src="/assets/components/bento/ba.webp"
                         alt="Campus of Stanford University, where students from BAID have been admitted"
                         loading="lazy"
-                        className="block h-auto w-full max-w-full rounded-none object-cover"/>
+                        className="block h-auto w-full max-w-full object-cover rounded-2xl"/>
                 </div>
             </div>
 
@@ -82,17 +82,17 @@ function BentoBox({
                     aria-hidden="true"
                     className="relative ml-auto flex shrink-0 items-center justify-end">
                     <img
-                        src="/assets/components/bento/lj.jpg"
+                        src="/assets/components/bento/zh.png"
                         alt=""
                         loading="lazy"
                         className="relative z-10 size-16 rounded-full bg-yellow-100 p-1"/>
                     <img
-                        src="/assets/components/bento/rj.jpg"
+                        src="/assets/components/bento/rj.png"
                         alt=""
                         loading="lazy"
                         className="relative z-20 -ml-5 size-16 rounded-full bg-amber-100 p-1"/>
                     <img
-                        src="/assets/components/bento/lx.jpg"
+                        src="/assets/components/bento/yxy.png"
                         alt=""
                         loading="lazy"
                         className="relative z-30 -ml-5 size-16 rounded-full bg-red-100 p-1"/>

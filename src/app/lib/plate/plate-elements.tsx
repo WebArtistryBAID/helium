@@ -1,7 +1,7 @@
 'use client'
 
 import FocusImage from '@/app/lib/FocusImage'
-import { createContext, type ReactNode, useContext } from 'react'
+import { createContext, type ReactNode, useContext, useMemo } from 'react'
 import {
     PlateElement,
     PlateLeaf,
@@ -44,7 +44,8 @@ export function PlateMediaProvider({ children, images, uploadPrefix }: {
     images: Map<number, Image>
     uploadPrefix: string
 }) {
-    return <PlateMediaContext.Provider value={{ images, uploadPrefix }}>{children}</PlateMediaContext.Provider>
+    const value = useMemo(() => ({ images, uploadPrefix }), [ images, uploadPrefix ])
+    return <PlateMediaContext.Provider value={value}>{children}</PlateMediaContext.Provider>
 }
 
 export function PlateCommentProvider({ activeId, children, onActivate, unresolvedIds }: {
@@ -53,7 +54,8 @@ export function PlateCommentProvider({ activeId, children, onActivate, unresolve
     onActivate: (threadId: string) => void
     unresolvedIds: Set<string>
 }) {
-    return <PlateCommentContext.Provider value={{ activeId, onActivate, unresolvedIds }}>
+    const value = useMemo(() => ({ activeId, onActivate, unresolvedIds }), [ activeId, onActivate, unresolvedIds ])
+    return <PlateCommentContext.Provider value={value}>
         {children}
     </PlateCommentContext.Provider>
 }
@@ -64,7 +66,8 @@ export function PlateSuggestionProvider({ activeId, children, onActivate, sugges
     onActivate: (suggestionId: string) => void
     suggestionIds: Set<string>
 }) {
-    return <PlateSuggestionContext.Provider value={{ activeId, onActivate, suggestionIds }}>
+    const value = useMemo(() => ({ activeId, onActivate, suggestionIds }), [ activeId, onActivate, suggestionIds ])
+    return <PlateSuggestionContext.Provider value={value}>
         {children}
     </PlateSuggestionContext.Provider>
 }

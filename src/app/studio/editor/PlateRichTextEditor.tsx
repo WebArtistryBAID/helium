@@ -94,6 +94,12 @@ type YjsProviderState = {
     type: string
 }
 
+// Preserve context subscriptions while the document text changes and these IDs stay the same.
+function useStableIdSet(ids: string[]): Set<string> {
+    const key = JSON.stringify([ ...new Set(ids) ].sort())
+    return useMemo(() => new Set<string>(JSON.parse(key)), [ key ])
+}
+
 function cursorColor(userId: string): string {
     const hash = Array.from(userId).reduce(
         (value, character) => Math.imul(value ^ character.charCodeAt(0), 16_777_619) >>> 0,
@@ -387,11 +393,25 @@ export default function PlateRichTextEditor({
     }, [ documentKey, collaborationRoom, plugins, readOnly ? content : null ])
     const initial = useMemo(() => getInitialValue(content, editor), [ content, editor ])
     const collaborationInitialValue = useMemo(() => getInitialValue(content, editor).value, [ editor ])
-    const unresolvedCommentIds = useMemo(() => new Set(commentThreads
+    const unresolvedCommentIds = useStableIdSet(commentThreads
         .filter(thread => thread.resolvedAt == null)
-        .map(thread => thread.id)), [ commentThreads ])
+        .map(thread => thread.id))
     const suggestions = useMemo(() => collectPlateSuggestions(editor), [ editor, suggestionRevision ])
-    const suggestionIds = useMemo(() => new Set(suggestions.map(suggestion => suggestion.suggestionId)), [ suggestions ])
+    const suggestionIds = useStableIdSet(suggestions.map(suggestion => suggestion.suggestionId))
+    const activateComment = useCallback((threadId: string) => {
+        if (!unresolvedCommentIds.has(threadId)) return
+        setActiveThreadId(threadId)
+        setPendingRange(null)
+        setPendingQuote(null)
+        setShowComments(true)
+    }, [ unresolvedCommentIds ])
+    const activateSuggestion = useCallback((suggestionId: string) => {
+        if (!suggestionIds.has(suggestionId)) return
+        setActiveSuggestionId(suggestionId)
+        setShowSuggestions(true)
+        setShowComments(false)
+        setActiveThreadId(null)
+    }, [ suggestionIds ])
 
     useEffect(() => {
         if (!readOnly && initial.converted && onChange) {
@@ -570,24 +590,12 @@ export default function PlateRichTextEditor({
 
         <PlateMediaProvider images={images} uploadPrefix={uploadPrefix}>
             <PlateCommentProvider activeId={activeThreadId} unresolvedIds={unresolvedCommentIds}
-                                  onActivate={threadId => {
-                                      if (!unresolvedCommentIds.has(threadId)) return
-                                      setActiveThreadId(threadId)
-                                      setPendingRange(null)
-                                      setPendingQuote(null)
-                                      setShowComments(true)
-                                  }}>
+                                  onActivate={activateComment}>
                 <div className={(showComments || showSuggestions) && !readOnly
                     ? 'grid items-start gap-4 xl:grid-cols-[minmax(0,1fr)_20rem]'
                     : ''}>
                     <PlateSuggestionProvider activeId={activeSuggestionId} suggestionIds={suggestionIds}
-                                             onActivate={suggestionId => {
-                                                 if (!suggestionIds.has(suggestionId)) return
-                        setActiveSuggestionId(suggestionId)
-                        setShowSuggestions(true)
-                        setShowComments(false)
-                        setActiveThreadId(null)
-                    }}>
+                                             onActivate={activateSuggestion}>
                         <Plate editor={editor} readOnly={readOnly || (collaborationRequested && !collaborationRoom)}
                                onSelectionChange={({ selection }) => {
                                    if (showComments && selection && RangeApi.isExpanded(selection)) {
