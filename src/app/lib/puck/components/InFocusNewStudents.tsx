@@ -114,7 +114,7 @@ export default function InFocusNewStudents({
                 </div>
             </div>
 
-            <div className="mb-16 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mb-24 lg:grid-cols-4 lg:gap-8">
+            <div className="mb-16 grid grid-cols-1 gap-6 sm:grid-cols-2 md:mb-24 lg:grid-cols-3 lg:gap-8">
                 {introCards?.map((card, index) => {
                     if (!card) return null
                     return (

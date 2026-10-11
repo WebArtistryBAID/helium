@@ -220,7 +220,7 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
                 .toBuffer()
             const thumbnail = await sharp(buffer)
                 .rotate()
-                .resize(300, 200, { fit: 'inside', withoutEnlargement: true })
+                .resize(800, 600, { fit: 'inside', withoutEnlargement: true })
                 .webp()
                 .toBuffer()
             const hash = crypto.createHash('sha1').update(webp).digest('hex')

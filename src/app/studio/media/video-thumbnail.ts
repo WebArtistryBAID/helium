@@ -38,7 +38,7 @@ export async function ensureVideoThumbnail(sha1: string, extension: string, forc
             '-y',
             '-i', inputPath,
             '-frames:v', '1',
-            '-vf', 'scale=300:200:force_original_aspect_ratio=decrease',
+            '-vf', 'scale=800:600:force_original_aspect_ratio=decrease',
             framePath
         ], { timeout: 60_000, maxBuffer: 1024 * 1024 })
         await sharp(framePath).webp().toFile(temporaryPath)

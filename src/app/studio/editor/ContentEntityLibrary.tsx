@@ -361,7 +361,7 @@ export default function ContentEntityLibrary({ init, title, user, type }: {
                 />
             </div>
             <If condition={page.pages > 0}>
-                <div className="grid grid-cols-3 2xl:grid-cols-4 gap-4 mb-3">
+                <div className="grid grid-cols-3 gap-4 mb-3">
                     {page.items.filter(post => post.slug !== 'temporary-slug').map(post => <Link
                         href={post.type === EntityType.page ? `/studio/pages/${post.id}/editor` : `/studio/editor/${post.id}`}
                         className="block rounded-3xl bg-gray-50 hover:bg-gray-100 hover:shadow-lg transition-all duration-100"

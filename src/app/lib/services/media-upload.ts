@@ -88,7 +88,7 @@ export async function uploadMedia(actor: OperationActor, file: File, signal?: Ab
                     .toBuffer(),
                 sharp(fileBuffer, { limitInputPixels: MAX_INPUT_PIXELS })
                     .rotate()
-                    .resize(300, 200, { fit: 'inside', withoutEnlargement: true }).webp().toBuffer()
+                    .resize(800, 600, { fit: 'inside', withoutEnlargement: true }).webp().toBuffer()
             ])
             extension = 'webp'
         } else {

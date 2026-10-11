@@ -47,7 +47,7 @@ export default function Clubs({ sort = 'title-en-asc', title, init, clubIds, upl
                 {title}
             </h2>
 
-            <div className="mb-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+            <div className="mb-3 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {page.items.map(club => <Card
                     key={club.id}
                     href={prefixLink(language, getContentEntityURI(club.createdAt, club.slug))}
