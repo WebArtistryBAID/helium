@@ -38,7 +38,7 @@ function BentoBox({
             className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-8 auto-rows-min gap-x-6 gap-y-5 container"
         >
             <div
-                className="col-span-1 row-span-5 flex flex-col items-center justify-center rounded-none bg-red-700 p-5 text-center text-white sm:p-6 md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-1 lg:row-span-5 lg:p-8"
+                className="col-span-1 row-span-5 flex flex-col items-center justify-center rounded-3xl bg-red-700 p-5 text-center text-white sm:p-6 md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-1 lg:row-span-5 lg:p-8"
             >
                 <h3
                     className="mb-5 break-words text-3xl font-bold leading-tight"
@@ -54,7 +54,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 row-span-4 flex min-w-0 flex-col items-center gap-6 overflow-hidden rounded-none bg-linear-to-br from-yellow-500/5 to-gray-50 p-5 sm:p-6 md:col-span-5 md:flex-row lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 lg:gap-8 lg:p-8">
+                className="col-span-1 row-span-4 flex min-w-0 flex-col items-center gap-6 overflow-hidden rounded-3xl bg-linear-to-br from-yellow-500/5 to-gray-50 p-5 sm:p-6 md:col-span-5 md:flex-row lg:col-start-4 lg:col-span-5 lg:row-start-1 lg:row-span-4 lg:gap-8 lg:p-8">
                 <div className="min-w-0 md:w-1/2">
                     <h3
                         className="text-2xl leading-tight mb-3 font-bold"
@@ -71,7 +71,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 flex min-w-0 flex-col items-start gap-4 overflow-hidden rounded-none bg-linear-to-br from-orange-500/5 to-gray-50 p-5 sm:flex-row sm:items-center md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1">
+                className="col-span-1 flex min-w-0 flex-col items-start gap-4 overflow-hidden rounded-3xl bg-linear-to-br from-orange-500/5 to-gray-50 p-5 sm:flex-row sm:items-center md:col-span-3 lg:col-start-1 lg:col-span-3 lg:row-start-6 lg:row-span-1">
                 <h3
                     className="min-w-0 flex-1 text-lg"
                     role="heading">
@@ -100,7 +100,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-none flex items-center gap-3 overflow-hidden">
+                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex items-center gap-3 overflow-hidden">
                 <img
                     src="/assets/components/bento/countries.png"
                     alt="Hong Kong SAR China, Australia, Japan, United States, Canada, and United Kingdom"
@@ -115,7 +115,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 md:col-span-3 row-span-4 lg:col-start-4 lg:col-span-3 lg:row-start-5 lg:row-span-4 from-red-500/5 to-gray-50 bg-linear-to-br rounded-none overflow-hidden">
+                className="col-span-1 md:col-span-3 row-span-4 lg:col-start-4 lg:col-span-3 lg:row-start-5 lg:row-span-4 from-red-500/5 to-gray-50 bg-linear-to-br rounded-3xl overflow-hidden">
                 <div className="relative w-full h-48 lg:h-1/2">
                     <div
                         aria-hidden="true"
@@ -209,7 +209,7 @@ function BentoBox({
 
             <div
                 style={{ backgroundImage: 'url(/assets/components/bento/life.webp)' }}
-                className="col-span-1 flex min-h-48 flex-col justify-end rounded-none bg-cover p-5 sm:p-6 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-5 lg:row-span-2 lg:p-8"
+                className="col-span-1 flex min-h-48 flex-col justify-end rounded-3xl bg-cover p-5 sm:p-6 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-5 lg:row-span-2 lg:p-8"
             >
                 <h3
                     className="text-white text-center font-bold"
@@ -217,7 +217,7 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 row-span-2 flex flex-col items-center justify-center rounded-none bg-linear-to-br from-sky-500/5 to-gray-50 p-5 text-center sm:p-6 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-7 lg:row-span-2 lg:p-8">
+                className="col-span-1 row-span-2 flex flex-col items-center justify-center rounded-3xl bg-linear-to-br from-sky-500/5 to-gray-50 p-5 text-center sm:p-6 md:col-span-2 lg:col-start-7 lg:col-span-2 lg:row-start-7 lg:row-span-2 lg:p-8">
                 <div className="mb-3">
                     <svg
                         className="w-20 h-20 text-blue-500"
