@@ -56,7 +56,7 @@ export default function Courses({ title, courses, categoryOrder = [], linkToCour
 
     return (
         <section aria-labelledby="courses-heading" className="section !my-16 container">
-            <h2 id="courses-heading" className="mb-5 break-words text-3xl font-bold sm:text-4xl md:text-right">
+            <h2 id="courses-heading" className="mb-5 break-words text-3xl font-bold sm:text-4xl md:text-center">
                 {title}
             </h2>
 
