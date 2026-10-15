@@ -62,7 +62,7 @@ export default function Courses({ title, courses, categoryOrder = [], linkToCour
 
             <div
                 aria-label="Course categories"
-                className="mb-5 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3 lg:grid-cols-8"
+                className="mb-5 flex flex-wrap justify-center gap-2 sm:gap-3"
                 role="tablist"
                 onKeyDown={onTabKeyDown}
             >
@@ -78,7 +78,7 @@ export default function Courses({ title, courses, categoryOrder = [], linkToCour
                             role="tab"
                             type="button"
                             className={[
-                                'w-full h-full p-3 rounded-none transition-colors duration-300 cursor-pointer',
+                                'w-[calc((100%_-_0.5rem)/2)] shrink-0 p-3 rounded-none transition-colors duration-300 cursor-pointer sm:w-[calc((100%_-_2.25rem)/4)] lg:w-[calc((100%_-_5.25rem)/8)]',
                                 isSelected ? 'bg-red-900 text-white' : ''
                             ].join(' ')}
                             onClick={() => change(name)}
