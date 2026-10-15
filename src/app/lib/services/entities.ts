@@ -541,8 +541,8 @@ export async function restoreContentEntityDraftFromPublished(actor: OperationAct
 }
 
 // Align draft content with published content (in effect, publishing or overriding existing publish)
-export async function alignContentEntity(actor: OperationActor, id: number): Promise<AlignEntityResponse> {
-    return (await publishDraft(actor, id)).status as AlignEntityResponse
+export async function alignContentEntity(actor: OperationActor, id: number, force = false): Promise<AlignEntityResponse> {
+    return (await publishDraft(actor, id, undefined, force)).status as AlignEntityResponse
 }
 
 export async function deleteContentEntity(actor: OperationActor, id: number): Promise<void> {

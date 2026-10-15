@@ -879,9 +879,10 @@ export default function ContentEntityEditor({ init, initialCommentThreads, user,
                 <TabItem title="审核与发布" icon={HiCloudUpload}>
                     <div className="mt-5 rounded-3xl border border-gray-200 bg-white p-6 shadow-sm">
                         <ApprovalProcess entityType={init.type} entityId={post.id} entity={post}
-                                         hasUnresolvedFeedback={hasUnresolvedFeedback} doAlign={async () => {
-                            await alignContentEntity(post.id)
+                                         hasUnresolvedFeedback={hasUnresolvedFeedback} doAlign={async force => {
+                            const result = await alignContentEntity(post.id, force)
                             await refresh()
+                            return result
                         }}/>
                     </div>
                 </TabItem>

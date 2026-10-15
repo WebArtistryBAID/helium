@@ -20,8 +20,9 @@ type PublishResult = {
 
 export async function publishDraft(actor: OperationActor, entityId: number, input?: {
     expectedRevision: string; idempotencyKey: string
-}): Promise<PublishResult> {
+}, force = false): Promise<PublishResult> {
     const user = await requireActorUser(actor, Role.admin)
+    if (force && actor.source !== 'studio') throw new Error('Forced publication requires Studio')
     if (actor.source === 'mcp' && !input) throw new Error('MCP publication requires a revision and idempotency key')
     const command = input ? entityMutationSchema.parse({ ...input, entityId }) : null
     const requestHash = command ? createHash('sha256').update(JSON.stringify(command)).digest('hex') : null
@@ -50,20 +51,26 @@ export async function publishDraft(actor: OperationActor, entityId: number, inpu
         if (!post) return { status: AlignEntityResponse.notFound }
         const revision = entityRevision(post)
         if (command && command.expectedRevision !== revision) return { status: 'conflict', revision } as PublishResult
-        const [ config, counts ] = await Promise.all([
-            tx.approvalConfig.findUnique({ where: { entityType: post.type } }),
-            tx.approval.groupBy({ by: [ 'role' ], where: { entityType: post.type, entityId }, _count: { role: true } })
-        ])
-        const count = (role: Role) => counts.find(row => row.role === role)?._count.role ?? 0
-        if (count(Role.editor) < (config?.minEditor ?? 1) || count(Role.admin) < (config?.minAdmin ?? 1)) {
-            return { status: AlignEntityResponse.insufficientApprovals }
-        }
-        if (post.type !== EntityType.page) {
-            const unresolved = await tx.commentThread.count({
-                where: { entityId, anchorType: CommentAnchorType.text, resolvedAt: null }
-            })
-            if (unresolved > 0 || hasPlateSuggestions(post.contentDraftEN) || hasPlateSuggestions(post.contentDraftZH)) {
-                return { status: AlignEntityResponse.unresolvedFeedback }
+        if (!force) {
+            const [ config, counts ] = await Promise.all([
+                tx.approvalConfig.findUnique({ where: { entityType: post.type } }),
+                tx.approval.groupBy({
+                    by: [ 'role' ],
+                    where: { entityType: post.type, entityId },
+                    _count: { role: true }
+                })
+            ])
+            const count = (role: Role) => counts.find(row => row.role === role)?._count.role ?? 0
+            if (count(Role.editor) < (config?.minEditor ?? 1) || count(Role.admin) < (config?.minAdmin ?? 1)) {
+                return { status: AlignEntityResponse.insufficientApprovals }
+            }
+            if (post.type !== EntityType.page) {
+                const unresolved = await tx.commentThread.count({
+                    where: { entityId, anchorType: CommentAnchorType.text, resolvedAt: null }
+                })
+                if (unresolved > 0 || hasPlateSuggestions(post.contentDraftEN) || hasPlateSuggestions(post.contentDraftZH)) {
+                    return { status: AlignEntityResponse.unresolvedFeedback }
+                }
             }
         }
         const updated = await tx.contentEntity.update({

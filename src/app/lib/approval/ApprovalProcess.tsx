@@ -30,6 +30,7 @@ import { useRouter } from 'next/navigation'
 import { HydratedContentEntity, isAligned } from '@/app/lib/data-types'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 import ApprovalNotificationDialog from '@/app/lib/approval/ApprovalNotificationDialog'
+import { AlignEntityResponse } from '@/app/studio/editor/entity-types'
 
 export default function ApprovalProcess({
                                             entityType, entityId, entity, doAlign, hasUnresolvedFeedback = false,
@@ -38,7 +39,7 @@ export default function ApprovalProcess({
     entityType: EntityType,
     entityId: number,
     entity: HydratedContentEntity,
-    doAlign: () => Promise<void>,
+    doAlign: (force?: boolean) => Promise<AlignEntityResponse>,
     hasUnresolvedFeedback?: boolean,
     showPageNavigation?: boolean
 }) {
@@ -47,6 +48,9 @@ export default function ApprovalProcess({
     const [ approvalsThreshold, setApprovalsThreshold ] = useState<ApprovalThresholds>({ admin: 1, editor: 1 })
     const [ approvalsNames, setApprovalNames ] = useState<Record<Role, string[]>>({ admin: [], editor: [], writer: [] })
     const [ publishConfirm, setPublishConfirm ] = useState(false)
+    const [ forcePublishConfirm, setForcePublishConfirm ] = useState(false)
+    const [ shiftPressed, setShiftPressed ] = useState(false)
+    const [ publishError, setPublishError ] = useState<string | null>(null)
     const [ approvalConfirm, setApprovalConfirm ] = useState(false)
     const [ approvalConfirm2, setApprovalConfirm2 ] = useState(false)
     const [ needsApproval, setNeedsApproval ] = useState(false)
@@ -64,6 +68,32 @@ export default function ApprovalProcess({
     const canWrite = user?.roles.includes(Role.writer) ?? false
     const canApproveAsEditor = user?.roles.includes(Role.editor) ?? false
     const canApproveAsAdmin = user?.roles.includes(Role.admin) ?? false
+    const approvalsComplete = approvalsNames.editor.length >= (approvalsThreshold.editor ?? 1) &&
+        approvalsNames.admin.length >= (approvalsThreshold.admin ?? 1)
+
+    useEffect(() => {
+        const resetShift = () => {
+            setShiftPressed(false)
+            setForcePublishConfirm(false)
+        }
+        const updateShift = (event: KeyboardEvent) => {
+            setShiftPressed(event.shiftKey)
+            if (!event.shiftKey) setForcePublishConfirm(false)
+        }
+        const handleVisibilityChange = () => {
+            if (document.hidden) resetShift()
+        }
+        window.addEventListener('keydown', updateShift)
+        window.addEventListener('keyup', updateShift)
+        window.addEventListener('blur', resetShift)
+        document.addEventListener('visibilitychange', handleVisibilityChange)
+        return () => {
+            window.removeEventListener('keydown', updateShift)
+            window.removeEventListener('keyup', updateShift)
+            window.removeEventListener('blur', resetShift)
+            document.removeEventListener('visibilitychange', handleVisibilityChange)
+        }
+    }, [])
 
     useEffect(() => {
         (async () => {
@@ -88,6 +118,42 @@ export default function ApprovalProcess({
         setApprovalsThreshold(state.thresholds)
         setNeedsApproval(!state.editorOk || !state.adminOk)
         setApprovalNames(await getApprovalNames(entityType, entityId))
+    }
+
+    async function publish(force = false) {
+        if (!canApproveAsAdmin) {
+            showPermissionDenied()
+            return
+        }
+        if (loading || isAligned(entity) || (force ? !shiftPressed : hasUnresolvedFeedback)) return
+        setPublishError(null)
+        if (force ? !forcePublishConfirm : !publishConfirm) {
+            if (force) setForcePublishConfirm(true)
+            else setPublishConfirm(true)
+            return
+        }
+        setLoading(true)
+        try {
+            const result = await doAlign(force)
+            setPublishConfirm(false)
+            setForcePublishConfirm(false)
+            if (result !== AlignEntityResponse.success) {
+                setPublishError({
+                    [AlignEntityResponse.insufficientApprovals]: '审核状态已更新，请完成审核后再发布。',
+                    [AlignEntityResponse.unresolvedFeedback]: '有尚未解决的评论或建议，暂无法发表。',
+                    [AlignEntityResponse.notFound]: '内容不存在，请刷新页面。'
+                }[result])
+            }
+            await refresh()
+            router.refresh()
+        } catch (error) {
+            if (!handlePermissionError(error)) {
+                setPublishError('发布失败，请稍后重试。')
+                console.error('Failed to publish content:', error)
+            }
+        } finally {
+            setLoading(false)
+        }
     }
 
     return <>
@@ -264,42 +330,30 @@ export default function ApprovalProcess({
                 <TimelineContent>
                     <TimelineTitle>发布</TimelineTitle>
                     <TimelineBody>
-                        <If condition={(approvalsNames.editor.length < (approvalsThreshold?.editor ?? 1) || approvalsNames.admin.length < (approvalsThreshold?.admin ?? 1)) && !isAligned(entity)}>
+                        <If condition={!approvalsComplete && !isAligned(entity)}>
                             <p>完成前序步骤后即可发布。</p>
                         </If>
-                        <If condition={approvalsNames.editor.length >= (approvalsThreshold?.editor ?? 1) && approvalsNames.admin.length >= (approvalsThreshold?.admin ?? 1) &&
-                            !isAligned(entity)}>
+                        <If condition={approvalsComplete && !isAligned(entity)}>
                             <p className="mb-3">{hasUnresolvedFeedback
                                 ? '有尚未解决的评论或建议，暂无法发表。'
                                 : '内容已审核完成，可以发表。'}</p>
-                            <If condition={canApproveAsAdmin}>
-                                <Button disabled={loading || hasUnresolvedFeedback} pill
-                                        color={hasUnresolvedFeedback ? 'gray' : 'blue'}
-                                        onClick={async () => {
-                                            if (hasUnresolvedFeedback) return
-                                            if (!canApproveAsAdmin) {
-                                                showPermissionDenied()
-                                                return
-                                            }
-                                            if (!publishConfirm) {
-                                                setPublishConfirm(true)
-                                                return
-                                            }
-                                            setLoading(true)
-                                            try {
-                                                await doAlign()
-                                                await refresh()
-                                                router.refresh()
-                                            } catch (error) {
-                                                if (!handlePermissionError(error)) {
-                                                    console.error('Failed to publish content:', error)
-                                                }
-                                            } finally {
-                                                setLoading(false)
-                                            }
-                                        }}>{publishConfirm ? '确认发布?' : '发布'}</Button>
-                            </If>
                         </If>
+                        <If condition={canApproveAsAdmin && !isAligned(entity)}>
+                            <div className={!approvalsComplete && shiftPressed ? 'mt-3 flex gap-3' : 'flex gap-3'}>
+                                <If condition={approvalsComplete}>
+                                    <Button disabled={loading || hasUnresolvedFeedback} pill
+                                            color={hasUnresolvedFeedback ? 'gray' : 'blue'}
+                                            onClick={() => publish()}>{publishConfirm ? '确认发布?' : '发布'}</Button>
+                                </If>
+                                <If condition={shiftPressed}>
+                                    <Button disabled={loading} pill color="red"
+                                            onClick={event => {
+                                                if (event.shiftKey) void publish(true)
+                                            }}>{forcePublishConfirm ? '确认强行发布?' : '强行发布'}</Button>
+                                </If>
+                            </div>
+                        </If>
+                        {publishError && <Alert color="failure" className="mt-3">{publishError}</Alert>}
                         <If condition={isAligned(entity)}>
                             <p>内容已成功发布! 自动更新可能需要最多一小时。</p>
                         </If>

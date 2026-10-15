@@ -66,8 +66,8 @@ export async function restoreContentEntityDraftFromPublished(id: number): Promis
     return services.restoreContentEntityDraftFromPublished(await getStudioActor(), id)
 }
 
-export async function alignContentEntity(id: number): Promise<AlignEntityResponse> {
-    return services.alignContentEntity(await getStudioActor(), id)
+export async function alignContentEntity(id: number, force = false): Promise<AlignEntityResponse> {
+    return services.alignContentEntity(await getStudioActor(), id, force)
 }
 
 export async function deleteContentEntity(id: number): Promise<void> {

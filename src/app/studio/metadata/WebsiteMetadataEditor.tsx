@@ -771,9 +771,10 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                             {hasChanges ? <p className="mb-5 text-sm text-blue-600">请先保存当前更改，再开始审核流程。</p> : null}
                             <ApprovalProcess entityType={EntityType.page} entityId={draft.entity.id}
                                              entity={draft.entity} showPageNavigation={false}
-                                             doAlign={async () => {
-                                                 await alignContentEntity(draft.entity.id)
+                                             doAlign={async force => {
+                                                 const result = await alignContentEntity(draft.entity.id, force)
                                                  await refresh()
+                                                 return result
                                              }}/>
                         </div>
                     </TabItem>
