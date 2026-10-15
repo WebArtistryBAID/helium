@@ -25,7 +25,7 @@ export default function GlobalFooter({ websiteMetadata }: {
     return <footer className="w-full !font-sans py-16 px-5 !text-white bg-red-900">
         <div className="container mb-5">
             <p className="uppercase tracking-[0.3em] !mb-5 font-sans text-lg">
-                BEIJING ACADEMY
+                <a href="/">BEIJING ACADEMY</a>
             </p>
 
             <nav aria-label={locales[language].nav} role="navigation"
