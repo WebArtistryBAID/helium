@@ -3,6 +3,8 @@ import withFlowbiteReact from 'flowbite-react/plugin/nextjs'
 
 const nextConfig: NextConfig = {
     poweredByHeader: false,
+    // Include verification metadata in the initial HTML head for every user agent.
+    htmlLimitedBots: /.*/,
     async headers() {
         return [
             {

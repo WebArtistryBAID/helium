@@ -7,14 +7,18 @@ import { cookies, headers } from 'next/headers'
 import { ThemeProvider } from 'flowbite-react'
 import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 
-export const metadata: Metadata = {
-    title: 'Helium',
-    description: 'Helium is the new content management system for the website of Beijing Academy International Division (BAID) and the International School of Beijing Academy (ISBA).'
+export async function generateMetadata(): Promise<Metadata> {
+    const websiteMetadata = await getPublishedWebsiteMetadata()
+    const googleSiteVerification = websiteMetadata.en.googleSiteVerification || websiteMetadata.zh.googleSiteVerification
+
+    return {
+        title: 'Helium',
+        description: 'Helium is the new content management system for the website of Beijing Academy International Division (BAID) and the International School of Beijing Academy (ISBA).',
+        verification: googleSiteVerification ? { google: googleSiteVerification } : undefined
+    }
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
-    const websiteMetadata = await getPublishedWebsiteMetadata()
-    const googleSiteVerification = websiteMetadata.en.googleSiteVerification || websiteMetadata.zh.googleSiteVerification
     const pathname = (await headers()).get('X-Invoke-Path') || '/'
     const locale =
         pathname.startsWith('/zh') ||
@@ -26,7 +30,6 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
         <html lang={locale} suppressHydrationWarning>
         <head>
             <ThemeInit/>
-            {googleSiteVerification ? <meta name="google-site-verification" content={googleSiteVerification}/> : null}
         </head>
         <body className="antialiased">
         <NextTopLoader showSpinner={false}/>
