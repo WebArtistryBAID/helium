@@ -88,14 +88,6 @@ To run in development:
 
 ## Production
 
-For existing installations upgrading the sitemap, run
-`npx prisma db execute --file prisma/sql/add-last-published-at.sql` before starting the updated application,
-then run `npx prisma generate` and rebuild. The SQL is safe to repeat and recovers `lastPublishedAt`
-from publication audit records. The required field uses the Unix epoch for drafts and unknown historical dates;
-these dates are omitted from the sitemap. Backups preserve known publication dates, including after restoration.
-Pages containing automatic content listings also omit `lastmod`, since their own publication time only
-describes the saved page. The sitemap includes each published language and reads current data on every request.
-
 To run in production:
 
 1. Copy `.env.example` to `.env`.
@@ -134,8 +126,6 @@ server {
     listen [::]:80 default_server;
     
     root /var/www/helium;
-    
-    # Security headers for app responses are set by Helium itself (next.config.ts).
     client_max_body_size 250M;  # Must cover the 250 MB video upload limit
     
     location ^~ /uploads/ {
