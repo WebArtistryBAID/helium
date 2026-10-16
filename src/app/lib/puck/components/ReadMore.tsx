@@ -90,6 +90,26 @@ function lightenColor(color: string, percent: number) {
     return rgbToHex(rgb.r, rgb.g, rgb.b)
 }
 
+export function ReadMoreArrow({ color, className }: { color: string, className?: string }) {
+    return <svg
+        className={className}
+        height="30"
+        viewBox="0 0 32.99999997656249 32.99999997656255"
+        width="30"
+        aria-hidden="true"
+        focusable="false"
+    >
+        <path
+            fill={color}
+            className="transition-colors duration-200 ease-in-out"
+            d="M0 16.5C0 25.57 7.43 33 16.5 33C25.57 33 33 25.57 33 16.5C33 7.43 25.65 0 16.5 0C7.43 0 0 7.43 0 16.5Z M26.78 17.25C26.78 17.17 26.85 17.17 26.85 17.1C26.92 17.02 26.92 17.02 26.92 16.95C27 16.87 27 16.87 27 16.8L27 16.5L27 16.12C26.92 16.05 26.92 16.05 26.92 15.98C26.92 15.9 26.85 15.9 26.85 15.82C26.85 15.75 26.78 15.67 26.78 15.67L26.55 15.45L20.55 9.45C19.95 8.85 19.05 8.85 18.45 9.45C17.85 10.05 17.85 10.95 18.45 11.55L21.9 15L7.5 15C6.67 15 6 15.67 6 16.5C6 17.33 6.67 18 7.5 18L21.9 18L18.45 21.45C17.85 22.05 17.85 22.95 18.45 23.55C18.75 23.85 19.12 24 19.5 24C19.88 24 20.33 23.85 20.48 23.55L26.47 17.55L26.7 17.33C26.78 17.32 26.78 17.25 26.78 17.25Z "
+            fillRule="evenodd"
+            opacity="1"
+            transform="translate(0 2.3092638912203256e-14)  rotate(0 16.499999988281253 16.499999988281253)"
+        />
+    </svg>
+}
+
 export default function ReadMore({ text, to, color = '#82181a', iconColor = 'match' }:
                                  { text: string, to: string, color?: string, iconColor?: string }) {
     const [ isHovered, setIsHovered ] = useState(false)
@@ -103,26 +123,9 @@ export default function ReadMore({ text, to, color = '#82181a', iconColor = 'mat
                 aria-hidden="true"
                 className="mr-2 flex shrink-0 items-center"
             >
-                <svg
-                    height="30"
-                    viewBox="0 0 32.99999997656249 32.99999997656255"
-                    width="30"
-                    aria-hidden="true"
-                    focusable="false"
-                >
-                    <path
-                        style={{
-                            fill: isHovered
-                                ? lightenColor(iconColor === 'match' ? color : iconColor, 20)
-                                : (iconColor === 'match' ? color : iconColor)
-                        }}
-                        className="transition-colors duration-200 ease-in-out"
-                        d="M0 16.5C0 25.57 7.43 33 16.5 33C25.57 33 33 25.57 33 16.5C33 7.43 25.65 0 16.5 0C7.43 0 0 7.43 0 16.5Z M26.78 17.25C26.78 17.17 26.85 17.17 26.85 17.1C26.92 17.02 26.92 17.02 26.92 16.95C27 16.87 27 16.87 27 16.8L27 16.5L27 16.12C26.92 16.05 26.92 16.05 26.92 15.98C26.92 15.9 26.85 15.9 26.85 15.82C26.85 15.75 26.78 15.67 26.78 15.67L26.55 15.45L20.55 9.45C19.95 8.85 19.05 8.85 18.45 9.45C17.85 10.05 17.85 10.95 18.45 11.55L21.9 15L7.5 15C6.67 15 6 15.67 6 16.5C6 17.33 6.67 18 7.5 18L21.9 18L18.45 21.45C17.85 22.05 17.85 22.95 18.45 23.55C18.75 23.85 19.12 24 19.5 24C19.88 24 20.33 23.85 20.48 23.55L26.47 17.55L26.7 17.33C26.78 17.32 26.78 17.25 26.78 17.25Z "
-                        fillRule="evenodd"
-                        opacity="1"
-                        transform="translate(0 2.3092638912203256e-14)  rotate(0 16.499999988281253 16.499999988281253)"
-                    />
-                </svg>
+                <ReadMoreArrow color={isHovered
+                    ? lightenColor(iconColor === 'match' ? color : iconColor, 20)
+                    : (iconColor === 'match' ? color : iconColor)}/>
             </i>
             <span
                 style={{ color }}

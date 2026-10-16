@@ -2,10 +2,11 @@
 
 import FocusImage from '@/app/lib/FocusImage'
 import { Image } from '@/generated/prisma/browser'
-import { Swiper, SwiperSlide } from 'swiper/react'
+import { Swiper, SwiperSlide, useSwiper } from 'swiper/react'
 import { A11y, Autoplay, Pagination } from 'swiper/modules'
-import { useEffect, useRef } from 'react'
-import ReadMore from '@/app/lib/puck/components/ReadMore'
+import { useEffect, useRef, type ReactNode } from 'react'
+import ReadMore, { ReadMoreArrow } from '@/app/lib/puck/components/ReadMore'
+import { useLanguage } from '@/app/[[...slug]]/useLanguage'
 
 export const TITLE_SIZE_CLASSES: Record<string, string> = {
     sm: 'text-sm',
@@ -69,7 +70,9 @@ export default function ImageGallery({
                 autoplay={autoplayEnabled ? { delay, disableOnInteraction: false, pauseOnMouseEnter: true } : false}>
             {resolvedSlides.map((slide, index) =>
                 <SwiperSlide key={slide.image?.id ?? slide.image?.sha1 ?? `slide-${index}`}>
-                    <GallerySlideView slide={slide} uploadPrefix={uploadPrefix}/>
+                    <GallerySlideView slide={slide} uploadPrefix={uploadPrefix}>
+                        <GallerySlideNavigation hasPrevious={index > 0} hasNext={index < resolvedSlides.length - 1}/>
+                    </GallerySlideView>
                 </SwiperSlide>
             )}</Swiper>}
     </section>
@@ -163,10 +166,30 @@ function ScrollGallery({ title, slides, uploadPrefix }: {
     </section>
 }
 
-function GallerySlideView({ slide, uploadPrefix, fillViewport = false }: {
+function GallerySlideNavigation({ hasPrevious, hasNext }: { hasPrevious: boolean, hasNext: boolean }) {
+    const swiper = useSwiper()
+    const language = useLanguage()
+    const buttonClassName = 'absolute top-1/2 z-10 flex size-12 -translate-y-1/2 cursor-pointer items-center justify-center rounded-full bg-black/30 text-white transition-colors hover:bg-black/50 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white'
+
+    return <>
+        {hasPrevious && <button type="button" className={`${buttonClassName} left-3 sm:left-6`}
+                                aria-label={language === 'zh' ? '上一张' : 'Previous slide'}
+                                onClick={() => swiper?.slidePrev()}>
+            <ReadMoreArrow color="currentColor" className="rotate-180"/>
+        </button>}
+        {hasNext && <button type="button" className={`${buttonClassName} right-3 sm:right-6`}
+                            aria-label={language === 'zh' ? '下一张' : 'Next slide'}
+                            onClick={() => swiper?.slideNext()}>
+            <ReadMoreArrow color="currentColor"/>
+        </button>}
+    </>
+}
+
+function GallerySlideView({ slide, uploadPrefix, fillViewport = false, children }: {
     slide: GallerySlide,
     uploadPrefix: string | undefined,
-    fillViewport?: boolean
+    fillViewport?: boolean,
+    children?: ReactNode
 }) {
     return <div
         className={fillViewport ? 'relative h-full w-full' : 'relative h-[100svh] min-h-[100vh] w-full md:h-screen md:min-h-0'}>
@@ -175,6 +198,7 @@ function GallerySlideView({ slide, uploadPrefix, fillViewport = false }: {
              className="h-full w-full object-cover"/>
         <FullscreenMediaText title={slide.title} titleSize={slide.titleSize} content={slide.content}
                              link={slide.link} linkText={slide.linkText}/>
+        {children}
     </div>
 }
 
