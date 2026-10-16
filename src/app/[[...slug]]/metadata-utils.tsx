@@ -1,3 +1,4 @@
+import { getLocalizedURL } from '@/app/lib/seo/site-url'
 import { getContentEntityBySlug } from '@/app/studio/editor/entity-actions'
 import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 
@@ -17,8 +18,8 @@ export async function retrieveMetadata(slugs: string[] | null, preferredLanguage
         return {
             title: content.title,
             description: content.description,
-            urlEN: process.env.HOST + `/en/${route.join('/')}`,
-            urlZH: process.env.HOST + `/zh/${route.join('/')}`,
+            urlEN: getLocalizedURL('en', route.join('/')),
+            urlZH: getLocalizedURL('zh', route.join('/')),
             siteName: content.title
         }
     }
@@ -32,8 +33,8 @@ export async function retrieveMetadata(slugs: string[] | null, preferredLanguage
         return {
             title: siteContent.title,
             description: baseDescription,
-            urlEN: process.env.HOST + `/en/`,
-            urlZH: process.env.HOST + `/zh/`,
+            urlEN: getLocalizedURL('en', '/'),
+            urlZH: getLocalizedURL('zh', '/'),
             siteName: siteContent.title
         }
     }
@@ -52,8 +53,8 @@ export async function retrieveMetadata(slugs: string[] | null, preferredLanguage
             ? `${entity.titlePublishedEN} | ${siteContent.title}`
             : `${entity.titlePublishedZH} | ${siteContent.title}`,
         description: (language === 'en' ? entity.shortContentPublishedEN : entity.shortContentPublishedZH) ?? baseDescription,
-        urlEN: process.env.HOST + `/en/${route.slice(1).join('/')}`,
-        urlZH: process.env.HOST + `/zh/${route.slice(1).join('/')}`,
+        urlEN: getLocalizedURL('en', route.slice(1).join('/')),
+        urlZH: getLocalizedURL('zh', route.slice(1).join('/')),
         siteName: siteContent.title
     }
 }

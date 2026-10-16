@@ -78,7 +78,8 @@ export async function publishDraft(actor: OperationActor, entityId: number, inpu
                 titlePublishedEN: post.titleDraftEN, titlePublishedZH: post.titleDraftZH,
                 contentPublishedEN: post.contentDraftEN, contentPublishedZH: post.contentDraftZH,
                 shortContentPublishedEN: post.shortContentDraftEN, shortContentPublishedZH: post.shortContentDraftZH,
-                coverImagePublishedId: post.coverImageDraftId, transparentNavbarPublished: post.transparentNavbarDraft
+                coverImagePublishedId: post.coverImageDraftId, transparentNavbarPublished: post.transparentNavbarDraft,
+                lastPublishedAt: new Date()
             }
         })
         await tx.userAuditLog.create({

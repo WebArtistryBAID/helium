@@ -43,6 +43,7 @@ export async function ensureWebsiteMetadataEntity(
                 slug: WEBSITE_METADATA_SLUG,
                 contentPublishedEN: contentEN,
                 contentPublishedZH: contentZH,
+                lastPublishedAt: new Date(),
                 contentDraftEN: contentEN,
                 contentDraftZH: contentZH,
                 transparentNavbarPublished: false,

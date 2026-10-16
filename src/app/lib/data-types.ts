@@ -73,6 +73,7 @@ export interface SimplifiedContentEntity {
     creator: SimplifiedUser
     createdAt: Date | string
     updatedAt: Date | string
+    lastPublishedAt: Date | string
 }
 
 export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
@@ -95,7 +96,8 @@ export const SIMPLIFIED_CONTENT_ENTITY_SELECT = {
         select: SIMPLIFIED_USER_SELECT
     },
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
+    lastPublishedAt: true
 }
 
 export interface HydratedContentEntity {
@@ -127,6 +129,7 @@ export interface HydratedContentEntity {
     creator: SimplifiedUser
     createdAt: Date | string
     updatedAt: Date | string
+    lastPublishedAt: Date | string
 }
 
 export const HYDRATED_CONTENT_ENTITY_SELECT = {
@@ -160,7 +163,8 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
         select: SIMPLIFIED_USER_SELECT
     },
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
+    lastPublishedAt: true
 }
 
 // Returned by unauthenticated queries: drafts and creator details must never reach visitors.
@@ -185,7 +189,8 @@ export const PUBLIC_CONTENT_ENTITY_SELECT = {
     coverImagePublishedId: true,
     transparentNavbarPublished: true,
     createdAt: true,
-    updatedAt: true
+    updatedAt: true,
+    lastPublishedAt: true
 }
 
 export function convertDatesToStrings<T>(value: T): T {

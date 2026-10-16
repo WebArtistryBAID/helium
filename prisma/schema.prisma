@@ -154,6 +154,8 @@ model ContentEntity {
   creator                    User            @relation(fields: [creatorId], references: [id])
   createdAt                  DateTime        @default(now())
   updatedAt                  DateTime        @updatedAt
+  /// Epoch means the publication date is unknown or the entity is still a draft.
+  lastPublishedAt            DateTime        @default("1970-01-01T00:00:00.000Z")
   locks                      EntityLock[]
   commentThreads             CommentThread[]
   yjsDocuments               YjsDocument[]

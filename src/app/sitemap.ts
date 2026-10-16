@@ -1,49 +1,34 @@
-import { MetadataRoute } from 'next'
-import { getAllPublishedContentEntities } from '@/app/studio/editor/entity-actions'
-import { EntityType } from '@/generated/prisma/client'
-import { getContentEntityURI } from '@/app/lib/data-types'
+import type { MetadataRoute } from 'next'
+import { prisma } from '@/app/lib/prisma'
+import { getUploadServePath } from '@/app/lib/services/media'
+import { WEBSITE_METADATA_SLUG } from '@/app/lib/metadata/website-metadata-types'
+import { getSiteOrigin } from '@/app/lib/seo/site-url'
+import { buildSitemapEntries } from '@/app/lib/seo/sitemap-builder'
 
-const entityChanges: Record<string, 'yearly' | 'monthly' | 'daily' | 'never'> = {
-    '/': 'daily',
-    about: 'yearly',
-    academics: 'yearly',
-    life: 'monthly',
-    projects: 'monthly',
-    admissions: 'yearly',
-    news: 'daily',
-    privacy: 'never',
-    terms: 'never'
-}
-
-const entityPriority: Record<string, number> = {
-    '/': 1.0,
-    about: 0.9,
-    admissions: 0.9,
-    academics: 0.9,
-    life: 0.8,
-    projects: 0.8,
-    news: 0.8,
-    privacy: 0.4,
-    terms: 0.4
-}
+// Read the current published state on every request, including removals and URL changes.
+export const dynamic = 'force-dynamic'
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
-    return (await getAllPublishedContentEntities()).map(entity => {
-        if (typeof entity.createdAt === 'string') {
-            entity.createdAt = new Date(entity.createdAt)
-        }
-        const fullURL = entity.type === EntityType.page ? (entity.slug === '/' ? '/' : `/${entity.slug}`) : getContentEntityURI(entity.createdAt, entity.slug)
-        return {
-            url: `${process.env.HOST}/en${fullURL}`,
-            alternates: {
-                languages: {
-                    'x-default': `${process.env.HOST}/en${fullURL}`,
-                    en: `${process.env.HOST}/en${fullURL}`,
-                    zh: `${process.env.HOST}/zh${fullURL}`
-                }
+    const [ entities, uploadPath ] = await Promise.all([
+        prisma.contentEntity.findMany({
+            where: {
+                linkOnly: false,
+                NOT: { slug: WEBSITE_METADATA_SLUG },
+                // Match the publication gate used by getContentEntityBySlug.
+                contentPublishedEN: { not: null }
             },
-            changeFrequency: entity.type === EntityType.page ? (entityChanges[entity.slug] ?? 'monthly') : 'never',
-            priority: entity.type === EntityType.page ? (entityPriority[entity.slug] ?? 0.8) : (Date.now() - entity.createdAt.getTime() < 6 * 30 * 24 * 60 * 60 * 1000 ? 0.7 : 0.6)
-        }
-    })
+            select: {
+                type: true,
+                slug: true,
+                createdAt: true,
+                lastPublishedAt: true,
+                contentPublishedEN: true,
+                contentPublishedZH: true,
+                coverImagePublished: { select: { sha1: true, mediaType: true } }
+            },
+            orderBy: { id: 'asc' }
+        }),
+        getUploadServePath()
+    ])
+    return buildSitemapEntries(entities, getSiteOrigin(), uploadPath)
 }

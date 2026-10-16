@@ -34,6 +34,7 @@ const BACKUP_CONTENT_ENTITY_SELECT = {
     shortContentPublishedZH: true,
     createdAt: true,
     updatedAt: true,
+    lastPublishedAt: true,
     creatorId: true,
     coverImagePublishedId: true,
     coverImageDraftId: true
@@ -43,10 +44,11 @@ type BackupContentEntityRow = Prisma.ContentEntityGetPayload<{
     select: typeof BACKUP_CONTENT_ENTITY_SELECT
 }>
 
-type BackupContentEntity = Omit<BackupContentEntityRow, 'createdAt' | 'updatedAt' | 'linkOnly'> & {
+type BackupContentEntity = Omit<BackupContentEntityRow, 'createdAt' | 'updatedAt' | 'lastPublishedAt' | 'linkOnly'> & {
     linkOnly?: boolean
     createdAt: string
     updatedAt: string
+    lastPublishedAt?: string
 }
 
 type ZipEntry = {
@@ -290,7 +292,8 @@ function serializeEntity(entity: BackupContentEntityRow): BackupContentEntity {
         ...entity,
         linkOnly: entity.linkOnly ?? false,
         createdAt: entity.createdAt.toISOString(),
-        updatedAt: entity.updatedAt.toISOString()
+        updatedAt: entity.updatedAt.toISOString(),
+        lastPublishedAt: entity.lastPublishedAt.toISOString()
     }
 }
 
@@ -325,6 +328,7 @@ function isBackupContentEntity(value: unknown): value is BackupContentEntity {
         && isNullableString(entity.shortContentPublishedZH)
         && typeof entity.createdAt === 'string'
         && typeof entity.updatedAt === 'string'
+        && (entity.lastPublishedAt === undefined || typeof entity.lastPublishedAt === 'string')
         && typeof entity.creatorId === 'number'
         && isNullableNumber(entity.coverImagePublishedId)
         && isNullableNumber(entity.coverImageDraftId)
@@ -335,7 +339,8 @@ function toRestoreData(entity: BackupContentEntity): Prisma.ContentEntityCreateM
         ...entity,
         linkOnly: entity.linkOnly ?? false,
         createdAt: new Date(entity.createdAt),
-        updatedAt: new Date(entity.updatedAt)
+        updatedAt: new Date(entity.updatedAt),
+        lastPublishedAt: entity.lastPublishedAt ? new Date(entity.lastPublishedAt) : new Date(0)
     }
 }
 
@@ -468,7 +473,8 @@ async function readBackupEntities(filename: string): Promise<BackupContentEntity
     for (const entity of entities) {
         if (ids.has(entity.id)) throw new Error(`Duplicate content entity id in backup: ${entity.id}`)
         if (slugs.has(entity.slug)) throw new Error(`Duplicate content entity slug in backup: ${entity.slug}`)
-        if (Number.isNaN(new Date(entity.createdAt).getTime()) || Number.isNaN(new Date(entity.updatedAt).getTime())) {
+        if (Number.isNaN(new Date(entity.createdAt).getTime()) || Number.isNaN(new Date(entity.updatedAt).getTime()) ||
+            (entity.lastPublishedAt !== undefined && Number.isNaN(new Date(entity.lastPublishedAt).getTime()))) {
             throw new Error(`Invalid date in content entity backup entry: ${entity.id}`)
         }
         ids.add(entity.id)

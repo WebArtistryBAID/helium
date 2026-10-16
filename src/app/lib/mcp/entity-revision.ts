@@ -1,6 +1,6 @@
 import { createHash } from 'node:crypto'
 
-const FIELDS = [ 'id', 'collaborationGeneration', 'type', 'slug', 'categoryEN', 'categoryZH', 'createdAt', 'updatedAt',
+const FIELDS = [ 'id', 'collaborationGeneration', 'type', 'slug', 'categoryEN', 'categoryZH', 'createdAt', 'updatedAt', 'lastPublishedAt',
     'titleDraftEN', 'titleDraftZH', 'contentDraftEN', 'contentDraftZH',
     'shortContentDraftEN', 'shortContentDraftZH', 'coverImageDraftId', 'transparentNavbarDraft',
     'titlePublishedEN', 'titlePublishedZH', 'contentPublishedEN', 'contentPublishedZH',
