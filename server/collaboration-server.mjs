@@ -129,6 +129,7 @@ function persistDocument(documentName, document, userId) {
         const { entityId, kind, language, generation } = parseRoom(documentName)
         const contentColumn = language === 'en' ? 'contentDraftEN' : 'contentDraftZH'
         const titleColumn = language === 'en' ? 'titleDraftEN' : 'titleDraftZH'
+        const shortContentColumn = language === 'en' ? 'shortContentDraftEN' : 'shortContentDraftZH'
         const data = kind === 'puck' ? fromYValue(document.getMap('data'))
             : yTextToSlateElement(document.get('content', Y.XmlText)).children
         const content = JSON.stringify(data)
@@ -143,7 +144,10 @@ function persistDocument(documentName, document, userId) {
                 if (!user.rows[0]?.roles?.includes('writer')) throw new Error('Insufficient collaboration permission')
             }
             const entity = await client.query(`SELECT "type", "collaborationGeneration", "${contentColumn}" AS content,
-                "${titleColumn}" AS title FROM "ContentEntity" WHERE "id" = $1 FOR UPDATE`, [ entityId ])
+                                                      "${titleColumn}"        AS title,
+                                                      "${shortContentColumn}" AS "shortContent"
+                                               FROM "ContentEntity"
+                                               WHERE "id" = $1 FOR UPDATE`, [ entityId ])
             if (entity.rowCount !== 1 || (entity.rows[0].type === 'page') !== (kind === 'puck')) {
                 throw new Error('Collaboration document type mismatch')
             }
@@ -158,10 +162,13 @@ function persistDocument(documentName, document, userId) {
                 VALUES ($1, $2, $3::"ContentLanguage", $4, NOW(), NOW())
                 ON CONFLICT ("entityId", "language") DO UPDATE SET "name" = EXCLUDED."name", "state" = EXCLUDED."state", "updatedAt" = NOW()`,
                 [ documentName, entityId, language, state ])
-            if (entity.rows[0].content !== content || (kind === 'puck' && entity.rows[0].title !== title)) {
+            const shortContent = kind === 'puck' && typeof data.root?.props?.shortContent === 'string'
+                ? data.root.props.shortContent || null : entity.rows[0].shortContent
+            if (entity.rows[0].shortContent !== shortContent || entity.rows[0].content !== content || (kind === 'puck' && entity.rows[0].title !== title)) {
                 await client.query(`UPDATE "ContentEntity" SET "${contentColumn}" = $1,
-                    ${kind === 'puck' ? `"${titleColumn}" = $3,` : ''} "updatedAt" = NOW() WHERE "id" = $2`,
-                    kind === 'puck' ? [ content, entityId, title ] : [ content, entityId ])
+                                                               ${kind === 'puck' ? `"${titleColumn}" = $3, "${shortContentColumn}" = $4,` : ''} "updatedAt" = NOW()
+                                    WHERE "id" = $2`,
+                    kind === 'puck' ? [ content, entityId, title, shortContent ] : [ content, entityId ])
                 await client.query('DELETE FROM "Approval" WHERE "entityId" = $1', [ entityId ])
                 if (!receipts.length) await client.query(`INSERT INTO "UserAuditLog" ("time", "type", "userId", "values")
                     VALUES (NOW(), 'writerEditEntity', $1, $2)`,
@@ -344,18 +351,37 @@ const server = new Server({
                     'SELECT "state" FROM "YjsDocument" WHERE "name" = $1',
                     [ documentName ]
                 )
-                if (stored.rows[0]?.state != null) return new Uint8Array(stored.rows[0].state)
+                if (stored.rows[0]?.state != null) {
+                    if (room.kind !== 'puck') return new Uint8Array(stored.rows[0].state)
+                    const document = new Y.Doc()
+                    Y.applyUpdate(document, stored.rows[0].state)
+                    const props = document.getMap('data').get('root')?.get('props')
+                    if (props instanceof Y.Map && !props.has('shortContent')) {
+                        const column = room.language === 'en' ? 'shortContentDraftEN' : 'shortContentDraftZH'
+                        const entity = await pool.query(`SELECT "${column}" AS value
+                                                         FROM "ContentEntity"
+                                                         WHERE "id" = $1`, [ room.entityId ])
+                        props.set('shortContent', entity.rows[0]?.value ?? '')
+                    }
+                    const state = Y.encodeStateAsUpdate(document)
+                    document.destroy()
+                    return state
+                }
 
                 const { entityId, kind, language, generation } = parseRoom(documentName)
                 const contentColumn = language === 'en' ? 'contentDraftEN' : 'contentDraftZH'
                 const entity = await pool.query(
-                    `SELECT "${contentColumn}" AS "content", "type" FROM "ContentEntity" WHERE "id" = $1`,
+                    `SELECT "${contentColumn}" AS "content", "shortContentDraftEN", "shortContentDraftZH", "type"
+                     FROM "ContentEntity"
+                     WHERE "id" = $1`,
                     [ entityId ]
                 )
                 if (entity.rowCount !== 1) throw new Error('Content entity does not exist')
                 if (kind === 'puck') {
                     if (entity.rows[0].type !== 'page') throw new Error('Puck collaboration requires a page entity')
-                    return initialPuckState(entity.rows[0].content)
+                    const data = puckDataFromState(initialPuckState(entity.rows[0].content))
+                    data.root.props.shortContent ??= entity.rows[0][language === 'en' ? 'shortContentDraftEN' : 'shortContentDraftZH'] ?? ''
+                    return initialPuckState(JSON.stringify(data))
                 }
                 if (entity.rows[0].type === 'page') throw new Error('Plate collaboration requires a rich text entity')
                 return slateToDeterministicYjsState(documentName, initialPlateValue(entity.rows[0].content))

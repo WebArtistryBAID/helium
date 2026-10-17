@@ -19,12 +19,24 @@ export function isPuckData(value: unknown): value is Data {
     return isRecord(value.root.props)
 }
 
-export function parsePuckData(content: string, fallbackTitle = ''): Data {
+export function getPuckShortContent(data: Data): string | undefined {
+    const value = (data.root.props as Record<string, unknown> | undefined)?.shortContent
+    return typeof value === 'string' ? value : undefined
+}
+
+export function parsePuckData(content: string, fallbackTitle = '', draftShortContent?: string | null): Data {
     try {
         const parsed: unknown = JSON.parse(content)
-        if (isPuckData(parsed)) return parsed
+        if (isPuckData(parsed)) {
+            if (draftShortContent !== undefined && getPuckShortContent(parsed) === undefined) {
+                Object.assign(parsed.root.props!, { shortContent: draftShortContent ?? '' })
+            }
+            return parsed
+        }
     } catch (error) {
         console.error('Unable to parse Puck content:', error)
     }
-    return emptyPuckData(fallbackTitle)
+    const data = emptyPuckData(fallbackTitle)
+    if (draftShortContent !== undefined) Object.assign(data.root.props!, { shortContent: draftShortContent ?? '' })
+    return data
 }

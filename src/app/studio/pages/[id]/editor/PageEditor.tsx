@@ -47,7 +47,7 @@ import {
     replacePuckCollaborationDocument,
     usePuckCollaboration
 } from '@/app/lib/puck/PuckCollaboration'
-import { parsePuckData } from '@/app/lib/puck/puck-data'
+import { getPuckShortContent, parsePuckData } from '@/app/lib/puck/puck-data'
 import { LanguageProvider } from '@/app/[[...slug]]/useLanguage'
 import { PuckClipboardProvider } from '@/app/lib/puck/PuckClipboard'
 
@@ -137,8 +137,10 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                 slug: draft.slug !== previous.slug ? draft.slug : undefined,
                 contentDraftEN: !collaborative && draft.contentDraftEN !== previous.contentDraftEN ? draft.contentDraftEN : undefined,
                 contentDraftZH: !collaborative && draft.contentDraftZH !== previous.contentDraftZH ? draft.contentDraftZH : undefined,
-                shortContentDraftEN: undefined,
-                shortContentDraftZH: undefined,
+                shortContentDraftEN: !collaborative && draft.shortContentDraftEN !== previous.shortContentDraftEN
+                    ? draft.shortContentDraftEN : undefined,
+                shortContentDraftZH: !collaborative && draft.shortContentDraftZH !== previous.shortContentDraftZH
+                    ? draft.shortContentDraftZH : undefined,
                 categoryEN: undefined,
                 categoryZH: undefined,
                 coverImageDraftId: undefined,
@@ -150,7 +152,9 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
         refreshFn: async () => (await getContentEntity(init.id))!,
         compareKeys: [
             'titleDraftEN',
+            'shortContentDraftEN',
             'titleDraftZH',
+            'shortContentDraftZH',
             'slug',
             'contentDraftEN',
             'contentDraftZH',
@@ -196,7 +200,8 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
     if (puckDataRef.current?.key !== puckDocumentKey) {
         puckDataRef.current = {
             data: parsePuckData(inEnglish ? draft.contentDraftEN : draft.contentDraftZH,
-                inEnglish ? draft.titleDraftEN : draft.titleDraftZH),
+                inEnglish ? draft.titleDraftEN : draft.titleDraftZH,
+                inEnglish ? draft.shortContentDraftEN : draft.shortContentDraftZH),
             key: puckDocumentKey
         }
     }
@@ -205,12 +210,16 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
             ? {
                 ...previous,
                 contentDraftEN: JSON.stringify(data),
-                titleDraftEN: String(data.root.props?.title ?? '')
+                titleDraftEN: String(data.root.props?.title ?? ''),
+                shortContentDraftEN: getPuckShortContent(data) === undefined
+                    ? previous.shortContentDraftEN : getPuckShortContent(data) || null
             }
             : {
                 ...previous,
                 contentDraftZH: JSON.stringify(data),
-                titleDraftZH: String(data.root.props?.title ?? '')
+                titleDraftZH: String(data.root.props?.title ?? ''),
+                shortContentDraftZH: getPuckShortContent(data) === undefined
+                    ? previous.shortContentDraftZH : getPuckShortContent(data) || null
             })
     }, [ inEnglish, setDraft ])
     const refreshCommentThreads = useCallback(async () => {
@@ -472,14 +481,15 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                                         try {
                                             const content = draft.contentDraftZH
                                             await replacePuckCollaborationDocument({
-                                                data: parsePuckData(content, draft.titleDraftZH),
+                                                data: parsePuckData(content, draft.titleDraftZH, draft.shortContentDraftZH),
                                                 entityId: draft.id,
                                                 language: 'en'
                                             })
                                             setDraft(prev => ({
                                                 ...prev,
                                                 contentDraftEN: content,
-                                                titleDraftEN: prev.titleDraftZH
+                                                titleDraftEN: prev.titleDraftZH,
+                                                shortContentDraftEN: prev.shortContentDraftZH
                                             }))
                                             setPuckRevision(current => current + 1)
                                         } finally {
@@ -610,13 +620,17 @@ export default function PageEditor({ init, user, host, initialCommentThreads }: 
                         setDraft(prev => ({
                             ...prev,
                             contentDraftEN: JSON.stringify(data),
-                            titleDraftEN: data.root.props?.title ?? ''
+                            titleDraftEN: data.root.props?.title ?? '',
+                            shortContentDraftEN: getPuckShortContent(data) === undefined
+                                ? prev.shortContentDraftEN : getPuckShortContent(data) || null
                         }))
                     } else {
                         setDraft(prev => ({
                             ...prev,
                             contentDraftZH: JSON.stringify(data),
-                            titleDraftZH: data.root.props?.title ?? ''
+                            titleDraftZH: data.root.props?.title ?? '',
+                            shortContentDraftZH: getPuckShortContent(data) === undefined
+                                ? prev.shortContentDraftZH : getPuckShortContent(data) || null
                         }))
                     }
                 }}

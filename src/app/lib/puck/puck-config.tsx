@@ -41,6 +41,10 @@ import GridConfig from '@/app/lib/puck/components/Grid'
 
 export const PUCK_CONFIG: Config = {
     root: {
+        fields: {
+            title: { type: 'text', label: '标题' },
+            shortContent: { type: 'textarea', label: '短内容' }
+        },
         render: ({ children }: { children: ReactNode }) => <div className="whitespace-pre-line">{children}</div>
     },
     components: {

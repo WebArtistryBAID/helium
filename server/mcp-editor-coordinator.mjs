@@ -129,13 +129,14 @@ export async function coordinateEditorRequest({ pool, instance, persistDocument,
                         else updatePuckYjsDocument(next, input.document, 'mcp-replace')
                         const contentColumn = input.language === 'en' ? 'contentDraftEN' : 'contentDraftZH'
                         const titleColumn = input.language === 'en' ? 'titleDraftEN' : 'titleDraftZH'
+                        const shortContentColumn = input.language === 'en' ? 'shortContentDraftEN' : 'shortContentDraftZH'
                         await client.query(`UPDATE "ContentEntity"
                                             SET "${contentColumn}" = $1,
-                                                ${input.editor === 'puck' ? `"${titleColumn}" = $4,` : ''}
+                                                ${input.editor === 'puck' ? `"${titleColumn}" = $4, "${shortContentColumn}" = CASE WHEN $5::boolean THEN $6::text ELSE "${shortContentColumn}" END,` : ''}
                                                     "collaborationGeneration" = $2,
                                                 "updatedAt"        = NOW()
                                             WHERE "id" = $3`,
-                            input.editor === 'puck' ? [ JSON.stringify(input.document), nextGeneration, input.entityId, String(input.document.root.props.title ?? '') ]
+                            input.editor === 'puck' ? [ JSON.stringify(input.document), nextGeneration, input.entityId, String(input.document.root.props.title ?? ''), typeof input.document.root.props.shortContent === 'string', input.document.root.props.shortContent || null ]
                                 : [ JSON.stringify(input.document), nextGeneration, input.entityId ])
                         await client.query(`INSERT INTO "YjsDocument" ("name", "entityId", "language", "state", "createdAt", "updatedAt")
                                             VALUES ($1, $2, $3::"ContentLanguage", $4, NOW(), NOW())

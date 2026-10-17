@@ -108,7 +108,7 @@ export function validateEditorDocument(data, editor) {
             node(block)
         }
     } else {
-        if (!record(data) || !Array.isArray(data.content) || !record(data.root?.props) || (data.root.props.title != null && typeof data.root.props.title !== 'string') || !record(data.zones)) {
+        if (!record(data) || !Array.isArray(data.content) || !record(data.root?.props) || (data.root.props.title != null && typeof data.root.props.title !== 'string') || (data.root.props.shortContent != null && typeof data.root.props.shortContent !== 'string') || !record(data.zones)) {
             fail('invalid_input', 'Invalid Puck document.')
         }
         data.content.forEach(node)
