@@ -29,6 +29,7 @@ export type WebsiteFooterContent = {
 
 export type WebsiteMetadataContent = {
     title: string
+    shortTitle: string
     description: string
     googleSiteVerification: string
     navbar: WebsiteNavbarItem[]
@@ -173,6 +174,7 @@ const FOOTER_ZH: WebsiteFooterItem[] = [
 export const DEFAULT_WEBSITE_METADATA: WebsiteMetadataDraft = {
     en: {
         title: 'Beijing Academy · International Education',
+        shortTitle: '',
         description: 'The Beijing Academy Education Group offers AP, Cambridge Lower Secondary, and A Level programs through Beijing Academy International Division and the International School of Beijing Academy.',
         googleSiteVerification: '',
         navbar: NAVBAR_EN,
@@ -188,6 +190,7 @@ export const DEFAULT_WEBSITE_METADATA: WebsiteMetadataDraft = {
     },
     zh: {
         title: '北京中学 · 国际教育项目',
+        shortTitle: '',
         description: '北京中学教育集团通过北京中学国际部 (BAID) 和北中外籍人员子女学校 (ISBA) 提供 AP、剑桥国际初中及 A Level 项目。',
         googleSiteVerification: '',
         navbar: NAVBAR_ZH,
@@ -253,6 +256,7 @@ export function normalizeWebsiteMetadataContent(
     const footer = isRecord(value.footer) ? value.footer : {}
     return {
         title: stringValue(value.title, fallback.title),
+        shortTitle: stringValue(value.shortTitle, fallback.shortTitle).trim(),
         description: stringValue(value.description, fallback.description),
         googleSiteVerification: stringValue(value.googleSiteVerification, fallback.googleSiteVerification).trim(),
         navbar: normalizeLinks(value.navbar, fallback.navbar, 'navbar'),

@@ -4,6 +4,7 @@ import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata
 
 export async function retrieveMetadata(slugs: string[] | null, preferredLanguage?: 'en' | 'zh'): Promise<{
     title: string,
+    documentTitle?: string,
     description: string,
     urlEN: string,
     urlZH: string,
@@ -48,7 +49,9 @@ export async function retrieveMetadata(slugs: string[] | null, preferredLanguage
             siteName: siteContent.title
         }
     }
+    const titleSuffix = entity.type === 'page' ? siteContent.title : siteContent.shortTitle.trim() || siteContent.title
     return {
+        documentTitle: `${language === 'en' ? entity.titlePublishedEN : entity.titlePublishedZH} | ${titleSuffix}`,
         title: language === 'en'
             ? `${entity.titlePublishedEN} | ${siteContent.title}`
             : `${entity.titlePublishedZH} | ${siteContent.title}`,

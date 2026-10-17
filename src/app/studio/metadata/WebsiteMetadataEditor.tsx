@@ -552,7 +552,21 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                                    }}/>
                                     </div>
                                     <div>
-                                        <div className="mb-2 block"><Label htmlFor={`website-description-${language}`}>说明</Label></div>
+                                        <div className="mb-2 block"><Label
+                                            htmlFor={`website-short-title-${language}`}>短标题</Label></div>
+                                        <TextInput id={`website-short-title-${language}`} value={content.shortTitle}
+                                                   disabled={!canWrite} lang={inputLang}
+                                                   onChange={event => {
+                                                       const value = event.currentTarget.value
+                                                       updateLanguageContent(current => ({
+                                                           ...current,
+                                                           shortTitle: value
+                                                       }))
+                                                   }}/>
+                                    </div>
+                                    <div>
+                                        <div className="mb-2 block"><Label
+                                            htmlFor={`website-description-${language}`}>网站简介</Label></div>
                                         <Textarea id={`website-description-${language}`} rows={4}
                                                   value={content.description} disabled={!canWrite} lang={inputLang} required
                                                   onChange={event => {

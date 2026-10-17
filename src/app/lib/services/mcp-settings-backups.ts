@@ -18,6 +18,7 @@ const text = z.string().max(10000)
 const link = z.object({ id: z.string().min(1).max(200), name: text, url: text }).strict()
 const metadata = z.object({
     title: text,
+    shortTitle: text.optional(),
     description: text,
     googleSiteVerification: text.optional(),
     navbar: z.array(link).max(100),
