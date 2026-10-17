@@ -169,8 +169,11 @@ async function runFeishuAily(prompt: string, articleContent: string, cancellatio
             )
             debug?.('Feishu chat status', { chatId, pollCount, status: result.data?.status })
             if (result.data?.status === 'Completed') {
-                const text = result.data.content?.[0]?.text
-                if (typeof text !== 'string') {
+                const text = result.data.content
+                    ?.map(block => block.text)
+                    .filter((text): text is string => typeof text === 'string')
+                    .join('\n\n')
+                if (!text?.trim()) {
                     throw new Error('Feishu Aily response is missing the chat content')
                 }
                 return text

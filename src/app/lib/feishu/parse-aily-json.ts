@@ -4,12 +4,13 @@ function isObject(value: unknown): value is Record<string, unknown> {
 
 // Some Aily responses put literal quotation marks or line breaks in JSON strings.
 // A closing quote must be followed by a JSON separator, key/value colon, or EOF.
-function repairStrings(source: string): string {
+function repairStrings(source: string, offsets?: number[]): string {
     let result = ''
     let quoted = false
     let escaped = false
     for (let index = 0; index < source.length; index++) {
         const char = source[index]
+        const previousLength = result.length
         if (!quoted) {
             if (char === '"') quoted = true
             result += char
@@ -27,6 +28,9 @@ function repairStrings(source: string): string {
             if (closes) quoted = false
         } else {
             result += char === '\n' ? '\\n' : char === '\r' ? '\\r' : char === '\t' ? '\\t' : char
+        }
+        if (offsets) {
+            for (let added = previousLength; added < result.length; added++) offsets[added] = index
         }
     }
     return result
@@ -66,15 +70,18 @@ function parseResponse(raw: string, depth: number): Record<string, unknown> {
     }
 
     const candidates: Record<string, unknown>[] = []
-    // Repair only after strict decoding failed, so valid article text stays intact.
-    for (const extracted of [ source, repairStrings(source) ]) {
-        for (let start = 0; start < extracted.length; start++) {
-            if (extracted[start] !== '{' && extracted[start] !== '[') continue
+    // Start at each possible object so introductory prose cannot consume the result.
+    for (let start = 0; start < source.length; start++) {
+        if (source[start] !== '{') continue
+        let matchedEnd: number | undefined
+        // Repair the candidate alone: quotes in introductory prose are ordinary text.
+        const offsets: number[] = []
+        const original = source.slice(start)
+        for (const extracted of [ original, repairStrings(original, offsets) ]) {
             const stack: string[] = []
             let quoted = false
             let escaped = false
-            let end = start
-            for (; end < extracted.length; end++) {
+            for (let end = 0; end < extracted.length; end++) {
                 const char = extracted[end]
                 if (quoted) {
                     if (escaped) escaped = false
@@ -86,20 +93,23 @@ function parseResponse(raw: string, depth: number): Record<string, unknown> {
                 else if (char === '{' || char === '[') stack.push(char)
                 else if (char === '}' || char === ']') {
                     const expected = char === '}' ? '{' : '['
-                    if (stack.pop() !== expected) throw new Error('Mismatched brackets in AI JSON response')
+                    if (stack.pop() !== expected) break
                     if (stack.length === 0) {
                         try {
-                            const candidate: unknown = JSON.parse(extracted.slice(start, end + 1))
-                            if (isObject(candidate)) candidates.push(candidate)
-                        } catch { /* Keep looking for a complete object. */
+                            const candidate: unknown = JSON.parse(extracted.slice(0, end + 1))
+                            if (isObject(candidate)) {
+                                candidates.push(candidate)
+                                matchedEnd = start + (extracted === original ? end : offsets[end])
+                            }
+                        } catch { /* Continue with recovery or the next opening brace. */
                         }
                         break
                     }
                 }
             }
-            start = end
+            if (matchedEnd !== undefined) break
         }
-        if (candidates.length > 0) break
+        if (matchedEnd !== undefined) start = matchedEnd
     }
     if (candidates.length > 1) throw new Error('Multiple JSON objects in AI response')
     if (candidates.length === 0) throw new Error('AI response contains malformed or incomplete JSON')
