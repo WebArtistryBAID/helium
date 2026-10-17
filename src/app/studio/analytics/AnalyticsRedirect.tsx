@@ -29,11 +29,11 @@ export default function AnalyticsRedirect() {
         void openAnalytics()
     }, [])
 
-    return <div className="p-8">
-        <h1 className="mb-4 text-2xl font-bold">统计数据</h1>
+    return <div className="p-16">
+        <h1 className="text-2xl mb-3">统计数据</h1>
         {error ? <div role="alert">
             <p className="mb-4 text-red-600">{error}</p>
             <Button onClick={() => void openAnalytics()}>重试</Button>
-        </div> : <p role="status">正在登录统计服务…</p>}
+        </div> : <p role="status">请稍等，正在加载统计数据...</p>}
     </div>
 }
