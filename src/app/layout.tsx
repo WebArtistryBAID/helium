@@ -19,6 +19,8 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
+    const websiteMetadata = await getPublishedWebsiteMetadata()
+    const extraHeadHtml = websiteMetadata.en.extraHeadHtml || websiteMetadata.zh.extraHeadHtml
     const pathname = (await headers()).get('X-Invoke-Path') || '/'
     const locale =
         pathname.startsWith('/zh') ||
@@ -28,10 +30,9 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
     return (
         <html lang={locale} suppressHydrationWarning>
-        <head>
-            <ThemeInit/>
-        </head>
+        <head dangerouslySetInnerHTML={{ __html: extraHeadHtml }}/>
         <body className="antialiased">
+        <ThemeInit/>
         <NextTopLoader showSpinner={false}/>
         <ThemeProvider props={{ modal: { dismissible: true } }} theme={{
             modal: {

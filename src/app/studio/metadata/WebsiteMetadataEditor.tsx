@@ -323,6 +323,18 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
         }))
     }
 
+    function updateExtraHeadHtml(value: string) {
+        if (!canWrite) {
+            showPermissionDenied()
+            return
+        }
+        setDraft(current => ({
+            ...current,
+            en: { ...current.en, extraHeadHtml: value },
+            zh: { ...current.zh, extraHeadHtml: value }
+        }))
+    }
+
     function addNavbarItem() {
         const id = newItemId('navbar')
         pendingFocusRef.current = `navbar-${language}-${id}-name`
@@ -577,19 +589,6 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                                       }))
                                                   }}/>
                                     </div>
-                                    <div>
-                                        <div className="mb-2 block">
-                                            <Label htmlFor="website-google-site-verification">Google Search Console
-                                                网站验证</Label>
-                                        </div>
-                                        <TextInput id="website-google-site-verification"
-                                                   value={content.googleSiteVerification}
-                                                   disabled={!canWrite}
-                                                   autoComplete="off"
-                                                   spellCheck={false}
-                                                   aria-describedby="website-google-site-verification-description"
-                                                   onChange={event => updateGoogleSiteVerification(event.currentTarget.value)}/>
-                                    </div>
                                 </div>
                             </div>
 
@@ -776,6 +775,34 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                             </p>
                                             : null}
                                     </div>)}
+                                </div>
+                            </section>
+
+                            <section className="rounded-3xl bg-gray-50 p-8">
+                                <h2 className="mb-6 text-xl font-bold">高级设置</h2>
+                                <div className="space-y-6">
+                                    <div>
+                                        <div className="mb-2 block">
+                                            <Label htmlFor="website-google-site-verification">Google Search Console
+                                                网站验证</Label>
+                                        </div>
+                                        <TextInput id="website-google-site-verification"
+                                                   value={content.googleSiteVerification}
+                                                   disabled={!canWrite}
+                                                   autoComplete="off"
+                                                   spellCheck={false}
+                                                   aria-describedby="website-google-site-verification-description"
+                                                   onChange={event => updateGoogleSiteVerification(event.currentTarget.value)}/>
+                                    </div>
+                                    <div>
+                                        <div className="mb-2 block">
+                                            <Label htmlFor="website-extra-head-html">{'额外 <head> 标签'}</Label>
+                                        </div>
+                                        <Textarea id="website-extra-head-html" rows={8}
+                                                  value={content.extraHeadHtml} disabled={!canWrite}
+                                                  className="font-mono" spellCheck={false}
+                                                  onChange={event => updateExtraHeadHtml(event.currentTarget.value)}/>
+                                    </div>
                                 </div>
                             </section>
                         </div>

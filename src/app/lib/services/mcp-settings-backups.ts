@@ -21,6 +21,7 @@ const metadata = z.object({
     shortTitle: text.optional(),
     description: text,
     googleSiteVerification: text.optional(),
+    extraHeadHtml: z.string().max(100000).optional(),
     navbar: z.array(link).max(100),
     footer: z.object({
         items: z.array(link.extend({ subItems: z.array(link).max(100) })).max(100), phoneText: text, emailText: text,
@@ -60,6 +61,7 @@ export async function saveMcpMetadata(actor: OperationActor, raw: unknown) {
         const en = normalizeWebsiteMetadataContent(input.draft.en, 'en')
         const zh = normalizeWebsiteMetadataContent(input.draft.zh, 'zh')
         zh.googleSiteVerification = en.googleSiteVerification = en.googleSiteVerification || zh.googleSiteVerification
+        zh.extraHeadHtml = en.extraHeadHtml = en.extraHeadHtml || zh.extraHeadHtml
         zh.footer.chineseWebsiteUrl = en.footer.chineseWebsiteUrl = en.footer.chineseWebsiteUrl || zh.footer.chineseWebsiteUrl
         zh.footer.icpNumber = en.footer.icpNumber = en.footer.icpNumber || zh.footer.icpNumber
         const updated = await tx.contentEntity.update({

@@ -75,6 +75,7 @@ export async function saveWebsiteMetadata(actor: OperationActor,
     const sharedGoogleSiteVerification = en.googleSiteVerification || zh.googleSiteVerification
     en.googleSiteVerification = sharedGoogleSiteVerification
     zh.googleSiteVerification = sharedGoogleSiteVerification
+    en.extraHeadHtml = zh.extraHeadHtml = en.extraHeadHtml || zh.extraHeadHtml
     const sharedChineseWebsiteUrl = en.footer.chineseWebsiteUrl || zh.footer.chineseWebsiteUrl
     const sharedIcpNumber = en.footer.icpNumber || zh.footer.icpNumber
     en.footer.chineseWebsiteUrl = sharedChineseWebsiteUrl
