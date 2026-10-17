@@ -14,6 +14,8 @@ import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { Metadata } from 'next'
 import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 import { parsePuckData } from '@/app/lib/puck/puck-data'
+import StructuredData from '@/app/lib/seo/StructuredData'
+import { getSiteOrigin } from '@/app/lib/seo/site-url'
 
 export async function generateMetadata({ params }: {
     params: Promise<{ slug: string[] | undefined }>
@@ -141,6 +143,9 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
                 <GlobalHeader websiteMetadata={websiteMetadata}
                               transparentNavbar={entity.transparentNavbarPublished ?? false}/>
                 <main id="main-content" tabIndex={-1}>
+                    <StructuredData origin={getSiteOrigin()} locale={finalLocale as 'en' | 'zh'}
+                                    pathname={newRoute.join('/')} metadata={websiteMetadata} entity={entity}
+                                    uploadPath={await getUploadServePath()}/>
                     <AnyContentEntityPage entity={entity} params={params}/>
                 </main>
                 <GlobalFooter websiteMetadata={websiteMetadata}/>
@@ -161,6 +166,9 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
             <GlobalHeader websiteMetadata={websiteMetadata}
                           transparentNavbar={entity.transparentNavbarPublished ?? false}/>
             <main id="main-content" tabIndex={-1}>
+                <StructuredData origin={getSiteOrigin()} locale={finalLocale as 'en' | 'zh'}
+                                pathname={slug === '/' ? '' : slug} metadata={websiteMetadata} entity={entity}
+                                uploadPath={await getUploadServePath()}/>
                 <CopyImageId imageIds={collectImageIds(pageData)} locale={finalLocale}>
                     <Render config={PUCK_CONFIG} data={pageData}/>
                 </CopyImageId>
