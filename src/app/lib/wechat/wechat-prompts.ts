@@ -218,6 +218,19 @@ export const MCP_TRANSLATION_INSTRUCTIONS = `
 如果有专有名词没有在对照表中列出，请首先在网上搜索其官方英文名称，若没有官方英文名称，请保留中文原名，不要翻译。
 `
 
+const AILY_JSON_OUTPUT_INSTRUCTIONS = String.raw`
+## 最终 JSON 序列化要求
+- 最终回复为单个可由 JSON.parse 直接解析的 JSON 对象，首个字符为 {，末个字符为 }。所有指定字段直接位于对象顶层，每个字段出现一次，值使用字符串。
+- 回复仅包含该对象。Markdown 结构保存在 content 字符串内部；对象外保持纯 JSON，省略代码围栏与说明文字。
+- content 直接保存文章正文。整个对象只序列化一次，保持 title 与 content 为同级字段。
+- 字段名与字符串边界使用 ASCII 双引号。正文与标题中的每个 ASCII 双引号转义为 \"，包括引用、HTML 属性与代码中的双引号。
+- 字符串中的每个反斜杠转义为 \\。实际换行编码为 \n，段落间的空行编码为 \n\n，制表符编码为 \t；字符串内的控制字符均使用 JSON 转义。
+- 区分换行与字面文本：实际换行编码为 \n；原文中的字面反斜杠加 n 编码为 \\n，使 JSON 解析后的正文保留原来的含义。
+- 保留 Markdown 与图片链接的原始含义，按 JSON 字符串规则完成转义；解析后应还原完整正文。
+- 字段之间使用逗号，最后一个字段的值后直接闭合对象。
+- 提交前在内部检查完整回复的 JSON 语法，尤其检查正文引号、反斜杠与段落换行；完成修正后直接返回最终对象。
+`
+
 export const TRANSLATE_LITERAL = `
 在上传的附件中，有一篇**中文 Markdown** 校园新闻: 第一行是原标题（已以 \`#\` 开头给出），其后是正文 Markdown。你的任务是在保留中文大意和关键细节的前提下**流畅、自然地翻译为英文**，并且去除任何 Chinglish 表达，适当地重写文章使其符合英文表达习惯，并以**JSON** 返回结构化结果。
 
@@ -246,7 +259,7 @@ export const TRANSLATE_LITERAL = `
 
 ## 输出格式（仅输出 JSON 对象；不要使用代码块围栏）
 {
-  "content": "...Markdown in English...",
+  "content": "The teacher said: \\\"Every lesson counts.\\\"\\n\\n![Photo](photo.jpeg)",
   "title": "English Title"
 }
 必须直接输出文本 JSON 对象，禁止生成文件。
@@ -267,6 +280,7 @@ export const TRANSLATE_LITERAL = `
 专有名词: ${PROPER_NOUNS}
 
 如果有专有名词没有在对照表中列出，请首先在网上搜索其官方英文名称，若没有官方英文名称，请保留中文原名，不要翻译。
+${AILY_JSON_OUTPUT_INSTRUCTIONS}
 `
 
 export const SANITIZE_LITERAL = `
@@ -298,7 +312,7 @@ export const SANITIZE_LITERAL = `
 
 ## 输出格式（必须是一个 JSON 对象）
 {
-  "content": "...Markdown...",
+  "content": "学校开展\\\"教学体检\\\"。\\n\\n![教师分享](photo.jpeg)",
   "title": "文章标题",
   "date": "yyyy-MM-dd",
   "category": "Academics"
@@ -306,4 +320,5 @@ export const SANITIZE_LITERAL = `
 **仅输出 JSON，不要包含解释或多余文本。**
 必须直接输出文本 JSON 对象，禁止生成文件。
 在处理前，先根据以上规则完成图片筛除与链接前缀替换，再进行字段提取与排版。
+${AILY_JSON_OUTPUT_INSTRUCTIONS}
 `
