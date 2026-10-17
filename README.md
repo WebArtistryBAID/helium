@@ -18,7 +18,7 @@ BAID's website. Built with Next.js.
 [![Prisma](https://img.shields.io/badge/Prisma-7-2D3748?logo=prisma&logoColor=white)](https://www.prisma.io)
 [![PostgreSQL](https://img.shields.io/badge/PostgreSQL-required-4169E1?logo=postgresql&logoColor=white)](https://www.postgresql.org)
 
-[Overview](#overview) · [Development](#development) · [Environment Variables](#environment-variables) · [Contribution](#contribution) · [License](#license)
+[Overview](#overview) · [Development](#development) · [Production](#production) · [Environment Variables](#environment-variables) · [Contribution](#contribution) · [License](#license)
 
 </div>
 
@@ -65,6 +65,8 @@ It was originally developed by Lin Donglai and is now maintained by WebArtistry 
     * **Asset optimization.** Images are automatically optimized and converted to WebP format when they are uploaded.
     * **Automated backups.** All `ContentEntity` objects are periodically backed up to a ZIP file, which can be
       downloaded and restored by admins.
+  * **Umami integration.** Admins can open Umami through the Studio sidebar. Helium verifies admin access and
+    signs into a configured Umami account automatically.
 
 ## Development
 
@@ -161,31 +163,99 @@ server {
 }
 ```
 
+### Umami Analytics
+
+Umami runs as a separate application with its own PostgreSQL database. Follow
+the [Umami installation instructions](https://docs.umami.is/docs/install)
+to install a release.
+
+1. In Umami's directory, configure its `.env` with a separate database and the analytics subpath:
+
+   ```dotenv
+   DATABASE_URL=postgresql://umami:password@127.0.0.1:5432/umami
+   BASE_PATH=/analytics
+   HOSTNAME=127.0.0.1
+   PORT=13888
+   CLIENT_IP_HEADER=x-forwarded-for
+   ```
+
+   Make sure `X-Forwarded-For` is configured properly so Umami country statistics are accurate.
+
+2. Install dependencies and build Umami, then start it with the environment-aware script:
+
+   ```bash
+   pnpm install
+   pnpm run build
+   pm2 start pnpm --name umami -- run start:env
+   pm2 save
+   ```
+
+3. Add both locations below to the same Nginx `server` block that serves Helium. The `proxy_pass` values preserve the
+   `/analytics` prefix. Keep these locations the same as Umami's `BASE_PATH` and port.
+
+   ```nginx
+   location = /analytics {
+       proxy_pass http://127.0.0.1:13888;
+       proxy_set_header Host $host;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+   }
+
+   location ^~ /analytics/ {
+       proxy_pass http://127.0.0.1:13888;
+       proxy_set_header Host $host;
+       proxy_set_header X-Real-IP $remote_addr;
+       proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+       proxy_set_header X-Forwarded-Proto $scheme;
+   }
+   ```
+
+4. Open `/analytics` on the public website and sign into Umami. Its initial credentials are `admin` / `umami`; change
+   the password immediately. Create or select the Umami account that Helium admins will share. Do not use 2FA.
+
+5. In Helium's `.env`, configure the relative dashboard path and that Umami account's credentials:
+
+   ```dotenv
+   ANALYTICS_HOST=/analytics
+   UMAMI_USERNAME=helium-analytics
+   UMAMI_PASSWORD=replace-with-the-account-password
+   ```
+
+   Making sure that the analytics host is under the same origin of Helium itself.
+
+6. In Umami, add the school website. Copy the tracking snippets into the "website metadata" section.
+
+7. Setup complete!
+
 ## Environment Variables
 
-| Name                         | Description                                                                                                                                                                                                                             |
-|------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `DATABASE_URI`               | The database URI to use. PostgreSQL is required.                                                                                                                                                                                        |
-| `HOST`                       | The absolute URL where Helium is hosted. No trailing slashes. For example, `http://localhost:3000` in development or `https://baid.beijingacademy.com.cn` in production.                                                                |
-| `UPLOAD_PATH`                | The directory where uploaded files are stored. In development, use `public/uploads` to have the Next.js development server serve uploaded files.                                                                                        |
-| `UPLOAD_SERVE_PATH`          | The relative URL where uploaded files are served. In development, this is `uploads`.                                                                                                                                                    |
-| `BACKUP_PATH`                | Directory for content backups. Defaults to `backups` in the working directory. Must not be inside `UPLOAD_PATH` or any other publicly served directory, because backups include unpublished drafts.                                     |
-| `ONELOGIN_HOST`              | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                                                                                                                         |
-| `ONELOGIN_CLIENT_ID`         | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                                                                                                                                    |
-| `ONELOGIN_CLIENT_SECRET`     | OneLogin client secret.                                                                                                                                                                                                                 |
-| `JWT_SECRET`                 | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.                                                                                                                                                            |
-| `FFMPEG_PATH`                | Optional path to the FFmpeg executable used to generate video thumbnails. Defaults to `ffmpeg` on `PATH`.                                                                                                                               |
-| `CRON_KEY`                   | Secret key required by cron-only API endpoints. Generate one with `openssl rand -hex 32`.                                                                                                                                               |
-| `FEISHU_CLIENT_ID`           | Feishu app used for approval notifications. Starts with `cli_`.                                                                                                                                                                         |
-| `FEISHU_CLIENT_SECRET`       | Feishu app used for approval notifications.                                                                                                                                                                                             |
-| `FEISHU_AI_CLIENT_ID`        | Another Feishu app used for translating and sanitizing WeChat imports. Starts with `cli_`.                                                                                                                                              |
-| `FEISHU_AI_CLIENT_SECRET`    | Another Feishu app used for translating and sanitizing WeChat imports.                                                                                                                                                                  |
-| `FEISHU_AILY_AGENT_ID`       | Another Feishu app used for translating and sanitizing WeChat imports. You must create an agent and paste the agent ID here. Starts with `agent_`. It's in the browser address bar.                                                     |
-| `NEXT_PORT`                  | Port used by the production Next.js server. Defaults to `52323`.                                                                                                                                                                        |
-| `HOCUSPOCUS_PORT`            | Local port for the Plate collaboration server. Defaults to `1234`.                                                                                                                                                                      |
-| `HOCUSPOCUS_INTERNAL_URL`    | Server-only HTTP base URL for MCP editor requests to Hocuspocus, such as `http://127.0.0.1:1234`. Set this to bypass the reverse proxy if you set up one in production. If omitted, requests fall back to `NEXT_PUBLIC_HOCUSPOCUS_URL`. |
-| `NEXT_PUBLIC_HOCUSPOCUS_URL` | Browser WebSocket URL for Plate collaboration, such as `ws://192.168.1.20/collaboration/`. Set this before running `npm run build`.                                                                                                     |
-| `SERVER_ACTIONS_ALLOWED_ORIGINS`| Comma-separated hosts (e.g. `example.com,10.0.0.5:8523`) allowed to call server actions when the browser origin differs from the `Host` header, such as behind a reverse proxy. Defaults to the BAID production hosts. Set this before running `npm run build`.|
+| Name                             | Description                                                                                                                                                                                                                                                     |
+|----------------------------------|-----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `DATABASE_URI`                   | The database URI to use. PostgreSQL is required.                                                                                                                                                                                                                |
+| `HOST`                           | The absolute URL where Helium is hosted. No trailing slashes. For example, `http://localhost:3000` in development or `https://baid.beijingacademy.com.cn` in production.                                                                                        |
+| `ANALYTICS_HOST`                 | Same-origin relative path to Umami, default `/analytics`. Must match Umami's build-time `BASE_PATH` and the Nginx locations.                                                                                                                                    |
+| `UMAMI_USERNAME`                 | Server-only username of the Umami account used by the admin analytics shortcut.                                                                                                                                                                                 |
+| `UMAMI_PASSWORD`                 | Server-only password of that Umami account. Automatic login requires a full session token from password login.                                                                                                                                                  |
+| `UPLOAD_PATH`                    | The directory where uploaded files are stored. In development, use `public/uploads` to have the Next.js development server serve uploaded files.                                                                                                                |
+| `UPLOAD_SERVE_PATH`              | The relative URL where uploaded files are served. In development, this is `uploads`.                                                                                                                                                                            |
+| `BACKUP_PATH`                    | Directory for content backups. Defaults to `backups` in the working directory. Must not be inside `UPLOAD_PATH` or any other publicly served directory, because backups include unpublished drafts.                                                             |
+| `ONELOGIN_HOST`                  | The location where [OneLogin](https://github.com/WebArtistryBAID/baid-onelogin) is hosted. No trailing slashes.                                                                                                                                                 |
+| `ONELOGIN_CLIENT_ID`             | OneLogin client ID. `basic`, `phone`, and `sms` scopes are required.                                                                                                                                                                                            |
+| `ONELOGIN_CLIENT_SECRET`         | OneLogin client secret.                                                                                                                                                                                                                                         |
+| `JWT_SECRET`                     | The JWT secret key to use. You can generate one with `openssl rand -hex 32`.                                                                                                                                                                                    |
+| `FFMPEG_PATH`                    | Optional path to the FFmpeg executable used to generate video thumbnails. Defaults to `ffmpeg` on `PATH`.                                                                                                                                                       |
+| `CRON_KEY`                       | Secret key required by cron-only API endpoints. Generate one with `openssl rand -hex 32`.                                                                                                                                                                       |
+| `FEISHU_CLIENT_ID`               | Feishu app used for approval notifications. Starts with `cli_`.                                                                                                                                                                                                 |
+| `FEISHU_CLIENT_SECRET`           | Feishu app used for approval notifications.                                                                                                                                                                                                                     |
+| `FEISHU_AI_CLIENT_ID`            | Another Feishu app used for translating and sanitizing WeChat imports. Starts with `cli_`.                                                                                                                                                                      |
+| `FEISHU_AI_CLIENT_SECRET`        | Another Feishu app used for translating and sanitizing WeChat imports.                                                                                                                                                                                          |
+| `FEISHU_AILY_AGENT_ID`           | Another Feishu app used for translating and sanitizing WeChat imports. You must create an agent and paste the agent ID here. Starts with `agent_`. It's in the browser address bar.                                                                             |
+| `NEXT_PORT`                      | Port used by the production Next.js server. Defaults to `52323`.                                                                                                                                                                                                |
+| `HOCUSPOCUS_PORT`                | Local port for the Plate collaboration server. Defaults to `1234`.                                                                                                                                                                                              |
+| `HOCUSPOCUS_INTERNAL_URL`        | Server-only HTTP base URL for MCP editor requests to Hocuspocus, such as `http://127.0.0.1:1234`. Set this to bypass the reverse proxy if you set up one in production. If omitted, requests fall back to `NEXT_PUBLIC_HOCUSPOCUS_URL`.                         |
+| `NEXT_PUBLIC_HOCUSPOCUS_URL`     | Browser WebSocket URL for Plate collaboration, such as `ws://192.168.1.20/collaboration/`. Set this before running `npm run build`.                                                                                                                             |
+| `SERVER_ACTIONS_ALLOWED_ORIGINS` | Comma-separated hosts (e.g. `example.com,10.0.0.5:8523`) allowed to call server actions when the browser origin differs from the `Host` header, such as behind a reverse proxy. Defaults to the BAID production hosts. Set this before running `npm run build`. |
 
 ## Contribution
 

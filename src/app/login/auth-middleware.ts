@@ -34,7 +34,7 @@ export default async function authMiddleware(req: NextRequest): Promise<NextResp
     const pathname = req.nextUrl.pathname
     if (pathname === '/studio' || pathname.startsWith('/studio/')) {
         const user = await getMyUser()
-        const adminOnly = ['/studio/users', '/studio/backups'].some(path => pathname === path || pathname.startsWith(`${path}/`))
+        const adminOnly = [ '/studio/users', '/studio/backups', '/studio/analytics' ].some(path => pathname === path || pathname.startsWith(`${path}/`))
         if (!user?.roles.includes(Role.writer) || (adminOnly && !user.roles.includes(Role.admin))) {
             if (req.method !== 'GET' && req.method !== 'HEAD') {
                 return NextResponse.json({ error: 'Permission denied' }, { status: 403 })
