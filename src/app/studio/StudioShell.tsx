@@ -149,6 +149,11 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                                         </SidebarItem>
                                     </Link>
                                 </If>
+                                <a href="/analytics">
+                                    <SidebarItem as="div" icon={HiPresentationChartBar}>
+                                        统计数据
+                                    </SidebarItem>
+                                </a>
                                 <Link href="/studio/settings">
                                     <SidebarItem as="div" icon={HiCog}>
                                         设置
