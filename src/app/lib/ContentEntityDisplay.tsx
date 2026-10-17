@@ -27,6 +27,8 @@ export default function ContentEntityDisplay({
     uploadPrefix: string
 }) {
     const isPeoplePage = type === EntityType.faculty
+    const hasMatchingNames = isPeoplePage && Boolean(title?.trim()) && title?.trim() === subtitle?.trim()
+    const nameLanguage = hasMatchingNames ? 'en' : locale
     const displayDate = typeof createdAt === 'string' ? new Date(createdAt) : createdAt
 
     return <CopyImageId imageIds={collectImageIds([ images, coverImage ])} locale={locale}>
@@ -35,9 +37,9 @@ export default function ContentEntityDisplay({
                 <div
                     className="flex flex-col gap-7 border-b border-gray-900 pb-6 sm:flex-row sm:items-end sm:justify-between sm:gap-10">
                     <h1 className="min-w-0 text-left text-4xl leading-tight tracking-tight sm:text-6xl">
-                        <p lang={locale}
-                           className={`font-bold ${locale === 'zh' ? 'text-[0.85em] tracking-wide' : ''}`}>{title}</p>
-                        {subtitle && <p lang={locale === 'en' ? 'zh' : 'en'}
+                        <p lang={nameLanguage}
+                           className={`font-bold ${nameLanguage === 'zh' ? 'text-[0.85em] tracking-wide' : ''}`}>{title}</p>
+                        {subtitle && !hasMatchingNames && <p lang={locale === 'en' ? 'zh' : 'en'}
                                         className={`mt-2 opacity-80 ${locale === 'en' ? 'text-[0.425em] tracking-normal' : 'text-[0.5em]'}`}>{subtitle}</p>}
                     </h1>
                     {coverImage && <img
