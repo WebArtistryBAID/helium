@@ -3,7 +3,7 @@ import { getSiteOrigin } from '@/app/lib/seo/site-url'
 
 export default function robots(): MetadataRoute.Robots {
     return {
-        rules: { userAgent: '*', allow: '/' },
+        rules: { userAgent: '*', allow: '/', disallow: '/studio' },
         sitemap: `${getSiteOrigin()}/sitemap.xml`
     }
 }
