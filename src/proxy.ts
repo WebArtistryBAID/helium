@@ -13,6 +13,8 @@ export default async function proxy(req: NextRequest) {
     for (const middleware of middlewares) {
         if (middleware) return middleware
     }
-    return NextResponse.next()
+    const requestHeaders = new Headers(req.headers)
+    requestHeaders.set('X-Invoke-Path', req.nextUrl.pathname)
+    return NextResponse.next({ request: { headers: requestHeaders } })
 }
 

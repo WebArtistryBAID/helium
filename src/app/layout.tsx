@@ -20,8 +20,9 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function RootLayout({ children }: { children: ReactNode }) {
     const websiteMetadata = await getPublishedWebsiteMetadata()
-    const extraHeadHtml = websiteMetadata.en.extraHeadHtml || websiteMetadata.zh.extraHeadHtml
     const pathname = (await headers()).get('X-Invoke-Path') || '/'
+    const isStudio = pathname === '/studio' || pathname.startsWith('/studio/')
+    const extraHeadHtml = isStudio ? '' : websiteMetadata.en.extraHeadHtml || websiteMetadata.zh.extraHeadHtml
     const locale =
         pathname.startsWith('/zh') ||
         (await cookies()).get('lang')?.value === 'zh'
