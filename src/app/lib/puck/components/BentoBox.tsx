@@ -64,7 +64,7 @@ function BentoBox({
                 <div className="min-w-0 w-full md:w-1/2">
                     <img
                         src="/assets/components/bento/ba.webp"
-                        alt="Campus of Stanford University, where students from BAID have been admitted"
+                        alt="Campus of Beijing Academy with a statue of Confucius"
                         loading="lazy"
                         className="block h-auto w-full max-w-full object-cover rounded-2xl"/>
                 </div>
@@ -100,12 +100,15 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex flex-col items-center gap-4 overflow-hidden p-5 sm:p-6 lg:flex-row lg:gap-3 lg:p-0">
-                <img
-                    src="/assets/components/bento/countries.png"
-                    alt="Hong Kong SAR China, Australia, Japan, United States, Canada, and United Kingdom"
-                    loading="lazy"
-                    className="h-auto w-36 max-w-full shrink-0 object-contain sm:w-40 lg:h-40 lg:w-2/5 lg:translate-y-5 lg:-translate-x-5"/>
+                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex flex-col items-center gap-4 p-5 sm:p-6 lg:flex-row lg:gap-3 lg:p-0">
+                <picture className="my-4 block w-full max-w-sm shrink-0 lg:w-2/5">
+                    <source media="(max-width: 63.999rem)" srcSet="/assets/components/bento/countries-horizontal.webp"/>
+                    <img
+                        src="/assets/components/bento/countries.webp"
+                        alt="China, Australia, France, United States, Canada, and United Kingdom"
+                        loading="lazy"
+                        className="block h-auto w-full max-w-full object-contain lg:h-40"/>
+                </picture>
                 <div className="min-w-0 text-center lg:py-8 lg:pr-6 lg:text-left">
                     <h3
                         className="text-lg mb-1 font-bold"
