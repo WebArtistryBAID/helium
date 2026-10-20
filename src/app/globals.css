@@ -364,8 +364,17 @@ article img {
     }
 }
 
-.alumni-big-pic-box {
-    box-shadow: -2rem 2rem var(--standard-red);
+.alumni-carousel {
+    min-width: 0;
+    overflow: hidden;
+}
+
+.alumni-carousel:has(.swiper-pagination) {
+    padding-bottom: 2rem;
+}
+
+.alumni-carousel .swiper-pagination {
+    bottom: 0;
 }
 
 .project-big-pic-box {

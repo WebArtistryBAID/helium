@@ -100,13 +100,13 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex items-center gap-3 overflow-hidden">
+                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex flex-col items-center gap-4 overflow-hidden p-5 sm:p-6 lg:flex-row lg:gap-3 lg:p-0">
                 <img
                     src="/assets/components/bento/countries.png"
                     alt="Hong Kong SAR China, Australia, Japan, United States, Canada, and United Kingdom"
                     loading="lazy"
-                    className="h-48 transform translate-y-5 -translate-x-5"/>
-                <div className="py-8 pr-8">
+                    className="h-auto w-36 max-w-full shrink-0 object-contain sm:w-40 lg:h-40 lg:w-2/5 lg:translate-y-5 lg:-translate-x-5"/>
+                <div className="min-w-0 text-center lg:py-8 lg:pr-6 lg:text-left">
                     <h3
                         className="text-lg mb-1 font-bold"
                         role="heading">{countriesTitle}</h3>
@@ -198,7 +198,7 @@ function BentoBox({
                     </svg>
                 </div>
 
-                <div className="flex flex-col items-center justify-center px-5 text-center sm:px-8">
+                <div className="flex flex-col items-center justify-center px-5 pb-6 text-center sm:px-8 sm:pb-8">
                     <h3
                         className="text-2xl mb-1 font-bold"
                         role="heading">{academicsTitle}</h3>

@@ -24,7 +24,7 @@ export default function Accreditations({ title, text, accreditations, uploadPref
             <div
                 aria-label="Accreditations carousel"
                 aria-roledescription="carousel"
-                className="w-full md:w-1/2"
+                className="w-full min-w-0 md:w-1/2"
                 role="region">
                 <Swiper aria-live="off" spaceBetween={10} slidesPerView={1}
                         modules={[ A11y, Autoplay, Pagination ]}
@@ -32,17 +32,17 @@ export default function Accreditations({ title, text, accreditations, uploadPref
                     {accreditations?.map((acc, index) =>
                         <SwiperSlide key={index}>
                             <div
-                                className="mx-2 my-6 flex h-48 flex-col items-center justify-center rounded-none bg-white sm:mx-4 sm:h-56 md:mx-8 md:my-12 md:h-72">
+                                className="mx-2 my-6 flex min-h-48 flex-col items-center justify-center gap-4 bg-white px-6 py-8 text-center sm:mx-4 sm:min-h-56 md:mx-8 md:my-12 md:min-h-72">
                                 <img src={`${uploadPrefix}/${acc?.image?.sha1}.webp`} alt={acc?.image?.altText ?? ''}
-                                     className="h-16 md:h-24 mb-3 md:mb-5"/>
-                                <p className="!font-sans text-black text-sm md:text-base">
+                                     className="h-16 w-full max-w-64 object-contain md:h-24"/>
+                                <p className="w-full break-words !font-sans text-sm leading-relaxed text-black md:text-base">
                                     {acc?.name}
                                 </p>
                             </div>
                         </SwiperSlide>)}
                 </Swiper>
             </div>
-            <div className="w-full md:w-1/2">
+            <div className="w-full min-w-0 md:w-1/2">
                 <h2 id="accreditation-heading" className="text-3xl md:text-4xl font-bold mb-2 md:mb-3">
                     {title}
                 </h2>

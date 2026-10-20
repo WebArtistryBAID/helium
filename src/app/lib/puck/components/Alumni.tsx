@@ -25,25 +25,27 @@ export default function Alumni({ title, alumni, uploadPrefix, autoplay = false, 
         <h2 className="mb-8 break-words text-center text-2xl uppercase tracking-widest sm:text-3xl"
             role="heading">{title}</h2>
 
-        <Swiper key={`${autoplayEnabled}-${delay}`} aria-live={autoplayEnabled ? 'off' : 'polite'} spaceBetween={10}
+        <Swiper key={`${autoplayEnabled}-${delay}`} aria-live={autoplayEnabled ? 'off' : 'polite'}
+                className="alumni-carousel" spaceBetween={24}
+                pagination={alumni.length > 1 ? { clickable: true } : false}
                 slidesPerView={1}
                 modules={[ A11y, Autoplay, Pagination ]}
                 autoplay={autoplayEnabled ? { delay, disableOnInteraction: false, pauseOnMouseEnter: true } : false}>
             {alumni.map((alum, index) =>
-                <SwiperSlide key={index}>
+                <SwiperSlide key={index} className="!h-auto overflow-hidden rounded-2xl bg-gray-50">
                     <div aria-roledescription="carousel"
-                         className="flex flex-col items-center gap-6 md:mb-5 md:flex-row md:gap-8" role="region">
-                        <div className="flex w-full items-center px-2 sm:px-6 md:w-1/3 md:pl-8 md:pr-0">
-                            <div className="alumni-big-pic-box h-72 md:h-auto">
+                         className="flex h-full min-w-0 flex-col md:flex-row md:gap-8" role="region">
+                        <div className="w-full min-w-0 shrink-0 md:w-1/3 md:self-stretch">
+                            <div className="mx-auto h-72 w-full max-w-sm sm:h-80 md:h-full md:min-h-96 md:max-w-none">
                                 <FocusImage image={alum?.image} src={`${uploadPrefix}/${alum?.image?.sha1}.webp`}
                                             alt={alum?.image?.altText ?? ''}
-                                     className="w-full h-full object-cover aspect-3/4 transition-all duration-300 block alumni-big-pic"/>
+                                            className="block h-full w-full object-cover"/>
                             </div>
                         </div>
-                        <div className="w-full md:w-2/3">
-                            <div className="p-5 sm:p-8 lg:p-14 xl:p-20">
-                                <div className="transition-all duration-300 md:h-80 justify-center flex flex-col">
-                                    <p className="mb-3 break-words text-xl leading-relaxed sm:text-2xl lg:text-3xl">{alum?.quote}</p>
+                        <div className="w-full min-w-0 md:flex-1">
+                            <div className="p-6 sm:p-8 lg:p-12">
+                                <div className="flex flex-col justify-center">
+                                    <p className="mb-3 break-words text-base leading-relaxed sm:text-lg lg:text-2xl">{alum?.quote}</p>
                                     <p className="text-right">— {alum?.name}</p>
                                 </div>
                             </div>
