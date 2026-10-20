@@ -100,14 +100,14 @@ function BentoBox({
             </div>
 
             <div
-                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex flex-col items-center gap-4 p-5 sm:p-6 lg:flex-row lg:gap-3 lg:p-0">
-                <picture className="my-4 block w-full max-w-sm shrink-0 lg:w-2/5">
+                className="col-span-1 min-w-0 md:col-span-3 row-span-2 lg:col-start-1 lg:col-span-3 lg:row-start-7 lg:row-span-2 bg-gray-50 rounded-3xl flex flex-col items-center gap-4 p-5 sm:p-6 lg:flex-row lg:gap-3 lg:overflow-hidden lg:p-0">
+                <picture className="my-4 block w-full max-w-sm shrink-0 lg:my-0 lg:w-2/5 lg:max-w-none">
                     <source media="(max-width: 63.999rem)" srcSet="/assets/components/bento/countries-horizontal.webp"/>
                     <img
                         src="/assets/components/bento/countries.webp"
                         alt="China, Australia, France, United States, Canada, and United Kingdom"
                         loading="lazy"
-                        className="block h-auto w-full max-w-full object-contain lg:h-40"/>
+                        className="block h-auto w-full max-w-full object-contain lg:h-40 lg:translate-y-5 lg:-translate-x-5"/>
                 </picture>
                 <div className="min-w-0 text-center lg:py-8 lg:pr-6 lg:text-left">
                     <h3
