@@ -1,0 +1,2 @@
+# Commit this file alongside the migration history.
+provider = "postgresql"

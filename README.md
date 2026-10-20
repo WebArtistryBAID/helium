@@ -76,8 +76,8 @@ To run in development:
 2. Install Node.js, npm, and FFmpeg. Ensure that FFmpeg is available on `PATH`, or set `FFMPEG_PATH`.
 3. Run `npm install`.
 4. Set up a PostgreSQL database and set the `DATABASE_URI` environment variable in `.env`.
-5. Run `prisma db push` to create the database schema.
-6. Run `prisma generate` to generate the Prisma client.
+5. Run `npm run db:deploy` to create the database schema.
+6. Run `npm run db:generate` to generate the Prisma client.
 7. Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier) concurrently to
    support WeChat content imports. This external service automatically removes decorative images from WeChat posts to
    enable easier editing. (This isn't strictly necessary.)
@@ -88,6 +88,18 @@ To run in development:
 10. Fill the remaining environment variables.
 11. Run `npm run dev` to start the development server.
 
+### Database Migrations
+
+* After pulling someone else's migrations, run `npm run db:migrate` locally, then
+  `npm run db:generate`.
+
+* To create your own migration, edit `prisma/schema.prisma` and run
+  `npm run db:migrate -- --name <describe_change>`. Commit the schema and the entire
+  `prisma/migrations/` directory together.
+
+* On production, run `npm run db:deploy`, then `npm run db:generate` before building and
+  restarting Helium. **Monitor the messages carefully, do NOT reset the database!**
+
 ## Production
 
 To run in production:
@@ -96,8 +108,8 @@ To run in production:
 2. Install Node.js, npm, and FFmpeg. Ensure that FFmpeg is available on `PATH`, or set `FFMPEG_PATH`.
 3. Run `npm install`.
 4. Set up a PostgreSQL database and set the `DATABASE_URI` environment variable in `.env`.
-5. Run `prisma db push` to create the database schema.
-6. Run `prisma generate` to generate the Prisma client.
+5. For a fresh database, run `npm run db:deploy`.
+6. Run `npm run db:generate` to generate the Prisma client.
 7. Run [decorative-image-classifier](https://github.com/WebArtistryBAID/decorative-image-classifier) in the background.
    You can use `pm2` or `tmux` to run it.
 8. Gain access to the production LinkBAID server, Feishu Aily app, and Feishu notification apps.
