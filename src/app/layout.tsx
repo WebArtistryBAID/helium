@@ -6,6 +6,7 @@ import { ThemeInit } from '../../.flowbite-react/init'
 import { cookies, headers } from 'next/headers'
 import { ThemeProvider } from 'flowbite-react'
 import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
+import parse from 'html-react-parser'
 
 export async function generateMetadata(): Promise<Metadata> {
     const websiteMetadata = await getPublishedWebsiteMetadata()
@@ -31,7 +32,8 @@ export default async function RootLayout({ children }: { children: ReactNode }) 
 
     return (
         <html lang={locale} suppressHydrationWarning>
-        <head dangerouslySetInnerHTML={{ __html: extraHeadHtml }}/>
+        {/* Keep Next.js stylesheet links under React's control during hydration. */}
+        <head>{parse(extraHeadHtml)}</head>
         <body className="antialiased">
         <ThemeInit/>
         <NextTopLoader showSpinner={false}/>

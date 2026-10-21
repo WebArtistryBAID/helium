@@ -42,6 +42,7 @@
     "accept-language": "^3.0.20",
     "concurrently": "^10.0.5",
     "flowbite-react": "0.12.17",
+    "html-react-parser": "^6.1.9",
     "jose": "^6.2.12",
     "lodash.throttle": "^4.1.1",
     "mcp-handler": "^2.2.0",
