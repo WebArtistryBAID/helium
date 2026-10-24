@@ -6,6 +6,7 @@ export const PROPER_NOUNS = `
 北中外籍人员子女学校: International School of Beijing Academy (总是缩写为 ISBA，标题中必须缩写为 ISBA)
 毕业生故事: #GraduateStory
 毕业生特辑: #GraduateFeature
+毕业典礼: commencement ceremony
 喜报: #Congrats
 BAID 故事: #BAIDStory
 BAID 暑期实践: #SummerAtBAID
