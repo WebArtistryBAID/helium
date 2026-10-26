@@ -54,14 +54,14 @@ export default function GlobalFooter({ websiteMetadata }: {
                 <p><a href={`mailto:${content.footer.emailText.trim()}`}>{content.footer.emailText}</a></p>
             </address>
 
-            <div className="flex flex-col sm:flex-row sm:gap-3 mb-5">
-                <div className="w-1/2">
+            <div className="flex flex-col sm:flex-row gap-3">
+                <div className="sm:w-1/2">
                     <p>{content.footer.copyrightText}</p>
                     <p className="break-words"><a
                         href={content.footer.chineseWebsiteUrl}>{content.footer.chineseWebsiteText}</a></p>
-                    <p className="mb-5"><a href="https://beian.miit.gov.cn">{content.footer.icpNumber}</a></p>
+                    <p><a href="https://beian.miit.gov.cn">{content.footer.icpNumber}</a></p>
                 </div>
-                <div className="w-1/2">
+                <div className="sm:w-1/2">
                     <p>The software powering this website is designed by Lin Donglai '27 and Team WebArtistry. The
                         project was launched by Wang Zixuan '24 and Li He '25.</p>
                 </div>
