@@ -65,7 +65,6 @@ async function download(command: string, args: string[], cwd: string, signal: Ab
         child.on('close', (code, exitSignal) => {
             log('Weixin downloader exited', { code, exitSignal, spawnError })
             clearTimeout(forceKill)
-            // Stop remaining downloader descendants before removing their directory.
             if (signal.aborted) kill('SIGKILL')
             signal.removeEventListener('abort', abort)
             if (signal.aborted) reject(signal.reason)
@@ -124,8 +123,6 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
         task.status = status as RunningWeChatTask['status']
         log('Step started', { status })
     }
-    // The bundled downloader owns its HTTP requests. A separate diagnostic request
-    // records Weixin's response while downloader output records the actual import.
     const inspectWeixinResponse = async () => {
         log('Weixin diagnostic request started', { url: link, method: 'GET' })
         try {
@@ -294,7 +291,6 @@ export async function synchronizeWeChatArticle(task: RunningWeChatTask, link: st
                     signal.throwIfAborted()
                 }, { timeout: 60000 })
                 log('Article transaction committed', { postId })
-                // Cancellation can arrive while the transaction is committing.
                 signal.throwIfAborted()
                 await fs.rm(directory, { recursive: true, force: true })
                 log('Temporary article directory removed', { directory })

@@ -2,8 +2,8 @@ function isObject(value: unknown): value is Record<string, unknown> {
     return typeof value === 'object' && value !== null && !Array.isArray(value)
 }
 
-// Some Aily responses put literal quotation marks or line breaks in JSON strings.
-// A closing quote must be followed by a JSON separator, key/value colon, or EOF.
+// I really hate it, but Feishu Aily often returns malformed JSON, NO MATTER how I instruct it,
+// and Feishu Aily doesn't offer a structured output option, so I can only be really lenient here
 function repairStrings(source: string, offsets?: number[]): string {
     let result = ''
     let quoted = false
@@ -58,11 +58,11 @@ function parseResponse(raw: string, depth: number): Record<string, unknown> {
     let value: unknown
     try {
         value = decode(source)
-    } catch { /* Look for fenced JSON or JSON surrounded by prose below. */
+    } catch {
     }
     if (typeof value === 'string') return parseResponse(value, depth + 1)
     if (isObject(value)) {
-        // Aily sometimes wraps the entire response in a content string.
+        // Aily sometimes wraps the entire response in a string
         if (Object.keys(value).length === 1 && typeof value.content === 'string') {
             return parseResponse(value.content, depth + 1)
         }
@@ -70,11 +70,9 @@ function parseResponse(raw: string, depth: number): Record<string, unknown> {
     }
 
     const candidates: Record<string, unknown>[] = []
-    // Start at each possible object so introductory prose cannot consume the result.
     for (let start = 0; start < source.length; start++) {
         if (source[start] !== '{') continue
         let matchedEnd: number | undefined
-        // Repair the candidate alone: quotes in introductory prose are ordinary text.
         const offsets: number[] = []
         const original = source.slice(start)
         for (const extracted of [ original, repairStrings(original, offsets) ]) {

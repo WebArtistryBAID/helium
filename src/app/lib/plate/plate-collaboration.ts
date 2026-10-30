@@ -9,7 +9,6 @@ function plateValueFromContent(content: string): HeliumPlateValue {
         const parsed: unknown = JSON.parse(content)
         if (isPlateValue(parsed)) return parsed
     } catch {
-        // Legacy Markdown content is converted below.
     }
     return deserializeMarkdownToPlate(content)
 }

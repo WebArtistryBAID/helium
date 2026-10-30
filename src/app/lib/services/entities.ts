@@ -185,8 +185,6 @@ export async function refreshPageData(): Promise<void> {
                 parsePuckData(page.contentPublishedZH, page.titlePublishedZH ?? ''), PUCK_CONFIG))
         }
         if (Object.entries(data).every(([ field, value ]) => page[field as keyof typeof data] === value)) continue
-        // A background refresh is not an edit: keep updatedAt (and thus the entity revision) unless
-        // resolved data actually changed, and skip pages saved by an editor since they were read.
         await prisma.contentEntity.updateMany({
             where: { id: page.id, updatedAt: page.updatedAt },
             data: { ...data, updatedAt: page.updatedAt }
@@ -206,7 +204,6 @@ export async function getContentEntityBySlug(slug: string): Promise<PublicConten
     })
 }
 
-// Used by component selections; direct public routes use getContentEntityBySlug.
 export async function getPublishedContentEntity(id: number): Promise<PublicContentEntity | null> {
     return prisma.contentEntity.findFirst({
         where: {
@@ -624,7 +621,6 @@ export async function updateContentEntity(actor: OperationActor, data: {
     if (current?.slug === WEBSITE_METADATA_SLUG) {
         throw new Error('Website metadata must be managed from website settings')
     }
-    // Content-only collaborative saves already committed through Hocuspocus.
     if (Object.entries(data).every(([ key, value ]) => key === 'id' || key === 'expectedFields' || value === undefined)) {
         const entity = await prisma.contentEntity.findUnique({
             where: { id: data.id }, select: HYDRATED_CONTENT_ENTITY_SELECT

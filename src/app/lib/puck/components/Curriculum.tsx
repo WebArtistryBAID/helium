@@ -12,10 +12,8 @@ export default function Curriculum({ title, curricula }: { title: string, curric
     const [ activeDesktopItem, setActiveDesktopItem ] = useState(0)
     const [ activeMobileItem, setActiveMobileItem ] = useState<number | null>(null)
 
-    // Guarded lists for safe rendering
     const safeCurricula = useMemo(() => Array.isArray(curricula) ? curricula : [], [ curricula ])
 
-    // Keep desktop selection in range when data changes
     useEffect(() => {
         if (!safeCurricula.length) {
             setActiveDesktopItem(0)

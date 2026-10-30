@@ -1,4 +1,3 @@
-/** Returns `target` only if it is a same-origin path, so it can be appended to HOST safely. */
 export function safeRedirectPath(target: string | null | undefined): string {
     if (target == null || !target.startsWith('/') || target.startsWith('//') || target.startsWith('/\\')) {
         return '/'

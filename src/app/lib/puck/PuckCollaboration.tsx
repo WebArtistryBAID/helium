@@ -102,12 +102,8 @@ function synchronizePuck(getPuck: GetPuck, target: Data) {
     const changedIds = Array.from(components(target)).filter(([id, component]) =>
         JSON.stringify(previousComponents.get(id)) !== JSON.stringify(component)
     ).map(([id]) => id)
-    // A single action applies the received snapshot without relying on intermediate
-    // selector indexes or publishing partially applied remote changes back to Yjs.
     api.dispatch({ type: 'setData', data: target, recordHistory: false })
     if (changedIds.length > 0) clearPuckResources()
-    // Preview components consume resolved props, which field edits refresh automatically.
-    // Remote snapshots must explicitly run the same resolution after their raw props arrive.
     for (const id of changedIds) {
         void Promise.resolve(getPuck().resolveDataById(id, 'force')).catch(error => {
             console.error('Failed to resolve remote Puck component:', { componentId: id }, error)
@@ -142,8 +138,6 @@ export function usePuckCollaboration({
     const localOrigin = useRef({ source: 'puck' })
     const commentOrigin = useRef({ source: 'puck-comments' })
     const resolvedRoom = useCollaborationRoom(entityId, language, 'puck', enabled)
-    // Each editor instance owns its callbacks and document. Async Puck resolvers
-    // can dispatch after unmount, including after returning to the same language.
     const session = useMemo<PuckSession>(() => ({
         active: false,
         initialData,

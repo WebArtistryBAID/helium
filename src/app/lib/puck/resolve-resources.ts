@@ -10,7 +10,6 @@ export function clearPuckResources() {
 }
 
 function resource<T>(key: string, fetch: () => Promise<T>): Promise<T> {
-    // Server rendering always reads current data; only editor/browser reads share requests.
     if (typeof window === 'undefined') return fetch()
     const cached = resources.get(key)
     if (cached && cached.expires > Date.now()) return cached.promise as Promise<T>

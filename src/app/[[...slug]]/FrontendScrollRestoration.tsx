@@ -46,7 +46,6 @@ export default function FrontendScrollRestoration() {
     useEffect(() => {
         if (!pendingRestoration.current) return
         pendingRestoration.current = false
-        // Apply again once the destination route commits after an async render.
         window.scrollTo({ top: 0, left: 0, behavior: 'instant' })
     }, [ pathname ])
 

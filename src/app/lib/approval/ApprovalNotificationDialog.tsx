@@ -31,7 +31,7 @@ export default function ApprovalNotificationDialog({ entityType, entityId, initi
         setError(null)
         try {
             const result = await requestContentReview({ entityType, entityId, role: options.role, recipientIds: selectedIds })
-            // Remove successful recipients before refreshing so retries only send failures.
+            // Remove successful recipients before refreshing so retries only send failed notifications.
             setSelectedIds(ids => ids.filter(id => !result.sentUserIds.includes(id)))
             if (result.sentUserIds.length > 0) {
                 onSent(result.sentUserIds.length)

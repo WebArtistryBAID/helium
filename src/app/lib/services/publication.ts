@@ -29,7 +29,6 @@ export async function publishDraft(actor: OperationActor, entityId: number, inpu
     let notification: Parameters<typeof sendPublicationNotification>[0] | undefined
     const result = await prisma.$transaction(async tx => {
         if (command) {
-            // Serialize retries across processes before reading or writing a receipt.
             const key = `${user.id}:publish_entity:${command.idempotencyKey}`
             await tx.$queryRaw`SELECT pg_advisory_xact_lock(hashtextextended(${key}, 0))::text`
             const receipt = await tx.mcpOperationReceipt.findUnique({

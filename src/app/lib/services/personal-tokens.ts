@@ -82,7 +82,6 @@ export async function authenticatePersonalToken(token: string): Promise<Operatio
         }
     })
     if (!record || record.revokedAt || (record.expiresAt && record.expiresAt <= now)) return null
-    // This predicate also fences a revocation concurrent with the lookup.
     const active = await prisma.personalToken.updateMany({
         where: { id: record.id, revokedAt: null, OR: [ { expiresAt: null }, { expiresAt: { gt: now } } ] },
         data: { lastUsedAt: now }

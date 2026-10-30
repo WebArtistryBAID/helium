@@ -1,7 +1,6 @@
 import { z } from 'zod'
 import { EntityType, Role } from '@/generated/prisma/client'
 
-// Transport-independent contracts. Services resolve the actor from trusted credentials.
 export type OperationActor = {
     userId: number
     roles: Role[]
@@ -33,7 +32,6 @@ const fieldSchemas = {
     transparentNavbarDraft: z.boolean()
 }
 
-// Patches carry the previous value for every changed field.
 function fieldChange<K extends keyof typeof fieldSchemas>(field: K) {
     const value = fieldSchemas[field]
     return z.object({
@@ -74,7 +72,6 @@ export const searchEntitiesSchema = z.object({
     state: z.enum([ 'all', 'published', 'unpublished' ]).default('all')
 }).strict()
 
-// Editor-specific services additionally validate node types and Puck component props.
 const jsonSchema = z.json()
 const targetSchema = z.string().min(1).max(200)
 export const editorCommandSchema = z.discriminatedUnion('operation', [
@@ -130,7 +127,6 @@ export type PersonalTokenSummary = {
     lastUsedAt: string | null
     revokedAt: string | null
 }
-// Only creation returns the secret; listings expose summaries.
 export type CreatedPersonalToken = { token: string; summary: PersonalTokenSummary }
 export type PersonalSettingsState = {
     feishuLinked: boolean

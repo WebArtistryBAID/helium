@@ -28,8 +28,6 @@ export function coalesceResolver(resolve: Resolver): Resolver {
                     const current = next.args
                     result = await resolve(...current)
                 } while (version !== next.version)
-                // Puck merges results into the input captured before awaiting. Include
-                // the latest raw props so an earlier caller cannot replay older typing.
                 return { ...result, props: { ...next.args[0].props, ...result.props } }
             } finally {
                 pending.delete(id)

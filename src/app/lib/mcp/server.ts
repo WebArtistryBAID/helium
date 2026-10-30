@@ -51,11 +51,9 @@ function result(data: Record<string, unknown>, isError = false) {
     return { content, structuredContent, isError: isError || data.ok === false }
 }
 
-/** Each HTTP request receives its own actor closure, isolating concurrent accounts. */
 export function createHeliumMcpHandler(actor: OperationActor, bearerToken: string) {
     async function execute(action: (current: OperationActor) => Promise<Record<string, unknown> | null>) {
         try {
-            // Recheck revocation before a tool executes, including batched calls.
             const current = await authenticatePersonalToken(bearerToken)
             if (!current || current.userId !== actor.userId) {
                 return result({

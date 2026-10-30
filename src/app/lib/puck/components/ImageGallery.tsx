@@ -92,7 +92,6 @@ function ScrollGallery({ title, slides, uploadPrefix }: {
         const viewport = viewportRef.current
         const track = trackRef.current
         if (!section || !viewport || !track) return
-        // Puck portals render in the preview document while the component runs in the host window.
         const ownerDocument = section.ownerDocument
         const ownerWindow = ownerDocument.defaultView
         if (!ownerWindow) return
@@ -122,7 +121,6 @@ function ScrollGallery({ title, slides, uploadPrefix }: {
         const measure = () => {
             travel = (mobileQuery.matches ? viewport.clientHeight : viewport.clientWidth) * (slides.length - 1)
             buffer = slides.length > 1 ? viewport.clientHeight * 0.25 : 0
-            // The extra page height supplies the slide travel while the viewport stays pinned.
             section.style.height = `${viewport.clientHeight + travel + buffer * 2}px`
             scheduleUpdate()
         }
@@ -133,7 +131,6 @@ function ScrollGallery({ title, slides, uploadPrefix }: {
             if (bounds.top > top + 1 || bounds.bottom < top + viewport.clientHeight - 1) return
             event.preventDefault()
             const scale = event.deltaMode === 1 ? 16 : event.deltaMode === 2 ? viewport.clientHeight : 1
-            // Horizontal trackpad input advances the same page position as vertical input, including exit overshoot.
             scrollTarget.scrollBy({ top: event.deltaX * scale, behavior: 'instant' })
         }
         const resizeObserver = new ResizeObserver(measure)

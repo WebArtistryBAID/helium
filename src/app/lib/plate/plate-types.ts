@@ -98,7 +98,6 @@ export function extractContentImageIds(content: string): number[] {
         const parsed: unknown = JSON.parse(content)
         if (Array.isArray(parsed)) parsed.forEach(visit)
     } catch {
-        // Legacy Markdown was handled by the placeholder expression above.
     }
 
     return Array.from(ids)

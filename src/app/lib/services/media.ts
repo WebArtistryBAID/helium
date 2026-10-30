@@ -73,7 +73,6 @@ export async function getMedia(actor: OperationActor, page: number, mediaTypes: 
         searchWhere = { sha1: query.toLowerCase() }
     } else if (/^\d+$/.test(query)) {
         const id = Number(query)
-        // Image IDs are PostgreSQL integers; out-of-range IDs have no match.
         searchWhere = { id: Number.isSafeInteger(id) && id <= 2147483647 ? id : -1 }
     } else if (query.length > 0) {
         searchWhere = {

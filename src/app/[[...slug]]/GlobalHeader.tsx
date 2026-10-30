@@ -36,7 +36,6 @@ export default function GlobalHeader({ transparentNavbar, websiteMetadata }: {
     const router = useRouter()
     const headerAnimate = transparentNavbar
 
-    // ----- Scroll + visibility state -----
     const [ scrollY, setScrollY ] = useState<number>(0)
     const [ headerVisible, setHeaderVisible ] = useState(true)
     const [ mounted, setMounted ] = useState(false)
@@ -71,12 +70,10 @@ export default function GlobalHeader({ transparentNavbar, websiteMetadata }: {
         return () => window.removeEventListener('scroll', onScroll)
     }, [ mounted ])
 
-    // ----- Styling derived state -----
     const isTransparent = mounted && scrollY < viewportHeight && (headerAnimate || surface === 'gradient')
     const backgroundClass = isTransparent ? 'bg-transparent' : 'bg-white'
     const useBlackText = !isTransparent || (surface !== 'dark' && surface !== 'gradient')
 
-    // ----- Mobile menu state / a11y -----
     const [ mobileOpen, setMobileOpen ] = useState(false)
     const closeButtonRef = useRef<HTMLButtonElement | null>(null)
     const menuButtonRef = useRef<HTMLButtonElement | null>(null)

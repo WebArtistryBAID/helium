@@ -24,7 +24,6 @@ export function getImageFocus(image: FocusImageData) {
     }
 }
 
-// Rectangular viewports expand around the selected square's center.
 export function getFocusGeometry(image: FocusImageData, width: number, height: number) {
     const focus = getImageFocus(image)
     const scale = Math.max(width / image.width, height / image.height) / focus.focusSize

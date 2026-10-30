@@ -48,11 +48,8 @@ export default function StableInlineText({
     const getItemById = usePuckSelector(state => state.getItemById)
     const getSelectorForId = usePuckSelector(state => state.getSelectorForId)
 
-    // Do not rewrite an active editable node. Replacing its children resets the browser selection,
-    // which is especially noticeable when an older asynchronous update arrives after a keystroke.
     useLayoutEffect(() => {
         const element = ref.current
-        // The canvas lives in an iframe; the host document's active element is the iframe.
         if (element != null && element.ownerDocument.activeElement !== element && element.innerText !== value) {
             element.replaceChildren(value)
         }
@@ -136,7 +133,6 @@ export default function StableInlineText({
         onKeyUp={event => event.stopPropagation()}
         onMouseOverCapture={event => event.stopPropagation()}
         onPointerDownCapture={event => {
-            // Preserve the browser's caret placement while keeping the first click out of DnD.
             if (!isReadOnly) event.stopPropagation()
         }}
     />

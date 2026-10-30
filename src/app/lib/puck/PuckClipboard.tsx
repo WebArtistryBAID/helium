@@ -71,7 +71,6 @@ export function PuckClipboardProvider({ children, canWrite }: { children: ReactN
         if (!canWrite) return
         try {
             const selectedId = getPuck().selectedItem?.props.id
-            // Validate and refresh copied content before recording a single insertion.
             const validated = pasteComponent(value, { root: { props: {} }, content: [], zones: {} })
             const resolved = await resolveAllData(validated.data, PUCK_CONFIG)
             const refreshed = JSON.stringify({ format: COMPONENT_CLIPBOARD_FORMAT, component: resolved.content[0], zones: resolved.zones ?? {} })
@@ -147,7 +146,6 @@ export function PuckClipboardProvider({ children, canWrite }: { children: ReactN
             if (!canWrite) return
             const value = event.clipboardData?.getData('text/plain') ?? ''
             if (!isComponentClipboard(value)) return
-            // Component bundles take precedence even while an inline text field has focus.
             event.preventDefault()
             event.stopPropagation()
             void applyPaste(value)

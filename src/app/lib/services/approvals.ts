@@ -97,7 +97,6 @@ export async function getApprovalNames(actor: OperationActor, entityType: Entity
     return map
 }
 
-// Pull thresholds from DB config if present, otherwise fall back to code
 export async function getThresholds(actor: OperationActor, entityType: EntityType) {
     await requireActorUser(actor, Role.writer)
     const cfg = await prisma.approvalConfig.findUnique({ where: { entityType } })

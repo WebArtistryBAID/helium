@@ -9,7 +9,7 @@ async function copyId(id: string) {
             return
         }
     } catch {
-        // Internal HTTP sites and denied Clipboard API permissions use the fallback.
+        // Fallback when clipboard API can't be used
     }
     const field = document.createElement('textarea')
     const focused = document.activeElement as HTMLElement | null
@@ -44,7 +44,7 @@ export default function CopyImageId({ children, imageIds = {}, locale = 'en' }: 
         const target = event.target as Element
         let image: HTMLElement | null = target.closest('img')
         let source = (image as HTMLImageElement | null)?.src ?? ''
-        // Some Puck components display their media as CSS backgrounds.
+        // Some Puck components display their media as CSS backgrounds... we have to allow selecting that too!
         if (!image && !target.closest('a, button, input, textarea, select')) {
             let candidate: HTMLElement | null = target as HTMLElement
             while (candidate && candidate !== event.currentTarget) {

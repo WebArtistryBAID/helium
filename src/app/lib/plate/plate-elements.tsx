@@ -222,8 +222,6 @@ export const ImageElement = ({ children, ...props }: PlateElementProps<TImageEle
     const image = imageId == null ? null : images.get(imageId)
     const src = image == null ? props.element.url : `${uploadPrefix}/${image.sha1}.webp`
     const alt = image?.altText ?? ''
-    // usePath can briefly point at the previous position while Slate removes or moves a sibling.
-    // Resolve this element again so layout is always based on its current neighbours.
     const currentPath = editor.api.findPath(props.element)
     const index = currentPath?.length === 1 ? currentPath[0] : undefined
     let firstImageIndex = typeof index === 'number' ? index : 0
@@ -257,7 +255,6 @@ export const ImageElement = ({ children, ...props }: PlateElementProps<TImageEle
         <div contentEditable={false}
              onMouseDown={event => {
                  if (readOnly || event.button !== 0 || event.shiftKey) return
-                 // Focus while selecting the void so subsequent text clicks start in the focused editor.
                  const path = editor.api.findPath(props.element)
                  if (path == null) return
                  event.preventDefault()

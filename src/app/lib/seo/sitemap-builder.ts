@@ -12,8 +12,6 @@ export interface SitemapEntity {
     coverImagePublished: Pick<Image, 'sha1' | 'mediaType'> | null
 }
 
-// These components resolve other entities when the public page is rendered.
-// Their last significant change cannot be inferred from the page's publication time.
 const liveContentComponents = new Set([
     'LatestNewsConfig', 'NewsListConfig', 'ActivitiesConfig', 'ClubsConfig',
     'CoursesConfig', 'PeopleConfig', 'FeaturedProjectsConfig', 'ProjectCategoryConfig'
@@ -34,7 +32,6 @@ function lastModified(entity: SitemapEntity, content: string, now: Date): Date |
         try {
             if (hasLiveContent(JSON.parse(content))) return undefined
         } catch {
-            // A malformed page document cannot provide a reliable content modification date.
             return undefined
         }
     }

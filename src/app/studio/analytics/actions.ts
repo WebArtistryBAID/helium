@@ -12,7 +12,6 @@ export async function createAnalyticsSession() {
     try {
         return await loginToAnalytics(analyticsConfig(process.env))
     } catch (error) {
-        // Upstream responses and credentials must stay out of client errors and logs.
         const message = error instanceof Error ? error.message : ''
         const allowed = [
             'ANALYTICS_HOST must be a relative path such as /analytics.',

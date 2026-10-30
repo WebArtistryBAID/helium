@@ -24,7 +24,6 @@ export default function Courses({ title, courses, categoryOrder = [], linkToCour
     }, [ courses, categoryOrder ])
     const [ selected, setSelected ] = useState<string | null>(null)
 
-    // Initialize selected to first tab when data arrives/changes
     useEffect(() => {
         if (tabNames.length) setSelected((prev) => (prev && tabNames.includes(prev) ? prev : tabNames[0]))
         else setSelected(null)
@@ -38,7 +37,6 @@ export default function Courses({ title, courses, categoryOrder = [], linkToCour
             (a?.titlePublishedEN ?? '').localeCompare(b?.titlePublishedEN ?? '', 'en', { sensitivity: 'base' }))
     }, [ courses, selected ])
 
-    // Keyboard navigation (Left/Right arrows)
     const onTabKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
         if (!tabNames.length || !selected) return
         const idx = tabNames.findIndex((n) => n === selected)

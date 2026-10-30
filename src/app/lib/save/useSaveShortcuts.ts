@@ -13,7 +13,6 @@ export function useSaveShortcut(enabled: boolean, onSave: () => void) {
         const handler = (e: KeyboardEvent) => {
             if ((e.metaKey || e.ctrlKey) && !e.altKey && (e.code === 'KeyS' || e.key.toLowerCase() === 's')) {
                 e.preventDefault()
-                // Handle the original event before editable fields or editor shortcuts stop it.
                 e.stopPropagation()
                 if (!e.repeat) onSaveRef.current()
             }
@@ -28,10 +27,8 @@ export function useSaveShortcut(enabled: boolean, onSave: () => void) {
                 current.add(doc)
                 for (const frame of doc.querySelectorAll('iframe')) {
                     try {
-                        // Keyboard events stay in their browsing context. Listen inside same-origin previews.
                         if (frame.contentDocument) collect(frame.contentDocument)
                     } catch {
-                        // Cross-origin embeds are outside the editor's keyboard context.
                     }
                 }
             }
@@ -62,7 +59,7 @@ export function useSaveShortcut(enabled: boolean, onSave: () => void) {
                     try {
                         view.removeEventListener('keydown', handler, true)
                     } catch {
-                        // The frame may have navigated to another origin before cleanup.
+
                     }
                 })
             }

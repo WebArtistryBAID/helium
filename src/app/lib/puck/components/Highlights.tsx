@@ -102,7 +102,6 @@ const HighlightsConfig: ComponentConfig = {
     },
     resolveData: async ({ props }, { trigger }) => {
         if (trigger === 'move') return { props }
-        // Resolve all images with getImage(id).
         const resolvedHighlights = await Promise.all(
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             (props.highlights ?? []).map(async (highlight: any) => ({

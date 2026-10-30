@@ -134,7 +134,6 @@ export interface HydratedContentEntity {
 
 export const HYDRATED_CONTENT_ENTITY_SELECT = {
     id: true,
-    // Part of entityRevision; without it fetched revisions never match the ones mutations check.
     collaborationGeneration: true,
     type: true,
     titlePublishedEN: true,
@@ -167,7 +166,6 @@ export const HYDRATED_CONTENT_ENTITY_SELECT = {
     lastPublishedAt: true
 }
 
-// Returned by unauthenticated queries: drafts and creator details must never reach visitors.
 export type PublicContentEntity = Omit<HydratedContentEntity,
     'titleDraftEN' | 'titleDraftZH' | 'shortContentDraftEN' | 'shortContentDraftZH' |
     'contentDraftEN' | 'contentDraftZH' | 'coverImageDraft' | 'coverImageDraftId' |

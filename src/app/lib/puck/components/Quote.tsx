@@ -12,7 +12,6 @@ type QuoteItem = {
 
 function hasContent(value: ReactNode): boolean {
     if (typeof value === 'string') return value.trim().length > 0
-    // Studio inline fields expose their original text through the value prop.
     return isValidElement<{ value?: string }>(value) && Boolean(value.props.value?.trim())
 }
 

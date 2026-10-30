@@ -94,7 +94,6 @@ type YjsProviderState = {
     type: string
 }
 
-// Preserve context subscriptions while the document text changes and these IDs stay the same.
 function useStableIdSet(ids: string[]): Set<string> {
     const key = JSON.stringify([ ...new Set(ids) ].sort())
     return useMemo(() => new Set<string>(JSON.parse(key)), [ key ])
@@ -222,7 +221,6 @@ function getInitialValue(content: string, editor: PlateEditor): {
         const parsed: unknown = JSON.parse(content)
         if (isPlateValue(parsed)) return { converted: false, value: parsed }
     } catch {
-        // Existing content is converted from Markdown below.
     }
 
     if (content.trim().length === 0) {
@@ -723,7 +721,6 @@ export default function PlateRichTextEditor({
                                     style={readOnly ? undefined : { boxShadow: 'none', outline: 'none' }}
                                     className={readOnly
                                         ? 'flex min-h-0 flex-wrap content-start px-0 py-0 outline-none'
-                                        // Extend paragraph boxes into the side gutters while preserving the text inset.
                                         : 'flex min-h-0 flex-1 flex-wrap content-start overflow-y-auto px-5 py-4 text-gray-900 outline-none focus-visible:outline-none [&>p]:-mx-5 [&>p]:w-[calc(100%+2.5rem)] [&>p]:shrink-0 [&>p]:px-5'}
                                 />
                                 {collaborationEnabled && <RemoteCursorOverlay editor={editor}
