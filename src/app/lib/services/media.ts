@@ -3,18 +3,33 @@ import 'server-only'
 import type { OperationActor } from '@/app/lib/mcp/contracts'
 import { requireActorUser } from '@/app/lib/services/actor'
 
-import { type Image, type Prisma, Role, UserAuditLogType } from '@/generated/prisma/client'
+import { type Image, type Prisma, type Tag, Role, UserAuditLogType } from '@/generated/prisma/client'
 
 import path from 'node:path'
 import fs from 'node:fs/promises'
 import sharp from 'sharp'
 import type { Paginated } from '@/app/lib/data-types'
 import { prisma } from '@/app/lib/prisma'
+import { getCollectionSubtreeIds } from '@/app/lib/services/media-taxonomy'
 import { ensureVideoThumbnail } from '@/app/studio/media/video-thumbnail'
 
 const PAGE_SIZE = 24
 
-export type ImagePage = Paginated<Image> & {
+/** The subset of a collection that media items carry around for chips and details panels. */
+export type MediaCollectionRef = {
+    id: number
+    name: string
+    color: string
+    icon: string | null
+}
+
+/** An image or video together with its taxonomy labels, as returned by the media queries. */
+export type MediaImage = Image & {
+    tags: Tag[]
+    collections: MediaCollectionRef[]
+}
+
+export type ImagePage = Paginated<MediaImage> & {
     uploadServePath: string
 }
 
@@ -25,6 +40,11 @@ export type MediaFilters = {
     query?: string
     scope?: MediaScope
     entityMediaIds?: number[]
+    /** Matches media that carry at least one of these tags. */
+    tagIds?: number[]
+    /** Matches media inside this collection; descendants are included by default. */
+    collectionId?: number
+    includeCollectionChildren?: boolean
 }
 
 export async function getUploadServePath(): Promise<string> {
@@ -82,11 +102,21 @@ export async function getMedia(actor: OperationActor, page: number, mediaTypes: 
             ]
         }
     }
+    const tagIds = (filters.tagIds ?? [])
+        .filter(id => Number.isSafeInteger(id) && id > 0)
+    const collectionId = filters.collectionId
+    const collectionIds = collectionId != null && Number.isSafeInteger(collectionId) && collectionId > 0
+        ? (filters.includeCollectionChildren === false
+            ? [ collectionId ]
+            : await getCollectionSubtreeIds(collectionId))
+        : []
     const where: Prisma.ImageWhereInput = {
         mediaType: { in: mediaTypes },
         AND: [ searchWhere ],
         ...(filters.scope === 'mine' ? { uploaderId: user.id } : {}),
-        ...(filters.scope === 'entity' ? { id: { in: entityMediaIds } } : {})
+        ...(filters.scope === 'entity' ? { id: { in: entityMediaIds } } : {}),
+        ...(tagIds.length > 0 ? { tags: { some: { id: { in: tagIds } } } } : {}),
+        ...(collectionIds.length > 0 ? { collections: { some: { id: { in: collectionIds } } } } : {})
     }
     const [ count, images ] = await Promise.all([
         prisma.image.count({ where }),
@@ -94,7 +124,14 @@ export async function getMedia(actor: OperationActor, page: number, mediaTypes: 
             where,
             orderBy: { createdAt: 'desc' },
             skip: page * PAGE_SIZE,
-            take: PAGE_SIZE
+            take: PAGE_SIZE,
+            include: {
+                tags: { orderBy: { name: 'asc' } },
+                collections: {
+                    select: { id: true, name: true, color: true, icon: true },
+                    orderBy: { name: 'asc' }
+                }
+            }
         })
     ])
     await Promise.all(images.filter(image => image.mediaType === 'video').map(async video => {

@@ -234,6 +234,56 @@ model Image {
 
   linkedEntitiesDraft ContentEntity[] @relation("linkedEntitiesDraft")
   linkedEntitiesPub   ContentEntity[] @relation("linkedEntitiesPub")
+  tags                Tag[]             @relation("ImageTags")
+  collections         MediaCollection[] @relation("ImageCollections")
+}
+
+/// A free-form, colored label that can be attached to any number of images and videos.
+model Tag {
+  id        Int      @id @default(autoincrement())
+  name      String   @unique
+  color     String   @default("#3b82f6")
+  icon      String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  images Image[] @relation("ImageTags")
+}
+
+/// A folder-like theme that groups images and videos. Collections may be nested and linked to
+/// each other, forming a network of related topics.
+model MediaCollection {
+  id          Int      @id @default(autoincrement())
+  name        String
+  color       String   @default("#6366f1")
+  icon        String?
+  description String?
+  parentId    Int?
+  parent      MediaCollection?  @relation("MediaCollectionTree", fields: [parentId], references: [id], onDelete: SetNull)
+  children    MediaCollection[] @relation("MediaCollectionTree")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  images        Image[]               @relation("ImageCollections")
+  outgoingLinks MediaCollectionLink[] @relation("MediaCollectionLinkFrom")
+  incomingLinks MediaCollectionLink[] @relation("MediaCollectionLinkTo")
+
+  @@index([parentId])
+}
+
+/// An association between two media collections. Rows are stored in one direction and read from
+/// both directions, so a pair never needs to be stored twice.
+model MediaCollectionLink {
+  id        Int             @id @default(autoincrement())
+  fromId    Int
+  from      MediaCollection @relation("MediaCollectionLinkFrom", fields: [fromId], references: [id], onDelete: Cascade)
+  toId      Int
+  to        MediaCollection @relation("MediaCollectionLinkTo", fields: [toId], references: [id], onDelete: Cascade)
+  label     String?
+  createdAt DateTime        @default(now())
+
+  @@unique([fromId, toId])
+  @@index([toId])
 }
 
 model Approval {

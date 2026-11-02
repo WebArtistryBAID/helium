@@ -2,7 +2,9 @@
 
 import type { ImagePage, MediaType, MediaScope, MediaFilters } from '@/app/lib/services/media'
 
-export type { ImagePage, MediaType, MediaScope, MediaFilters } from '@/app/lib/services/media'
+export type {
+    ImagePage, MediaType, MediaScope, MediaFilters, MediaImage, MediaCollectionRef
+} from '@/app/lib/services/media'
 
 import { Image } from '@/generated/prisma/client'
 
