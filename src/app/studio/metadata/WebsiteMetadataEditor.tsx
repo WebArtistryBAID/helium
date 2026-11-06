@@ -21,7 +21,7 @@ import {
     HiTrash
 } from 'react-icons/hi2'
 import { HiCloudUpload } from 'react-icons/hi'
-import { EntityType, Role, User } from '@/generated/prisma/browser'
+import { EntityType, Image, Role, User } from '@/generated/prisma/browser'
 import { isAligned } from '@/app/lib/data-types'
 import { useSavableEntity } from '@/app/lib/save/useSavableEntity'
 import { useSaveShortcut } from '@/app/lib/save/useSaveShortcuts'
@@ -43,6 +43,7 @@ import {
     saveWebsiteMetadata
 } from '@/app/studio/metadata/website-metadata-actions'
 import { createClientId } from '@/app/lib/client-id'
+import MediaPicker from '@/app/studio/media/MediaPicker'
 
 const AUTO_SAVE_INTERVAL_MS = 30_000
 
@@ -198,14 +199,16 @@ function LinkFields({ item, prefix, disabled, inputLang, language, pageOptions, 
     </div>
 }
 
-export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptions }: {
+export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptions, uploadPrefix }: {
     init: WebsiteMetadataEditorState
     user: User
     lockToken: string
     pageOptions: WebsitePageOption[]
+    uploadPrefix: string
 }) {
     const [ language, setLanguage ] = useState<Language>('zh')
     const [ showLockBroken, setShowLockBroken ] = useState(false)
+    const [ showLogoPicker, setShowLogoPicker ] = useState(false)
     const tabsRef = useRef<TabsRef>(null)
     const pendingFocusRef = useRef<string | null>(null)
     const canWrite = user.roles.includes(Role.writer)
@@ -228,9 +231,9 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
         saveFn: async (current, previous) => saveWebsiteMetadata(current.entity.id, {
             en: current.en,
             zh: current.zh
-        }, previous.entity.updatedAt),
+        }, current.entity.coverImageDraftId, previous.entity.updatedAt),
         refreshFn: getWebsiteMetadataEditorState,
-        compareKeys: [ 'en', 'zh' ]
+        compareKeys: [ 'en', 'zh', 'entity.coverImageDraftId' ]
     })
 
     const guardedSave = useCallback(async () => {
@@ -294,6 +297,18 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
     const inputLang = language === 'zh' ? 'zh-CN' : 'en'
     const published = isAligned(draft.entity)
     const statusLabel = hasChanges ? '有尚未保存的更改' : published ? '已发布' : '有更新未发布'
+    const logo = draft.entity.coverImageDraft
+
+    function updateLogo(image: Image | null) {
+        if (!canWrite) {
+            showPermissionDenied()
+            return
+        }
+        setDraft(current => ({
+            ...current,
+            entity: { ...current.entity, coverImageDraft: image, coverImageDraftId: image?.id ?? null }
+        }))
+    }
 
     function updateLanguageContent(update: (current: WebsiteMetadataContent) => WebsiteMetadataContent) {
         if (!canWrite) {
@@ -508,6 +523,12 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
     return <>
         <PermissionDeniedDialog show={permissionDenied} onClose={closePermissionDenied}/>
         <LockBrokenPrompt show={showLockBroken} returnUri="/studio"/>
+        <MediaPicker open={showLogoPicker} onClose={() => setShowLogoPicker(false)} allowUnpick={logo != null}
+                     currentEntityMediaIds={logo ? [ logo.id ] : []}
+                     onPick={image => {
+                         updateLogo(image)
+                         setShowLogoPicker(false)
+                     }}/>
 
         <div className="website-metadata-editor p-16">
             <div className="mx-auto max-w-[1400px] pb-12">
@@ -588,6 +609,20 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                                           description: value
                                                       }))
                                                   }}/>
+                                    </div>
+                                    <div>
+                                        <p className="mb-2 block text-sm font-medium text-gray-900">网站图标</p>
+                                        {logo ? <button type="button" disabled={!canWrite}
+                                                        aria-label="更换网站图标"
+                                                        onClick={() => setShowLogoPicker(true)}
+                                                        className="flex h-24 w-24 items-center justify-center rounded-2xl border border-gray-200 bg-white p-2 enabled:cursor-pointer enabled:hover:opacity-90">
+                                            <img className="h-full w-full object-contain"
+                                                 src={`${uploadPrefix}/${logo.sha1}_thumb.webp`}
+                                                 alt={logo.altText}/>
+                                        </button> : canWrite ? <Button type="button" pill color="blue"
+                                                                       onClick={() => setShowLogoPicker(true)}>
+                                            设置图标
+                                        </Button> : null}
                                     </div>
                                 </div>
                             </div>

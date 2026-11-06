@@ -1,13 +1,14 @@
 import Link from 'next/link'
 
-export default function SchoolLogo({ color, titleEN, titleZH }: {
+export default function SchoolLogo({ color, logoUrl, titleEN, titleZH }: {
     color: string
+    logoUrl?: string
     titleEN: string
     titleZH: string
 }) {
     return <Link href="/">
         <div style={{ color }} className="flex items-center">
-            <img src="/assets/icon.png" alt="" className="w-10 h-10 mr-3"/>
+            <img src={logoUrl || '/assets/icon.png'} alt="" className="w-10 h-10 mr-3 object-contain"/>
             <div className="flex flex-col justify-center transition-colors">
                 <p className="m-0 !font-sans">
                     {titleZH}

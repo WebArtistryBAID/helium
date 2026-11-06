@@ -62,6 +62,7 @@ export async function getWebsitePageOptions(actor: OperationActor): Promise<Webs
 export async function saveWebsiteMetadata(actor: OperationActor,
                                           entityId: number,
                                           draft: WebsiteMetadataDraft,
+                                          logoImageId: number | null,
                                           expectedUpdatedAt?: Date | string
 ): Promise<WebsiteMetadataEditorState> {
     const user = await requireActorUser(actor, Role.writer)
@@ -91,6 +92,10 @@ export async function saveWebsiteMetadata(actor: OperationActor,
                 throw new Error('Website metadata has changed. Refresh before saving.')
             }
         }
+        if (logoImageId != null) {
+            const logo = await tx.image.findUnique({ where: { id: logoImageId }, select: { mediaType: true } })
+            if (logo?.mediaType !== 'image') throw new Error('Website logo must be an existing image')
+        }
         const updated = await tx.contentEntity.update({
             where: { id: entityId, slug: WEBSITE_METADATA_SLUG },
             data: {
@@ -99,7 +104,8 @@ export async function saveWebsiteMetadata(actor: OperationActor,
                 titleDraftZH: WEBSITE_METADATA_ENTITY_TITLE_ZH,
                 slug: WEBSITE_METADATA_SLUG,
                 contentDraftEN: serializeWebsiteMetadataContent(en),
-                contentDraftZH: serializeWebsiteMetadataContent(zh)
+                contentDraftZH: serializeWebsiteMetadataContent(zh),
+                coverImageDraftId: logoImageId
             },
             select: HYDRATED_CONTENT_ENTITY_SELECT
         })

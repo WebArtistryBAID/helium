@@ -12,7 +12,7 @@ import AnyContentEntityPage from '@/app/[[...slug]]/AnyContentEntityPage'
 import { retrieveMetadata } from '@/app/[[...slug]]/metadata-utils'
 import { getUploadServePath } from '@/app/studio/media/media-actions'
 import { Metadata } from 'next'
-import { getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
+import { getPublishedWebsiteLogo, getPublishedWebsiteMetadata } from '@/app/lib/metadata/website-metadata.server'
 import { parsePuckData } from '@/app/lib/puck/puck-data'
 import StructuredData from '@/app/lib/seo/StructuredData'
 import { getSiteOrigin } from '@/app/lib/seo/site-url'
@@ -120,6 +120,8 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
 
     void refreshPageData()
     const websiteMetadata = await getPublishedWebsiteMetadata()
+    const logo = await getPublishedWebsiteLogo()
+    const logoUrl = logo ? `${await getUploadServePath()}/${logo.sha1}.webp` : undefined
     const newRoute = route.slice(1)
     const slug = newRoute.length === 0 ? '/' : newRoute.join('/')
 
@@ -140,7 +142,7 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
         }
         return (
             <div className="min-h-screen">
-                <GlobalHeader websiteMetadata={websiteMetadata}
+                <GlobalHeader websiteMetadata={websiteMetadata} logoUrl={logoUrl}
                               transparentNavbar={entity.transparentNavbarPublished ?? false}/>
                 <main id="main-content" tabIndex={-1}>
                     <StructuredData origin={getSiteOrigin()} locale={finalLocale as 'en' | 'zh'}
@@ -163,7 +165,7 @@ export default async function RouteHandler({ params }: { params: Promise<{ slug:
     ), PUCK_CONFIG)
     return (
         <div className="min-h-screen">
-            <GlobalHeader websiteMetadata={websiteMetadata}
+            <GlobalHeader websiteMetadata={websiteMetadata} logoUrl={logoUrl}
                           transparentNavbar={entity.transparentNavbarPublished ?? false}/>
             <main id="main-content" tabIndex={-1}>
                 <StructuredData origin={getSiteOrigin()} locale={finalLocale as 'en' | 'zh'}

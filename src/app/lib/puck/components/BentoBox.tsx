@@ -1,6 +1,9 @@
 import { ComponentConfig } from '@puckeditor/core'
+import { getPublishedWebsiteLogo, getUploadServePath } from '@/app/lib/puck/resolve-resources'
 
 function BentoBox({
+                      logoUrl,
+                      logoAlt,
                       title,
                       motto,
                       mottoText,
@@ -15,6 +18,8 @@ function BentoBox({
                       lifeText,
                       diversityText
                   }: {
+    logoUrl: string | null | undefined,
+    logoAlt: string | null | undefined,
     title: string | null,
     motto: string | null,
     mottoText: string | null,
@@ -45,10 +50,10 @@ function BentoBox({
                     role="heading">{motto}</h3>
 
                 <img
-                    alt="Beijing Academy icon"
+                    alt={logoAlt || 'Beijing Academy icon'}
                     loading="lazy"
-                    className="w-48 h-48 mb-5 p-5 bg-white rounded-full"
-                    src="/assets/icon.png"/>
+                    className="w-48 h-48 mb-5 p-5 bg-white rounded-full object-contain"
+                    src={logoUrl || '/assets/icon.png'}/>
 
                 <p>{mottoText}</p>
             </div>
@@ -311,6 +316,14 @@ const BentoBoxConfig: ComponentConfig = {
             label: '多元性标题',
             type: 'textarea',
             contentEditable: true
+        },
+        resolvedLogoUrl: {
+            type: 'text',
+            visible: false
+        },
+        resolvedLogoAlt: {
+            type: 'text',
+            visible: false
         }
     },
     defaultProps: {
@@ -328,7 +341,19 @@ const BentoBoxConfig: ComponentConfig = {
         lifeText: '享受人生的青葱年华',
         diversityText: '来自六个国家的教师团队'
     },
+    resolveData: async ({ props }, { trigger }) => {
+        if (trigger === 'move') return { props }
+        const [ logo, uploadPrefix ] = await Promise.all([ getPublishedWebsiteLogo(), getUploadServePath() ])
+        return {
+            props: {
+                resolvedLogoUrl: logo ? `${uploadPrefix}/${logo.sha1}.webp` : null,
+                resolvedLogoAlt: logo?.altText ?? null
+            }
+        }
+    },
     render: ({
+                 resolvedLogoUrl,
+                 resolvedLogoAlt,
                  title,
                  motto,
                  mottoText,
@@ -344,6 +369,8 @@ const BentoBoxConfig: ComponentConfig = {
                  diversityText
              }) =>
         <BentoBox
+            logoUrl={resolvedLogoUrl}
+            logoAlt={resolvedLogoAlt}
             title={title}
             motto={motto}
             mottoText={mottoText}

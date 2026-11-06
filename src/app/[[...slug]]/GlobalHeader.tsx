@@ -27,9 +27,10 @@ const locales = {
     }
 }
 
-export default function GlobalHeader({ transparentNavbar, websiteMetadata }: {
+export default function GlobalHeader({ transparentNavbar, websiteMetadata, logoUrl }: {
     transparentNavbar: boolean
     websiteMetadata: WebsiteMetadataDraft
+    logoUrl?: string
 }) {
     const pathname = usePathname() || '/'
     const language = useLanguage()
@@ -178,6 +179,7 @@ export default function GlobalHeader({ transparentNavbar, websiteMetadata }: {
                 ].join(' ')}>
                 <div className="mr-auto py-4 transition-colors duration-300">
                     <SchoolLogo color={useBlackText ? 'black' : 'white'}
+                                logoUrl={logoUrl}
                                 titleEN={websiteMetadata.en.title}
                                 titleZH={websiteMetadata.zh.title}/>
                 </div>

@@ -8,14 +8,16 @@ import {
     getWebsitePageOptions
 } from '@/app/studio/metadata/website-metadata-actions'
 import { WEBSITE_METADATA_STUDIO_PATH } from '@/app/lib/metadata/website-metadata-types'
+import { getUploadServePath } from '@/app/studio/media/media-actions'
 
 export default async function WebsiteMetadataPage({ searchParams }: {
     searchParams: Promise<{ token?: string | null }>
 }) {
     const user = await requireUser()
-    const [ init, pageOptions ] = await Promise.all([
+    const [ init, pageOptions, uploadPrefix ] = await Promise.all([
         getWebsiteMetadataEditorState(),
-        getWebsitePageOptions()
+        getWebsitePageOptions(),
+        getUploadServePath()
     ])
     const requestedToken = (await searchParams).token ?? undefined
     const token = await tryAcquireLock({
@@ -29,5 +31,6 @@ export default async function WebsiteMetadataPage({ searchParams }: {
         redirect(`${WEBSITE_METADATA_STUDIO_PATH}?token=${token}`)
     }
 
-    return <WebsiteMetadataEditor init={init} user={user} lockToken={token} pageOptions={pageOptions}/>
+    return <WebsiteMetadataEditor init={init} user={user} lockToken={token} pageOptions={pageOptions}
+                                  uploadPrefix={uploadPrefix}/>
 }

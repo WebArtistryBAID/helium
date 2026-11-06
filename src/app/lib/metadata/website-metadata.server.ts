@@ -61,6 +61,14 @@ export async function ensureWebsiteMetadataEntity(
     }
 }
 
+export async function getPublishedWebsiteLogo(): Promise<{ sha1: string, altText: string } | null> {
+    const entity = await prisma.contentEntity.findUnique({
+        where: { slug: WEBSITE_METADATA_SLUG },
+        select: { coverImagePublished: { select: { sha1: true, altText: true } } }
+    })
+    return entity?.coverImagePublished ?? null
+}
+
 export async function getPublishedWebsiteMetadata(): Promise<WebsiteMetadataDraft> {
     const entity = await ensureWebsiteMetadataEntity()
     return {

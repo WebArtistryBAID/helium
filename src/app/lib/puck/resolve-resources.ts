@@ -1,5 +1,6 @@
 import * as media from '@/app/studio/media/media-actions'
 import * as entities from '@/app/studio/editor/entity-actions'
+import * as websiteMetadata from '@/app/studio/metadata/website-metadata-actions'
 
 export { getAllPublishedCourses, getPublishedProjectsByCategoriesForInit } from '@/app/studio/editor/entity-actions'
 
@@ -23,6 +24,8 @@ function resource<T>(key: string, fetch: () => Promise<T>): Promise<T> {
 
 export const getImage: typeof media.getImage = id => resource(`image:${id}`, () => media.getImage(id))
 export const getUploadServePath: typeof media.getUploadServePath = () => resource('uploads', media.getUploadServePath)
+export const getPublishedWebsiteLogo: typeof websiteMetadata.getPublishedWebsiteLogo = () =>
+    resource('website-logo', websiteMetadata.getPublishedWebsiteLogo)
 export const getPublishedContentEntity: typeof entities.getPublishedContentEntity = id =>
     resource(`entity:${id}`, () => entities.getPublishedContentEntity(id))
 export const getPublishedContentEntities: typeof entities.getPublishedContentEntities = (...args) =>

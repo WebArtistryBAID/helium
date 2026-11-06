@@ -130,10 +130,13 @@ export async function getMyPendingApprovals(actor: OperationActor): Promise<Simp
             contentPublishedEN: true,
             contentPublishedZH: true,
             contentDraftEN: true,
-            contentDraftZH: true
+            contentDraftZH: true,
+            coverImagePublishedId: true,
+            coverImageDraftId: true
         }
     })
     if (websiteMetadata &&
+        websiteMetadata.coverImagePublishedId === websiteMetadata.coverImageDraftId &&
         websiteMetadata.titlePublishedEN === websiteMetadata.titleDraftEN &&
         websiteMetadata.titlePublishedZH === websiteMetadata.titleDraftZH &&
         websiteMetadata.contentPublishedEN === websiteMetadata.contentDraftEN &&

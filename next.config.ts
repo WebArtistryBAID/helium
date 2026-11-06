@@ -5,6 +5,13 @@ const nextConfig: NextConfig = {
     poweredByHeader: false,
     // Include verification metadata in the initial HTML head for every user agent.
     htmlLimitedBots: /.*/,
+    async rewrites() {
+        // Next.js reserves these paths for static metadata files, so the logo-backed routes live elsewhere.
+        return [
+            { source: '/favicon.ico', destination: '/site-icon.ico' },
+            { source: '/icon.png', destination: '/site-icon.png' }
+        ]
+    },
     async headers() {
         return [
             {
