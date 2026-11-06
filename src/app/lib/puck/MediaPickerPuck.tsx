@@ -69,7 +69,7 @@ export default function MediaPickerPuck({ name, onChange, value, allowedMediaTyp
             <button type="button" aria-label={`更换媒体: ${foundImage?.altText || foundImage?.name || '当前媒体'}`}
                     onClick={() => setOpen(true)} className="cursor-pointer">
                 {foundImage?.mediaType === 'video'
-                    ? <img className="mt-1 mb-3 h-24 rounded-xl bg-black object-cover"
+                    ? <img className="mt-1 mb-3 h-24 bg-black object-cover"
                            alt={foundImage.altText || foundImage.name}
                            src={`${uploadPrefix}/${foundImage.sha1}_thumb.webp`}/>
                     : <img className="mt-1 mb-3 h-24" alt={foundImage?.altText ?? ''}
