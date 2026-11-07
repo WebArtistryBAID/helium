@@ -63,10 +63,29 @@ It was originally developed by Lin Donglai and is now maintained by WebArtistry 
     * **Portal integration.** By using [LinkBAID](https://github.com/WebArtistryBAID/baid-onelogin), Helium supports
       logging in with [Seiue LMS](https://bjzxgjb.seiue.com) and [Feishu](https://beijingacademy.feishu.cn) accounts.
     * **Asset optimization.** Images are automatically optimized and converted to WebP format when they are uploaded.
+    * **Media taxonomy.** Images and videos can be labeled with customizable colored tags (name, color, and a Geist
+      icon) and organized into nested theme folders. Themes can be linked to each other and explored as a network
+      graph, and tags can be applied to a whole selection of media at once.
     * **Automated backups.** All `ContentEntity` objects are periodically backed up to a ZIP file, which can be
       downloaded and restored by admins.
   * **Umami integration.** Admins can open Umami through the Studio sidebar. Helium verifies admin access and
     signs into a configured Umami account automatically.
+
+## Media Taxonomy
+
+The Studio media library can organize media with two complementary structures:
+
+* **Tags** are colored labels with a customizable name, color, and [Geist icon](https://vercel.com/geist/icons). Any
+  image or video can carry several tags, the library can be filtered by one or more of them, and tags can be applied
+  to a whole selection of media at once.
+* **Themes** are folder-like collections that can be nested. A theme can contain media and can be linked to other
+  themes, and the "关系图谱" tab renders the resulting network of related topics. Deleting a theme never deletes the
+  media it contains.
+
+Every tag and theme is managed in the Studio (`/studio/media/tags` and `/studio/media/themes`). The feature adds the
+`Tag`, `MediaCollection`, and `MediaCollectionLink` models together with a Prisma migration, so run
+`npm run db:migrate` after pulling and `npm run db:deploy` on production. See
+[docs/media-taxonomy.md](docs/media-taxonomy.md) for the data model, code layout, and screenshots.
 
 ## Development
 

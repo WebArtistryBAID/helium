@@ -26,6 +26,7 @@ import {
     HiPuzzlePiece,
     HiShare,
     HiStar,
+    HiTag,
     HiUsers,
     HiCog,
     HiGlobeAlt,
@@ -90,11 +91,23 @@ export default function StudioShell({ children, myUser }: { children: ReactNode;
                                         网站信息
                                     </SidebarItem>
                                 </Link>
-                                <Link href="/studio/media">
-                                    <SidebarItem as="div" icon={HiPhoto}>
-                                        媒体库
-                                    </SidebarItem>
-                                </Link>
+                                <SidebarCollapse label="媒体" icon={HiPhoto}>
+                                    <Link href="/studio/media">
+                                        <SidebarItem as="div" icon={HiPhoto}>
+                                            媒体库
+                                        </SidebarItem>
+                                    </Link>
+                                    <Link href="/studio/media/tags">
+                                        <SidebarItem as="div" icon={HiTag}>
+                                            标签管理
+                                        </SidebarItem>
+                                    </Link>
+                                    <Link href="/studio/media/themes">
+                                        <SidebarItem as="div" icon={HiShare}>
+                                            主题与关系
+                                        </SidebarItem>
+                                    </Link>
+                                </SidebarCollapse>
                                 <Link href="/studio/pages">
                                     <SidebarItem as="div" icon={HiBookmarkSquare}>
                                         页面
