@@ -5,6 +5,7 @@ import {
     DEFAULT_WEBSITE_METADATA,
     parseWebsiteMetadataContent,
     serializeWebsiteMetadataContent,
+    syncSharedWebsiteMetadataFields,
     WEBSITE_METADATA_ENTITY_TITLE_EN,
     WEBSITE_METADATA_ENTITY_TITLE_ZH,
     WEBSITE_METADATA_SLUG,
@@ -71,8 +72,8 @@ export async function getPublishedWebsiteLogo(): Promise<{ sha1: string, altText
 
 export async function getPublishedWebsiteMetadata(): Promise<WebsiteMetadataDraft> {
     const entity = await ensureWebsiteMetadataEntity()
-    return {
-        en: parseWebsiteMetadataContent(entity?.contentPublishedEN, 'en'),
-        zh: parseWebsiteMetadataContent(entity?.contentPublishedZH, 'zh')
-    }
+    return syncSharedWebsiteMetadataFields(
+        parseWebsiteMetadataContent(entity?.contentPublishedEN, 'en'),
+        parseWebsiteMetadataContent(entity?.contentPublishedZH, 'zh')
+    )
 }

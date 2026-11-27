@@ -21,6 +21,7 @@ export type WebsiteFooterContent = {
     items: WebsiteFooterItem[]
     phoneText: string
     emailText: string
+    addressText: string
     copyrightText: string
     chineseWebsiteUrl: string
     chineseWebsiteText: string
@@ -182,8 +183,9 @@ export const DEFAULT_WEBSITE_METADATA: WebsiteMetadataDraft = {
         navbar: NAVBAR_EN,
         footer: {
             items: FOOTER_EN,
-            phoneText: '+86 186 1000 0000 (add on WeChat)',
+            phoneText: '+86 186 1000 0000',
             emailText: 'baid@bjacademy.com.cn',
+            addressText: '',
             copyrightText: '© 2026 Beijing Academy Education Group. All rights reserved.',
             chineseWebsiteUrl: 'https://www.beijingacademy.com.cn',
             chineseWebsiteText: 'Learn more about Beijing Academy Education Group\'s other programs.',
@@ -199,8 +201,9 @@ export const DEFAULT_WEBSITE_METADATA: WebsiteMetadataDraft = {
         navbar: NAVBAR_ZH,
         footer: {
             items: FOOTER_ZH,
-            phoneText: '+86 186 1000 0000 (可添加微信)',
+            phoneText: '+86 186 1000 0000',
             emailText: 'baid@bjacademy.com.cn',
+            addressText: '',
             copyrightText: '© 2026 北京中学教育集团，保留所有权利。',
             chineseWebsiteUrl: 'https://www.beijingacademy.com.cn',
             chineseWebsiteText: '了解北京中学教育集团的其他项目。',
@@ -268,12 +271,38 @@ export function normalizeWebsiteMetadataContent(
             items: normalizeFooterItems(footer.items, fallback.footer.items),
             phoneText: stringValue(footer.phoneText, fallback.footer.phoneText),
             emailText: stringValue(footer.emailText, fallback.footer.emailText),
+            addressText: stringValue(footer.addressText, fallback.footer.addressText),
             copyrightText: stringValue(footer.copyrightText, fallback.footer.copyrightText),
             chineseWebsiteUrl: stringValue(footer.chineseWebsiteUrl, fallback.footer.chineseWebsiteUrl),
             chineseWebsiteText: stringValue(footer.chineseWebsiteText, fallback.footer.chineseWebsiteText),
             icpNumber: stringValue(footer.icpNumber, fallback.footer.icpNumber)
         }
     }
+}
+
+export const SHARED_FOOTER_FIELDS = [
+    'phoneText',
+    'emailText',
+    'chineseWebsiteUrl',
+    'icpNumber'
+] as const satisfies readonly (keyof WebsiteFooterContent)[]
+
+export function isSharedFooterField(field: keyof WebsiteFooterContent): boolean {
+    return (SHARED_FOOTER_FIELDS as readonly string[]).includes(field)
+}
+
+/**
+ * Makes fields that are shared between languages identical in both, preferring the English value.
+ * Mutates and returns the given contents.
+ */
+export function syncSharedWebsiteMetadataFields(en: WebsiteMetadataContent,
+                                                zh: WebsiteMetadataContent): WebsiteMetadataDraft {
+    en.googleSiteVerification = zh.googleSiteVerification = en.googleSiteVerification || zh.googleSiteVerification
+    en.extraHeadHtml = zh.extraHeadHtml = en.extraHeadHtml || zh.extraHeadHtml
+    for (const field of SHARED_FOOTER_FIELDS) {
+        en.footer[field] = zh.footer[field] = en.footer[field] || zh.footer[field]
+    }
+    return { en, zh }
 }
 
 export function parseWebsiteMetadataContent(

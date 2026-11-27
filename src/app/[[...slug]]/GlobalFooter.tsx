@@ -52,6 +52,7 @@ export default function GlobalFooter({ websiteMetadata }: {
             <address className="mb-5">
                 <p><a href={phoneHref}>{content.footer.phoneText}</a></p>
                 <p><a href={`mailto:${content.footer.emailText.trim()}`}>{content.footer.emailText}</a></p>
+                {content.footer.addressText.trim() ? <p>{content.footer.addressText}</p> : null}
             </address>
 
             <div className="flex flex-col sm:flex-row gap-3">

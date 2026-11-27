@@ -10,6 +10,7 @@ import { entityMutationSchema, mutationSchema, type OperationActor } from '@/app
 import {
     normalizeWebsiteMetadataContent,
     serializeWebsiteMetadataContent,
+    syncSharedWebsiteMetadataFields,
     WEBSITE_METADATA_SLUG
 } from '@/app/lib/metadata/website-metadata-types'
 import { createContentBackup, listBackups } from '@/app/lib/backups'
@@ -25,7 +26,11 @@ const metadata = z.object({
     navbar: z.array(link).max(100),
     footer: z.object({
         items: z.array(link.extend({ subItems: z.array(link).max(100) })).max(100), phoneText: text, emailText: text,
-        copyrightText: text, chineseWebsiteUrl: text, chineseWebsiteText: text, icpNumber: text
+        addressText: text.optional(),
+        copyrightText: text,
+        chineseWebsiteUrl: text,
+        chineseWebsiteText: text,
+        icpNumber: text
     }).strict()
 }).strict()
 export const metadataMutationSchema = entityMutationSchema.extend({
@@ -60,10 +65,7 @@ export async function saveMcpMetadata(actor: OperationActor, raw: unknown) {
         }
         const en = normalizeWebsiteMetadataContent(input.draft.en, 'en')
         const zh = normalizeWebsiteMetadataContent(input.draft.zh, 'zh')
-        zh.googleSiteVerification = en.googleSiteVerification = en.googleSiteVerification || zh.googleSiteVerification
-        zh.extraHeadHtml = en.extraHeadHtml = en.extraHeadHtml || zh.extraHeadHtml
-        zh.footer.chineseWebsiteUrl = en.footer.chineseWebsiteUrl = en.footer.chineseWebsiteUrl || zh.footer.chineseWebsiteUrl
-        zh.footer.icpNumber = en.footer.icpNumber = en.footer.icpNumber || zh.footer.icpNumber
+        syncSharedWebsiteMetadataFields(en, zh)
         const updated = await tx.contentEntity.update({
             where: { id: entity.id }, data: {
                 contentDraftEN: serializeWebsiteMetadataContent(en), contentDraftZH: serializeWebsiteMetadataContent(zh)

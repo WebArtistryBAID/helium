@@ -31,6 +31,7 @@ import ApprovalProcess from '@/app/lib/approval/ApprovalProcess'
 import { alignContentEntity } from '@/app/studio/editor/entity-actions'
 import { PermissionDeniedDialog, usePermissionDialog } from '@/app/lib/permissions'
 import {
+    isSharedFooterField,
     WebsiteFooterContent,
     WebsiteLink,
     WebsiteMetadataContent,
@@ -505,8 +506,7 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
     }
 
     function updateFooterText(field: FooterTextField, value: string) {
-        const shared = field === 'chineseWebsiteUrl' || field === 'icpNumber'
-        if (shared) {
+        if (isSharedFooterField(field)) {
             setDraft(current => ({
                 ...current,
                 en: { ...current.en, footer: { ...current.en.footer, [field]: value } },
@@ -778,19 +778,20 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                     {([
                                         [ 'phoneText', '电话号码文字' ],
                                         [ 'emailText', '电子邮箱文字' ],
+                                        [ 'addressText', '地址' ],
                                         [ 'copyrightText', '版权文字' ],
                                         [ 'chineseWebsiteText', '国内高中官网文字' ],
                                         [ 'chineseWebsiteUrl', '国内高中官网链接' ],
                                         [ 'icpNumber', 'ICP 备案号' ]
                                     ] as [FooterTextField, string][]).map(([ field, label ]) => <div key={field}
-                                                                                                  className={field === 'copyrightText' || field === 'chineseWebsiteText' ? 'lg:col-span-2' : ''}>
+                                                                                                     className={field === 'addressText' || field === 'copyrightText' || field === 'chineseWebsiteText' ? 'lg:col-span-2' : ''}>
                                         <div className="mb-2 block">
                                             <Label htmlFor={`footer-${language}-${field}`}>{label}</Label>
                                         </div>
                                         <TextInput id={`footer-${language}-${field}`}
                                                    value={content.footer[field]}
                                                    disabled={!canWrite}
-                                                   required
+                                                   required={field !== 'addressText'}
                                                    lang={inputLang}
                                                    type={field === 'emailText'
                                                        ? 'email'
@@ -799,11 +800,11 @@ export default function WebsiteMetadataEditor({ init, user, lockToken, pageOptio
                                                            : field === 'chineseWebsiteUrl'
                                                                ? 'url'
                                                                : 'text'}
-                                                   aria-describedby={field === 'chineseWebsiteUrl' || field === 'icpNumber'
+                                                   aria-describedby={isSharedFooterField(field)
                                                        ? `footer-${language}-${field}-description`
                                                        : undefined}
                                                    onChange={event => updateFooterText(field, event.currentTarget.value)}/>
-                                        {field === 'chineseWebsiteUrl' || field === 'icpNumber'
+                                        {isSharedFooterField(field)
                                             ? <p id={`footer-${language}-${field}-description`}
                                                  className="mt-2 text-xs text-gray-500">
                                                 此项对中文和英文网站同时生效。

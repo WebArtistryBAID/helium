@@ -12,6 +12,7 @@ import {
     normalizeWebsiteMetadataContent,
     parseWebsiteMetadataContent,
     serializeWebsiteMetadataContent,
+    syncSharedWebsiteMetadataFields,
     WEBSITE_METADATA_ENTITY_TITLE_EN,
     WEBSITE_METADATA_ENTITY_TITLE_ZH,
     WEBSITE_METADATA_SLUG,
@@ -23,8 +24,10 @@ import {
 function editorState(entity: WebsiteMetadataEditorState['entity']): WebsiteMetadataEditorState {
     return {
         entity,
-        en: parseWebsiteMetadataContent(entity.contentDraftEN, 'en'),
-        zh: parseWebsiteMetadataContent(entity.contentDraftZH, 'zh')
+        ...syncSharedWebsiteMetadataFields(
+            parseWebsiteMetadataContent(entity.contentDraftEN, 'en'),
+            parseWebsiteMetadataContent(entity.contentDraftZH, 'zh')
+        )
     }
 }
 
@@ -73,16 +76,7 @@ export async function saveWebsiteMetadata(actor: OperationActor,
 
     const en = normalizeWebsiteMetadataContent(draft.en, 'en')
     const zh = normalizeWebsiteMetadataContent(draft.zh, 'zh')
-    const sharedGoogleSiteVerification = en.googleSiteVerification || zh.googleSiteVerification
-    en.googleSiteVerification = sharedGoogleSiteVerification
-    zh.googleSiteVerification = sharedGoogleSiteVerification
-    en.extraHeadHtml = zh.extraHeadHtml = en.extraHeadHtml || zh.extraHeadHtml
-    const sharedChineseWebsiteUrl = en.footer.chineseWebsiteUrl || zh.footer.chineseWebsiteUrl
-    const sharedIcpNumber = en.footer.icpNumber || zh.footer.icpNumber
-    en.footer.chineseWebsiteUrl = sharedChineseWebsiteUrl
-    zh.footer.chineseWebsiteUrl = sharedChineseWebsiteUrl
-    en.footer.icpNumber = sharedIcpNumber
-    zh.footer.icpNumber = sharedIcpNumber
+    syncSharedWebsiteMetadataFields(en, zh)
 
     const entity = await prisma.$transaction(async tx => {
         if (expectedUpdatedAt) {
